@@ -13,6 +13,8 @@ import os
 import pandas as pd
 from keras.models import load_model
 import numpy as np
+from numpy import linalg as LA
+
 import matplotlib.pyplot as plt
 from scipy.stats import norm
 import librosa
@@ -224,6 +226,7 @@ def calc_features_rand(dataset_params, specs):
 
     return features
 
+
 def calc_features(dataset_params, input_spectogram):
     n_fft = dataset_params['n_fft']
     hop_length = dataset_params['hop_length']
@@ -258,5 +261,107 @@ def calc_features(dataset_params, input_spectogram):
         mfccs.append(mfcc)
         onset_strengths.append(onset_strength)
 
+        
     output = {'centroid_frequency' : centroids, 'centroid_frequency_dev' : centroids_dev, 'spectral_contrasts' : contrasts, 'spectral_flatness' : flatnesses, 'zero_crossing_rate' : zeroCrossings, 'MFCC' : mfccs, 'onset_strength' : onset_strengths}
     return output
+
+
+
+
+def calc_metrics(params, yest, y):
+    # calc SDR and NRR
+    "SDR: ref: C. H. Taal, R. C. Hendriks, R. Heusdens, and J. Jensen, 'An Algorithm for Intelligibility Prediction of Time-Frequency Weighted Noisy Speech,' IEEE/ACM"
+    
+    beta = -15 #lower SDR bound
+  
+    # evaluation parametres
+    tBands= params['tbands']
+    fBands= params['fbands']
+    norm_yest = params['norm_yest']
+    clip_yest= params['clip_yest']
+    
+    
+    if fBands <= 1: #time domain
+        SDR,NRR = np.zeros(tBands),np.zeros(tBands)
+        if norm_yest:
+            yest =[LA.norm(y)/LA.norm(yest) * el_yest for el_yest in yest]
+        if clip_yest:
+            lowerBound =[(1+ 10**(-beta/20)) * ely for ely in y]
+            yest =[np.min([elyest, ellowerBound]) for elyest, ellowerBound in zip(yest,lowerBound)]
+        
+        if tBands > 0: #cut y into pieces
+            linscale= np.round(np.linspace(0,y.shape[0],tBands))
+            
+        for n in range(tBands): 
+            
+            # SIgnal 2 Distorsion Ratio:
+            diffTrue2Est= [a-b for a,b in zip( y[np.int(linscale[n]) : np.int(linscale[n+1])],\
+                                                yest[np.int(linscale[n]) : np.int(linscale[n+1])] )]
+            numSDR = np.mean(np.square(diffTrue2Est))    
+            denomSDR= np.mean(np.square(yest[np.int(linscale[n]) : np.int(linscale[n+1])]))
+            # formula uses inverse ratio inside the log, compared to the paper cited 
+            SDR[n]=10* np.log10(numSDR / denomSDR)
+            
+            # Noise Reduction Ratio:
+            numNR =np.mean(np.square( y[np.int(linscale[n]) : np.int(linscale[n+1])] ))
+            denomNR= np.mean(np.square( yest[np.int(linscale[n]) : np.int(linscale[n+1])] ))
+            NRR[n]= 10* np.log10(numNR / denomNR)
+        
+        
+    else: #fBands > 1, do it in the complex domain
+        
+        SDR,NRR = np.zeros(fBands,tBands),np.zeros(fBands,tBands)
+
+        n_fft = params['n_fft']
+        hop_length = params['hop_length']
+        samplerate = params['samplerate']
+        
+        ## compute stft
+        Yest= librosa.core.stft(yest, hop_length=hop_length, win_length=n_fft)
+        Y= librosa.core.stft(y, hop_length=hop_length, win_length=n_fft)
+          
+        ## calculate the grid for the calculation of the metrics
+        # Frequence: just to get a log scale:
+        logscale = librosa.mel_frequencies(n_mels=fBands,fmin=0,fmax=samplerate/2)
+        #librosa.fft_frequencies(sr=22050, n_fft=subbands)
+        stepsF = np.floor(logscale/logscale[-1]* Y.shape[0])
+        
+        # Time:
+        if tBands > 0:
+            stepsT = np.round(np.linspace(0,y.shape[1],tBands))
+        else:
+            stepsT= np.array([0,y.shape[0]])
+            
+        #Ytemp=Y
+        for nf in range(fBands):
+            for nt in range(tBands):
+                #if norm_yest and clip_yest:
+                #Ytemp[nf][nt] = np.min([LA.norm(Y[nf][nt])/LA.norm(Yest[nf][nt]) * Yest[nf][nt], (1+ 10**(-beta/20) * Y[j][m] )])
+
+                # SIgnal 2 Distorsion Ratio:
+                diffTrue2Est= [a-b for a,b in zip( \
+                        Y[ np.int(stepsF[n]) : np.int(stepsF[n+1]) ][ np.int(stepsT[n]) : np.int(stepsT[n+1]) ],\
+                        Yest[ np.int(stepsF[n]) : np.int(stepsF[n+1]) ][ np.int(stepsT[n]) : np.int(stepsT[n+1])]) ]
+                numSDR = np.mean(np.square(diffTrue2Est))    
+                denomSDR= np.mean( np.square( Yest[np.int(stepsF[n]):np.int(stepsF[n+1])][np.int(stepsT[n]):np.int(stepsT[n+1])]))
+                # formula uses inverse ratio inside the log, compared to the paper cited 
+                SDR[nf][nt]= 10*np.log10(numSDR / denomSDR)
+                
+                # Noise Reduction Ratio:
+                numNR =np.mean(np.square( y[np.int(linscale[n]) : np.int(linscale[n+1])] ))
+                denomNR= np.mean(np.square( yest[np.int(linscale[n]) : np.int(linscale[n+1])] ))
+                NRR[nf][nt]= 10* np.log10(numNR / denomNR) 
+    
+    
+    # calc Noise Reduction ratio NR
+    
+    output = {'Signal-To-Distorsion Ratio (SDR)' : SDR, 'Noise Reduction Ratio' : NRR}
+    return output
+
+    
+
+
+
+
+
+
