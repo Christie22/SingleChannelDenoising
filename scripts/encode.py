@@ -1,13 +1,13 @@
 import os
 
+import pandas as pd
 import numpy as np
 import matplotlib as plt
 import pickle
 from keras.models import load_model
-from utilities import *
-from model_utils import SampleNormal, VAELossLayer
-from data_generator import DataGenerator
-from sm_utils import *
+from libs.model_utils import LossLayer
+from libs.data_generator import DataGenerator
+from libs.utilities import load_autoencoder_model, import_spectrogram
 
 
 def main(args):
@@ -15,10 +15,9 @@ def main(args):
     os.environ["CUDA_VISIBLE_DEVICES"] = args['cuda_device']
 
     # load encoder
-    encoder = load_model_vae(
+    encoder, _, _ = load_autoencoder_model(
         args['model_path'], {
-        'SampleNormal': SampleNormal,
-        'VAELossLayer': VAELossLayer
+        'LossLayer': LossLayer
     })
 
     # run predictions
@@ -52,21 +51,6 @@ def main(args):
     np.save(args['latent_vals_path'], s_latent_space)
     print('Done! Latent space values stored at:')
     print(args['latent_vals_path'])
-
-
-# load model
-def load_model_vae(model_path, custom_objects):
-    model = load_model(model_path, custom_objects=custom_objects)
-    # extract encoder from main model
-    encoder = model.get_layer('vae_encoder')
-    return encoder
-
-# load dataset
-def load_data_vae(data_path):
-    with open(data_path, 'rb') as f:
-        out_list, label_list = pickle.load(f)
-    #(out_list, label_list) = np.load(data_path)
-    return (out_list, label_list)
 
 
 # run the thing

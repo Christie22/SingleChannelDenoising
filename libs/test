@@ -1,0 +1,24 @@
+def noising_pink(x, SNR):
+    return xxxx
+
+def noising_orange(x, SNR):
+    return xxxx
+
+
+
+def noising_from_file(filepath):
+    def noising_prototype(x, SNR):
+        noise = load(filepath)
+        return x + noise
+    return noising_prototype
+
+
+class DataGenerator:
+    def blabla(self, blabla):
+        noising_fun(x, -15)
+
+def process_data_logmel(x, sr, n_mels):
+    return XXXXX
+
+
+dg = DataGenerator(..., noising_fun=[noising_pink, noising_orange, noising_from_file('constructionworks.wav')], process_data_fun=process_data_logmel)

@@ -5,10 +5,10 @@ import pickle
 import itertools
 import matplotlib.pyplot as plt
 from keras.models import load_model
-from data_generator import DataGenerator
-from sm_utils import *
 
-from model_utils import SampleNormal, VAELossLayer
+from libs.data_generator import DataGenerator
+from libs.utilities import load_autoencoder_model, load_data, load_all_as_test_data
+from libs.model_utils import LossLayer
 
 
 def main(args):
@@ -53,15 +53,14 @@ def main(args):
     else:
         datasetPath = args['dataset_path']
         print('loading dataset from {}...'.format(datasetPath))
-        train_data, train_labels = load_data_vae(datasetPath)
+        train_data, train_labels = load_data(datasetPath)
         df_labels = pd.DataFrame(list(train_labels))
 
     # load encoder
     print('loading encoder from {}...'.format(args['model_path']))
-    encoder = load_model_vae(
+    encoder, _, _ = load_autoencoder_model(
         args['model_path'], {
-            'SampleNormal': SampleNormal,
-            'VAELossLayer': VAELossLayer
+            'LossLayer': LossLayer
         })
 
     # run predictions
@@ -88,26 +87,6 @@ def main(args):
 
     print('Done! Check content of {} and {}'.format(args['latent_space_paths'], args['history_plot_path']))
 
-
-# load model
-def load_model_vae(model_path, custom_objects):
-    model = load_model(model_path, custom_objects=custom_objects)
-    # extract encoder from main model
-    encoder = model.get_layer('vae_encoder')
-    #encoder.summary()
-    return encoder
-
-
-# load dataset
-def load_data_vae(data_path):
-    with open(data_path, 'rb') as f:
-        out_list, label_list = pickle.load(f)
-    #(out_list, label_list) = np.load(data_path)
-    return (out_list, label_list)
-
-def load_realData_vae(data_path):
-    # TODO
-    return
 
 # create latent space plot
 def plot_latent_space(encoded_train_data, train_labels, n_latent_dim, label_type, ax_rows = 3):

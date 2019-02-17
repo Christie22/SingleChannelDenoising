@@ -1,13 +1,21 @@
 [[source]]
+name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
-name = "pypi"
-
-[packages]
 
 [dev-packages]
 pylint = "*"
-"autopep8" = "*"
+autopep8 = "*"
+
+[packages]
+numpy = "*"
+matplotlib = "*"
+librosa = "*"
+pandas = "*"
+jupyter = "*"
+keras = "*"
+tensorflow = "*"
+scipy = "*"
 
 [requires]
-python_version = "3.6"
+python_version = "3.5"

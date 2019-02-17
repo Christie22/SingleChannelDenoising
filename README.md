@@ -27,7 +27,7 @@ source activate ml_env1
 ```
 ### Model definition
 - Create new model as in `models/` as `model_<model_name>.py`
-  - Implement a custom class named `VaeModel`
+  - Implement a custom class named `AEModelFactory`
   - Constructor takes model parameters
   - Expose `get_model()` methos which returns a `keras.Model` object
   - Define encoder and decoder as separate models
