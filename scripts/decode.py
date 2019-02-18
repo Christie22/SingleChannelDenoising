@@ -2,22 +2,19 @@ import os
 import numpy as np
 import librosa.display
 import matplotlib.pyplot as plt
-from keras.models import load_model
 from scipy.stats import norm
-from model_utils import SampleNormal, VAELossLayer
-from utilities import *
+from libs.model_utils import LossLayer
+from libs.utilities import load_autoencoder_model, unprocess_data, plot_spectrogram
 
 def main(args):
     # set GPU device(s)
     os.environ["CUDA_VISIBLE_DEVICES"] = args['cuda_device']
 
     # load decoder
-    decoder = load_model_vae(
+    _, decoder, _ = load_autoencoder_model(
         args['model_path'], {
-        'SampleNormal': SampleNormal,
-        'VAELossLayer': VAELossLayer
+        'LossLayer': LossLayer
     })
-
 
     # generate spectrogram
     print('Latent values path: {}'.format(args['latent_vals_path']))
@@ -40,12 +37,7 @@ def main(args):
     plot_spectrogram(x_decoded,'generated_spectogram')
 
 
-def load_model_vae(model_path, custom_objects):
-    model = load_model(model_path, custom_objects=custom_objects)
-    # extract encoder from main model
-    decoder = model.get_layer('vae_decoder')
-    #decoder.summary()
-    return decoder
+
 
 # run the thing
 if __name__ == '__main__':

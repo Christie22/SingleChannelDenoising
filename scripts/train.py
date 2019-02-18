@@ -1,4 +1,4 @@
-# train a model using settings in `params.py` for basic VAE
+# train a model using settings in `params.py` for basic denoising AE
 # not tested yet
 
 # internal and external modules
@@ -11,12 +11,12 @@ from keras import backend as K
 from keras.models import Model, load_model
 from keras.callbacks import EarlyStopping, ModelCheckpoint, TerminateOnNaN
 from sklearn.model_selection import train_test_split
-from sm_utils import *
 #from keras.datasets import mnist
 
-# models utils
-from model_utils import SampleNormal, VAELossLayer
-from data_generator import DataGenerator
+# 
+from libs.utilities import load_autoencoder_model, load_data, load_dataset
+from libs.model_utils import LossLayer
+from libs.data_generator import DataGenerator
 
 
 def main(args):
@@ -52,25 +52,24 @@ def main(args):
 
     else:
         # IMPORT DATA
-        (train_X, train_Y) = load_data_vae(args['dataset_path'])
+        (train_X, train_Y) = load_data(args['dataset_path'])
         print('Training data shape : ', train_X.shape, train_Y.shape)
 
         train_X, valid_X = train_test_split(
             train_X, test_size=0.2, random_state=12345)
 
     # CREATE MODEL
-    model = create_model_vae({
-        'SampleNormal': SampleNormal,
-        'VAELossLayer': VAELossLayer
-        }, args)
+    model = create_model({
+        'LossLayer': LossLayer
+    }, args)
 
     # compile model (loss function must be set in the model class)
     # TODO add metrics https://keras.io/metrics/
     model.compile(optimizer='adam', loss=None, metrics=['mse'])
     # print model summaries
     # TODO is the structure with layers still relevant?
-    model.get_layer('vae_encoder').summary()
-    model.get_layer('vae_decoder').summary()
+    model.get_layer('encoder').summary()
+    model.get_layer('decoder').summary()
     model.summary()
 
     # TRAIN MODEL
@@ -122,36 +121,36 @@ def main(args):
     print('- Run `python generate.py` to generate a latent space manifold with novel outputs')
 
 # create the entire model (encoder + decoder)
-def create_model_vae(custom_objects, args):
+def create_model(custom_objects, args):
     # import model
     model_name = args['model_name']
     if model_name == 'conv_dilation_leaky':
         print('Using model `{}` from {}'.format(model_name, 'model_conv_dilation_leaky'))
-        import model_conv_dilation_leaky as model_vae
+#        import model_conv_dilation_leaky as m
     elif model_name == 'conv_dilation':
         print('Using model `{}` from {}'.format(model_name, 'model_conv_dilation'))
-        import model_conv_dilation as model_vae
+#        import model_conv_dilation as m
     elif model_name == 'dense_leaky':
         print('Using model `{}` from {}'.format(model_name, 'model_dense_leaky'))
-        import model_dense_leaky as model_vae
+#        import model_dense_leaky as m
     elif model_name == 'dense':
         print('Using model `{}` from {}'.format(model_name, 'model_dense'))
-        import model_dense as model_vae
+#        import model_dense as m
     elif model_name == 'hsu_glass':
         print('Using model `{}` from {}'.format(model_name, 'model_hsu_glass'))
-        import model_hsu_glass as model_vae
+#        import model_hsu_glass as m
     elif model_name == 'vanilla_resnet':
         print('Using model `{}` from {}'.format(model_name, 'model_vanilla_resnet'))
-        import model_vanilla_resnet as model_vae
+#        import model_vanilla_resnet as m
     else:
-        print('desired model not found, byeeeee')
-        return
+        print('importing example model :D')
+        import models.model_example as m
 
     # calc input shape and enforce it
     input_shape = (args['n_rows'], args['n_cols'], args['n_channels'])
     K.set_image_data_format('channels_last')
     # generate model
-    obj = model_vae.VaeModel(
+    obj = m.AEModelFactory(
         input_shape=input_shape,
         kernel_size=args['kernel_size'],
         n_filters=args['n_filters'],
@@ -160,17 +159,10 @@ def create_model_vae(custom_objects, args):
     model = obj.get_model()
     return model
 
-# load dataset
-def load_data_vae(data_path):
-    with open(data_path, 'rb') as f:
-        out_list, label_list = pickle.load(f)
-    #(out_list, label_list) = np.load(data_path)
-    return (out_list, label_list)
-
 # run the thing
 if __name__ == '__main__':
     import argparse
-    parser = argparse.ArgumentParser(description='Trains a VAE with given specs')
+    parser = argparse.ArgumentParser(description='Trains a denoising AE with given parameters')
 
     # add parameters
     parser.add_argument('dataset_path', type=str, help='dataset path')
