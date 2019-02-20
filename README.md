@@ -2,6 +2,7 @@
 > Semester project for *Sound and Music Computing* (AAU SMC 2018)
 
 **Link to report: https://www.overleaf.com/project/**
+**Link to datasets: https://drive.google.com/drive/u/0/folders/1MmtiRQF-33Gkx1ZJZ7vSDCzy-vqjaUw6/**
 
 
 ## Proposal
