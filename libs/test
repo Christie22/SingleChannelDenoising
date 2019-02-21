@@ -24,4 +24,4 @@ def process_data_logmel(x, sr, n_mels):
 dg = DataGenerator(..., noising_fun=[noising_pink, noising_orange, noising_from_file('constructionworks.wav')], process_data_fun=process_data_logmel)
 
 
-1
+2
