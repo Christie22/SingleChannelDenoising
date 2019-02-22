@@ -18,16 +18,16 @@ import random as rnd
 rnd.seed(576)
 
 class DataGenerator(keras.utils.Sequence):
-    def __init__(self, data_path, batch_size, dim,
-                 noising_func ='white_noising', shuffle=True, SNR):
+    def __init__(self, data_path, batch_size, dim, process_data_func, shuffle=True,
+                 createNoise_funcs = [white_noise, pink_noise, take_file_as_noise], SNR):
         self.dim = dim
         self.batch_size = batch_size
+        self.createNoise_funcs = createNoise_funcs
         self.data_path = os.path.expanduser(data_path)
-
+        self.process_data_func = process_data_func
         self.shuffle = shuffle
         self.pre_processing = pre_processing
         self.nBatch = None
-        self.on_epoch_end()
         self.SNR = SNR
 
     def __len__(self):
@@ -44,95 +44,90 @@ class DataGenerator(keras.utils.Sequence):
         s = librosa.load(path)
         
         self.length_OrigSignal = len(s)
-        
-        # Generate indexes of the batch
-#        indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]
-
-#        self.indexes = range(self.length_OrigSignal )
-#        
+    
         # Generate data
         x = self.__data_generation(s)
 
         return x
 
-#    def on_epoch_end(self):
-#        self.indexes = np.arange(len(self.list_IDs))
-#        if self.shuffle:
-#            np.random.shuffle(self.indexes)
-
     def __data_generation(self, s):
-        # Initialization
-        x = np.empty(self.batch_size, *self.dim)
-
-        # Generate data
-        for i in self.indexes:
-            # Store sample
-            x[i,] = self._noising_(self.pre_processing)
-            
-            
-            
-            
-            if self.pre_processing == 'white':
-
-                s = self.white_noise(s)
-                s = np.reshape(s, (s.shape[0], s.shape[1], 1))
-                x[i, ] = s
-                s = None
-            elif self.pre_processing == 'reim':
-                s = np.load(path)
-                s = self.compute_reim_s(s)
-                # check for odd number of bins
-                if s.shape[0] % 2 != 0:
-                    s = s[:-1]
-                x[i, ] = s
-                s = None
-            
-            else:
-                x[i, ] = None
-
-
+        noise = createNoise_funcs[0](self, s) #create the noise wanted
+        x = apply_noise(s, noise) #apply it to the original sound
+        # write them somewhere TODO
         return x
       
-            
-    def white_noising(x, SNR):
+                
+    """ functions creating different types of noise """    
+    def white_noise(x, SNR):
         N = max(x.shape);
         sigma = np.sqrt( (x @ x.T) / (N * 10**(SNR/10)) )
-        x_noised = [x[k] + sigma * rnd.uniform(-1,1) for k in range( N) ]
-        return x_noised
+        noise = [rnd.uniform(-1,1) for k in range( N) ]
+        return noise
     
-    def pink_noising(x, SNR):
-        # TODO
-        x_noised = x
-        return x_noised
-    
-    def music_noising(x, SNR):
-        musicFromFile = load()
-        # TODO
-        x_noised = x
-        return x_noised
-    
-    def speech_noising(x, SNR):
-        # TODO
-        x_noised = x
-        return x_noised
-    
-    
-    def add_noising_from_file(filepath):
-        def noising_prototype(x, SNR):
-            noise = load(filepath)
-            if len(noise) > len(x):
-                noise = noise[:len(x)]
-            elif len(noise) < len(x):
-                noise = 
-                
-        return x + noise
-    return noising_prototype
-    
-
-    def conv_noising_from_file(filepath, durConv, offset):
-        def noising_prototype(x, SNR):
-            noise = librosa.load(filepath, offset = offset, duration = durConv)
+    def pink_noise(x, SNR):
+        """Generates pink noise using the Voss-McCartney algorithm.
             
-        return np.convolve(x,  noise, 'same')
+        nrows: number of values to generate
+        rcols: number of random sources to add
+        
+        returns: NumPy array
+        """
+	#TODO take into account SNR
+        nrows = len(x) #x.shape
+        ncols=16
+        
+        array = np.empty((nrows, ncols))
+        array.fill(np.nan)
+        array[0, :] = np.random.random(ncols)
+        array[:, 0] = np.random.random(nrows)
+        
+        # the total number of changes is nrows
+        n = nrows
+        cols = np.random.geometric(0.5, n)
+        cols[cols >= ncols] = 0
+        rows = np.random.randint(nrows, size=n)
+        array[rows, cols] = np.random.random(n)
     
+        df = pd.DataFrame(array)
+        df.fillna(method='ffill', axis=0, inplace=True)
+        total = df.sum(axis=1)
+        noise= total.values
+        return noise
+    
+    
+    def take_file_as_noise(self, filepath):
+        def noising_prototype(self, s, SNR):
+            noise = load(filepath)
+            
+            if len(noise) >= len(s):
+                noise = noise[:len(s)]
+                # randomization of the noising track
+                rdnOrder = [np.argsort([rnd.uniform(0,1) for i in range(self.nBatch)])]
+                noise_temp = [noise[rdni * self.nBatch : (rdni+1) * self.nBatch ] for rdni in rdnOrder ]
+                
+            elif len(noise) < len(s):
+                
+                noise = 1# TODO     
+                
+        return noise
     return noising_prototype
+    
+#
+#    def conv_noising_from_file(filepath, durConv, offset):
+#        def noising_prototype(x, SNR):
+#            noise = librosa.load(filepath, offset = offset, duration = durConv)
+#            
+#        return np.convolve(x,  noise, 'same')
+#    
+#    return noising_prototype
+
+
+    """ function applying the noise previously created to the original one"""
+    def apply_noise(self, s, noise):
+        # Initialisation
+        x = np.empty(self.batch_size, *self.dim)
+        # Generate data
+        for i in self.indexes:
+            x[i,] = s[i*self.nBatch : (i+1)*self.nBatch] + noise[i*self.nBatch : (i+1)*self.nBatch]
+        return x
+         
