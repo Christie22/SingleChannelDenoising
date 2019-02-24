@@ -13,22 +13,106 @@ import os
 import keras
 import librosa
 import numpy as np
+import pandas as pd
 from updated_utils import *
 import random as rnd
-rnd.seed(576)
+import time
+rnd.seed(int(time.time())) # generate seed from the time at which this script is run
 
+""" functions creating different types of noise """    
+def white_noise(x, SNR):
+    N = max(x.shape);
+    # N = len(x) alternatively
+    sigma = np.sqrt( (x @ x.T) / (N * 10**(SNR/10)) )
+    noise = [sigma * rnd.uniform(-1,1) for k in range( N) ]
+    return noise
+
+def pink_noise(x, SNR):
+    """Generates pink noise using the Voss-McCartney algorithm.
+        
+    nrows: number of values to generate
+    rcols: number of random sources to add
+    
+    returns: NumPy array
+    """
+    nrows = len(x) #x.shape
+    ncols=16
+    
+    array = np.empty((nrows, ncols))
+    array.fill(np.nan)
+    array[0, :] = np.random.random(ncols)
+    array[:, 0] = np.random.random(nrows)
+    
+    # the total number of changes is nrows
+    n = nrows
+    cols = np.random.geometric(0.5, n)
+    cols[cols >= ncols] = 0
+    rows = np.random.randint(nrows, size=n)
+    array[rows, cols] = np.random.random(n)
+
+    df = pd.DataFrame(array)
+    df.fillna(method='ffill', axis=0, inplace=True)
+    total = df.sum(axis=1)
+
+    sigma = np.sqrt( (x @ x.T) / (nrows * 10**(SNR/10)) )
+    noise= sigma*(total.values-np.mean(total.values)) / (max(total.values) - np.mean(total.values))
+    
+    return noise
+
+def velvet_noise(x, SNR):
+    N = max(x.shape);
+    # N = len(x) alternatively
+    sigma = np.sqrt( (x @ x.T) / (N * 10**(SNR/10)) )
+    print('sigma = {0}'.format(sigma))
+    def createVelvetNoise(rate_zero = .95):
+        ##### Role: create a vector of velvet noise (containing exclusively {-1,0,1})
+        ## Input:
+        # N: size of the output vector
+        # rate_zero(optional): pourcentage (between 0 and 1) of "0" in the output vector. 
+        ## ouput: velvet noise 
+        # V: standard vector
+        # params(optional) (struct): parametres (nb of zeros, indices, values) TODO
+
+
+
+        # should be equally destributed between (-1) and 1.
+        myVelvetNoise = [rnd.uniform(-1, 1) for k in range( N) ] #random numbers between -1 and 1
+        noise = [sigma * ((vv> rate_zero) - (vv < -rate_zero)) for vv in myVelvetNoise]
+        
+        #        params.NonZeros = np.sum(np.abs(noise))
+        #        params.realZeroRate = 1-params.NonZeros/noise.shape[0];
+        #        [params.indNonZeros, ~,params.valNonZeros] = find(SV);
+        #        params.sizeVN = N;
+        return noise
+    return createVelvetNoise()
+  
+
+
+def take_file_as_noise(x, SNR):
+    N = len(x)
+    sigma = np.sqrt( (x @ x.T) / (N * 10**(SNR/10)) )
+    def noising_prototype( filepath):
+#        path = os.path.join(filepath + '.wav')
+        load_noise = np.load(filepath)
+        noise =  sigma * (load_noise - np.mean(load_noise)) + np.mean(load_noise) #??? TODO
+        return noise
+    return noising_prototype
+
+    
 class DataGenerator(keras.utils.Sequence):
-    def __init__(self, data_path, batch_size, dim, process_data_func, shuffle=True,
-                 createNoise_funcs = [white_noise, pink_noise, take_file_as_noise], SNR):
+    def __init__(self, data_path, batch_size, dim, noise_choice = 0, shuffle=True, noisingFile_path = None,
+            createNoise_funcs = [white_noise, pink_noise, velvet_noise, take_file_as_noise], convNoise = False, SNR = [0,5,10,15]):
         self.dim = dim
         self.batch_size = batch_size
         self.createNoise_funcs = createNoise_funcs
         self.data_path = os.path.expanduser(data_path)
-        self.process_data_func = process_data_func
+        self.noisingFile_path = os.path.expanduser(noisingFile_path)
         self.shuffle = shuffle
-        self.pre_processing = pre_processing
         self.nBatch = None
         self.SNR = SNR
+        self.noise_choice = noise_choice
+        self.convNoise = convNoise
+        
 
     def __len__(self):
         # estimation of the number of chunks that we'll get
@@ -51,83 +135,51 @@ class DataGenerator(keras.utils.Sequence):
         return x
 
     def __data_generation(self, s):
-        noise = createNoise_funcs[0](self, s) #create the noise wanted
-        x = apply_noise(s, noise) #apply it to the original sound
-        # write them somewhere TODO
+        # trim s to a multiple of batch_size:
+        keptS_length = len(s) - (len(s) % self.batch_size)
+        s_short = s[ :keptS_length] 
+        
+        # create noise
+        noise = self.createNoise_funcs[self.noise_choice](s_short, self.SNR) #create the noise wanted
+        
+        if self.noise_choice == 3: #i.e. if take_file_as_noise
+            noise = self.rdn_noise(s, noise) 
+        
+        if self.convNoise == True or type(self.convNoise)==int :
+            if type(self.convNoise)==int :
+                conv_length = self.convNoise
+            else:
+                conv_length = self.batch_size
+                
+            x = np.convolve(s_short, noise[ :conv_length], 'same')
+            
+        else: # additive noising
+            x = s_short + noise
+           
+            
+        x = np.reshape(x, (self.nBatch ,self.batch_size ))
+        
         return x
+    # write them somewhere TODO
       
-                
-    """ functions creating different types of noise """    
-    def white_noise(x, SNR):
-        N = max(x.shape);
-        sigma = np.sqrt( (x @ x.T) / (N * 10**(SNR/10)) )
-        noise = [rnd.uniform(-1,1) for k in range( N) ]
-        return noise
     
-    def pink_noise(x, SNR):
-        """Generates pink noise using the Voss-McCartney algorithm.
-            
-        nrows: number of values to generate
-        rcols: number of random sources to add
+    def rdn_noise(self, s, noise):
+        # Function: randomize the order of the chunks of the file that is used as noise
         
-        returns: NumPy array
-        """
-	#TODO take into account SNR
-        nrows = len(x) #x.shape
-        ncols=16
-        
-        array = np.empty((nrows, ncols))
-        array.fill(np.nan)
-        array[0, :] = np.random.random(ncols)
-        array[:, 0] = np.random.random(nrows)
-        
-        # the total number of changes is nrows
-        n = nrows
-        cols = np.random.geometric(0.5, n)
-        cols[cols >= ncols] = 0
-        rows = np.random.randint(nrows, size=n)
-        array[rows, cols] = np.random.random(n)
-    
-        df = pd.DataFrame(array)
-        df.fillna(method='ffill', axis=0, inplace=True)
-        total = df.sum(axis=1)
-        noise= total.values
-        return noise
-    
-    
-    def take_file_as_noise(self, filepath):
-        def noising_prototype(self, s, SNR):
-            noise = load(filepath)
-            
-            if len(noise) >= len(s):
-                noise = noise[:len(s)]
-                # randomization of the noising track
-                rdnOrder = [np.argsort([rnd.uniform(0,1) for i in range(self.nBatch)])]
-                noise_temp = [noise[rdni * self.nBatch : (rdni+1) * self.nBatch ] for rdni in rdnOrder ]
-                
-            elif len(noise) < len(s):
-                
-                noise = 1# TODO     
-                
-        return noise
-    return noising_prototype
-    
-#
-#    def conv_noising_from_file(filepath, durConv, offset):
-#        def noising_prototype(x, SNR):
-#            noise = librosa.load(filepath, offset = offset, duration = durConv)
-#            
-#        return np.convolve(x,  noise, 'same')
-#    
-#    return noising_prototype
-
-
-    """ function applying the noise previously created to the original one"""
-    def apply_noise(self, s, noise):
-        # Initialisation
-        x = np.empty(self.batch_size, *self.dim)
         # Generate data
-        for i in self.indexes:
-            x[i,] = s[i*self.nBatch : (i+1)*self.nBatch] + noise[i*self.nBatch : (i+1)*self.nBatch]
-        return x
-         
+        if len(noise) >= len(s):
+            noise = noise[:len(s)]
+            # randomization of the noising track
+            rdnOrder = [np.argsort([rnd.uniform(0,1) for i in range(self.nBatch)])]
+            new_noise = []
+            new_noise.append( [noise[rdni * self.batch_size : (rdni+1) * self.batch_size ] for rdni in rdnOrder ])
+            
+        elif len(noise) < len(s): # need to create some noise in addition: white_noising / interpolation / ...
+            # here: white_noising
+            keptNoise_length = len(noise) - (len(noise) % self.batch_size)
+            noise_noised = noise[ :(len(s) - keptNoise_length)] + [rnd.uniform(-1 ,1) for k in range((len(s) - keptNoise_length))]
+            new_noise = noise[ :keptNoise_length].append( noise_noised )
+#            new_noise = np.reshape( noise[ :keptNoise_length].append( noise_noised ), (1, self.nBatch * self.batch_size ))
+        
+        # TODO: sonme normalisation?
+        return new_noise         
