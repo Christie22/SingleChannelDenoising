@@ -21,10 +21,13 @@ rnd.seed(int(time.time())) # generate seed from the time at which this script is
 
 """ functions creating different types of noise """    
 def white_noise(x, SNR):
+    print('Using white noise')
+    
     N = max(x.shape);
     # N = len(x) alternatively
     sigma = np.sqrt( (x @ x.T) / (N * 10**(SNR/10)) )
     noise = [sigma * rnd.uniform(-1,1) for k in range( N) ]
+    
     return noise
 
 def pink_noise(x, SNR):
@@ -35,6 +38,8 @@ def pink_noise(x, SNR):
     
     returns: NumPy array
     """
+    print('Using pink noise')
+    
     nrows = len(x) #x.shape
     ncols=16
     
@@ -60,6 +65,8 @@ def pink_noise(x, SNR):
     return noise
 
 def velvet_noise(x, SNR):
+    print('Using velvet noise')
+    
     N = max(x.shape);
     # N = len(x) alternatively
     sigma = np.sqrt( (x @ x.T) / (N * 10**(SNR/10)) )
@@ -67,7 +74,6 @@ def velvet_noise(x, SNR):
     def createVelvetNoise(rate_zero = .95):
         ##### Role: create a vector of velvet noise (containing exclusively {-1,0,1})
         ## Input:
-        # N: size of the output vector
         # rate_zero(optional): pourcentage (between 0 and 1) of "0" in the output vector. 
         ## ouput: velvet noise 
         # V: standard vector
@@ -84,7 +90,7 @@ def velvet_noise(x, SNR):
         #        [params.indNonZeros, ~,params.valNonZeros] = find(SV);
         #        params.sizeVN = N;
         return noise
-    return createVelvetNoise()
+    return createVelvetNoise() #??
   
 
 
@@ -92,6 +98,7 @@ def take_file_as_noise(x, SNR):
     N = len(x)
     sigma = np.sqrt( (x @ x.T) / (N * 10**(SNR/10)) )
     def noising_prototype( filepath):
+        print('Using the following file as noise: {0}'.format(filepath))
 #        path = os.path.join(filepath + '.wav')
         load_noise = np.load(filepath)
         noise =  sigma * (load_noise - np.mean(load_noise)) + np.mean(load_noise) #??? TODO
