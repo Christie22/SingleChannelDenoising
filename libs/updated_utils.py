@@ -232,7 +232,6 @@ def plot_spectrogram(spect,title_name):
 
 def calc_metrics(y, yest, **kwargs):
     # calc SDR and NRR
-    "SDR: ref: C. H. Taal, R. C. Hendriks, R. Heusdens, and J. Jensen, 'An Algorithm for Intelligibility Prediction of Time-Frequency Weighted Noisy Speech,' IEEE/ACM"
     
     # checking the type of the input
     sizY = y.shape
@@ -352,44 +351,89 @@ def calc_metrics(y, yest, **kwargs):
     
 
 def calc_STOI(y, yest, **kwargs):
-    keys =kwargs.keys()
+    "SDR: ref: C. H. Taal, R. C. Hendriks, R. Heusdens, and J. Jensen, 'An Algorithm for Intelligibility Prediction of Time-Frequency Weighted Noisy Speech,' IEEE/ACM"
     
-    if 'norm_yest' in keys:
-        norm_yest=kwargs.pop('norm_yest', '')
-    else:
-        norm_yest=True
-        
-    if 'clip_yest' in keys:
-        clip_yest=kwargs.pop('clip_yest', '')
-    else:
-        clip_yest=True
+    keys = kwargs.keys()
+    
+#    if 'norm_yest' in keys:
+#        norm_yest=kwargs.pop('norm_yest', '')
+#    else:
+#        norm_yest=True
+#        
+#    if 'clip_yest' in keys:
+#        clip_yest=kwargs.pop('clip_yest', '')
+#    else:
+#        clip_yest=True
         
     # Parameters
     if 'beta' in keys:
-        beta=kwargs.pop('beta', '')
+        beta = kwargs.pop('beta', '')
     else:
         beta = -15 #lower SDR bound
     
     if 'STOIsamplerate' in keys:
-        STOIsamplerate=kwargs.pop('STOIsamplerate', '')
+        STOIsamplerate = kwargs.pop('STOIsamplerate', '')
     else:
-        STOIsamplerate= 10000
+        STOIsamplerate = 10000
         
+    if 'n_fft' in keys:
+        n_fft = kwargs.pop('n_fft','')
+    else:
+        n_fft = 256 # 0-padded to 512
         
-    nFrame= 256 #for a new STFT? 0-padding until 512
-    
+    if 'hop_length' in keys:
+        hop_length = kwargs.pop('hop_length','')
+    else:
+        hop_length = n_fft/2 
+            
     if 'STOIdurFrame' in keys:
         STOIdurFrame = kwargs.pop('STOIdurFrame','')
     else:
         STOIdurFrame = .386 # in sec, optimal for STOI according to the ref
     STOInFrame= np.int(STOIdurFrame * STOIsamplerate)
     
-    #### TODO
     # stft of time-domain signals / can be done with specs but then includes uncertainties about the parameters' values used
-    # eliminate sequences without speech (energy < 40 dB)
+    Yest = librosa.core.stft(yest, hop_length=hop_length, win_length=n_fft,window='hann')
+    Y    = librosa.core.stft(y,    hop_length=hop_length, win_length=n_fft,window='hann')
+    
+    Y_dB = librosa.core.amplitude_to_db(Y)
+    
+    NRJ_Y = np.sum(Y_dB, axis = 0) / Y_dB.shape[0] 
+    indMaxEnergyFrameInCleanSpeech = [ii for ii,Yii in enumerate(NRJ_Y) if Yii == np.max(NRJ_Y) ]
+    
+    # find sequences without speech (energy < 40 dB)
+    maxEnergyFrameInCleanSpeech = NRJ_Y[indMaxEnergyFrameInCleanSpeech[0]]
+    framesToDiscard = [ii for ii in range(Y_dB.shape[0]) if NRJ_Y[ii] < maxEnergyFrameInCleanSpeech - 40]
+    framesToKeep = set(range(Y_dB.shape[0]), framesToDiscard)
+    
+    # eliminate sequences without speech (energy < 40 dB) 
+    Y = [Y[:,ff] for ff in framesToKeep]
+    Y_dB = librosa.core.amplitude_to_db(Y)
+    Y_power = librosa.core.db_to_power(Y_dB, ref=1.0)
+    
+    Yest = [Yest[:,ff] for ff in framesToKeep]
+    Yest_dB = librosa.core.amplitude_to_db(Yest)
+    Yest_power = librosa.core.db_to_power(Yest_dB, ref=1.0)
+    
+    # reconstruction of the trimmed signals
+#    y = librosa.core.istft(Y, hop_length=hop_length, win_length=n_fft,window='hann')
+#    yest = librosa.core.istft(Yest, hop_length=hop_length, win_length=n_fft,window='hann')   
+    
     # a one-third octave band analysis by grouping DFT-bins. In total 15 one-third octave bands > 150Hz and < 4.3kHz (center of the highest band)
-    # calculate T-F units = normSquareBin
+    logscale = librosa.mel_frequencies(n_mels=16, fmin=100, fmax=5000) 
+    #16, so as to get 15 bands,  5000 = sr/2
+    stepsF = np.floor(logscale/logscale[-1]* Y.shape[0]) - 1
+    stepsF[0] = 0
+    #stepsF[-1] = nBands or floor(nfft/2) (+ 1)
+
+    # calculate T-F units
+    TF_units = np.empty(Y.shape[1])
+    for t in range(Y.shape[1]):
+        TF_units[t,] = [np.sum(Y_power[np.int(stepsF[f]):np.int(stepsF[f+1]), :]) for f in range(len(stepsF)-1)]
+    
+    ## TODO   
     # short-term segmentation
+    short_term_segments = [TF_units[:,t] ]
     # normalise + clip yest
     # correlation coeff
     # average
