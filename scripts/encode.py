@@ -10,7 +10,7 @@ from libs.data_generator import DataGenerator
 from libs.utilities import load_autoencoder_model, import_spectrogram
 
 
-def main(args):
+def encode(args):
     # set GPU device(s)
     os.environ["CUDA_VISIBLE_DEVICES"] = args['cuda_device']
 
