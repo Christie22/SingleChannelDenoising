@@ -1,168 +1,197 @@
 """
-Created on 31.10.2018
+preprocess data! edit `__init__`, `__len__`, `__data_generation`, etc to support:
+- input files as spectrograms / time-domain signals
+- (DONE) fragmentation of input files (long file => multiple chunks)
+- pre-processing function as input argument! (accepts time-domain data and 
+extra parameters (sr, n_mels, etc...))
+- (DONE) clean up the label mess 
+- _noising_ functions as input argument! i.e. pass list of functions to DataGenerator 
+(each function take time-domain data and SNR value __only__)
 
-@author: Tomas Gajarsky
-@modified by: Riccardo Miccini
-
-Data generator for fitting data on Keras models.
-
-Based on https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly
 """
-
 import os
 import keras
 import librosa
 import numpy as np
-from utilities import *
+import pandas as pd
+from updated_utils import *
+import random as rnd
+import time
+rnd.seed(int(time.time())) # generate seed from the time at which this script is run
+#from scipy.io.wavfile import write
 
-# NOTES:
-# If `labels` is None, it's going to return (x, None) or (x, x) depending on `y_value`.
-# In order to return (x, y), set `labels` to a dictionary {'list_ID': label} and `y_value` to 'label'.
+""" functions creating different types of noise """    
+def white_noise(x, SNR):
+    print('Using white noise')
+    
+    N = max(x.shape);
+    # N = len(x) alternatively
+    sigma = np.sqrt( (x @ x.T) / (N * 10**(SNR/10)) )
+    noise = [sigma * rnd.uniform(-1,1) for k in range( N) ]
+    
+    return noise
+
+def pink_noise(x, SNR):
+    """Generates pink noise using the Voss-McCartney algorithm.
+        
+    nrows: number of values to generate
+    rcols: number of random sources to add
+    
+    returns: NumPy array
+    """
+    print('Using pink noise')
+    
+    nrows = len(x) #x.shape
+    ncols=16
+    
+    array = np.empty((nrows, ncols))
+    array.fill(np.nan)
+    array[0, :] = np.random.random(ncols)
+    array[:, 0] = np.random.random(nrows)
+    
+    # the total number of changes is nrows
+    n = nrows
+    cols = np.random.geometric(0.5, n)
+    cols[cols >= ncols] = 0
+    rows = np.random.randint(nrows, size=n)
+    array[rows, cols] = np.random.random(n)
+
+    df = pd.DataFrame(array)
+    df.fillna(method='ffill', axis=0, inplace=True)
+    total = df.sum(axis=1)
+
+    sigma = np.sqrt( (x @ x.T) / (nrows * 10**(SNR/10)) )
+    noise= sigma*(total.values-np.mean(total.values)) / (max(total.values) - np.mean(total.values))
+    
+    return noise
+
+def velvet_noise(x, SNR):
+    print('Using velvet noise')
+    
+    N = max(x.shape);
+    # N = len(x) alternatively
+    sigma = np.sqrt( (x @ x.T) / (N * 10**(SNR/10)) )
+    print('sigma = {0}'.format(sigma))
+    
+    def createVelvetNoise(rate_zero = .95):
+        ##### Role: create a vector of velvet noise (containing exclusively {-1,0,1})
+        ## Input:
+        # rate_zero(optional): pourcentage (between 0 and 1) of "0" in the output vector. 
+        ## ouput: velvet noise 
+        # V: standard vector
+        # params(optional) (struct): parametres (nb of zeros, indices, values) TODO
+
+
+        # should be equally destributed between (-1) and 1.
+        myVelvetNoise = [rnd.uniform(-1, 1) for k in range( N) ] #random numbers between -1 and 1
+        noise = [sigma * ((vv> rate_zero) - (vv < -rate_zero)) for vv in myVelvetNoise]
+        
+        #        params.NonZeros = np.sum(np.abs(noise))
+        #        params.realZeroRate = 1-params.NonZeros/noise.shape[0];
+        #        [params.indNonZeros, ~,params.valNonZeros] = find(SV);
+        #        params.sizeVN = N;
+        return noise
+    return createVelvetNoise() #??
+  
+
+
+def take_file_as_noise(x, SNR):
+    N = len(x)
+    sigma = np.sqrt( (x @ x.T) / (N * 10**(SNR/10)) )
+    def noising_prototype( filepath):
+        print('Using the following file as noise: {0}'.format(filepath))
+#        path = os.path.join(filepath + '.wav')
+        load_noise = np.load(filepath)
+        noise =  sigma * (load_noise - np.mean(load_noise)) + np.mean(load_noise) #??? TODO
+        return noise
+    return noising_prototype
+
+    
 class DataGenerator(keras.utils.Sequence):
-    def __init__(self, list_IDs, labels, data_path, batch_size, dim, n_channels,
-                 n_classes, pre_processing='Standard', shuffle=True, y_value='label', norm_factor=142):
+    def __init__(self, data_path, batch_size, dim=1, noise_choice = 0, sr=22050, noisingFile_path = None,
+            createNoise_funcs = [white_noise, pink_noise, velvet_noise, take_file_as_noise], convNoise = False, SNR = 5):
+        # christie@purwins-SYS-7048GR-TR:/data/riccardo_datasets/cnn_news/newsday031513.wav
+        self.sr = sr
         self.dim = dim
         self.batch_size = batch_size
-        self.labels = labels
+        self.createNoise_funcs = createNoise_funcs
         self.data_path = os.path.expanduser(data_path)
-        self.list_IDs = list_IDs
-        self.n_channels = n_channels
-        self.n_classes = n_classes
-        self.shuffle = shuffle
-        self.y_value = y_value
-        self.pre_processing = pre_processing
-        self.norm_factor = norm_factor
-        self.on_epoch_end()
+        self.noisingFile_path = os.path.expanduser(noisingFile_path)
+        self.nBatch = None
+        self.SNR = SNR
+        self.noise_choice = noise_choice
+        self.convNoise = convNoise
+        
 
     def __len__(self):
-        return int(np.floor(len(self.list_IDs) / self.batch_size))
+        # estimation of the number of chunks that we'll get
+        if not self.nBatch:
+            nBatch = int(np.floor(self.length_OrigSignal / self.batch_size))
+        self.indexes = range(nBatch)
+        
+        return nBatch
 
-    def __getitem__(self, index):
-        # Generate indexes of the batch
-        indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]
-
-        # Find list of IDs
-        list_IDs_temp = [self.list_IDs[k] for k in indexes]
-
+    def __getitem__(self):
+#        if not self.length_OrigSignal:
+        path = os.path.join(self.data_path + '.wav')
+        s = librosa.load(path, self.sr)
+          
+        self.length_OrigSignal = len(s)
+    
         # Generate data
-        x, y = self.__data_generation(list_IDs_temp)
+        x = self.__data_generation(s)
 
-        return x, y
+        return x
 
-    def on_epoch_end(self):
-        self.indexes = np.arange(len(self.list_IDs))
-        if self.shuffle:
-            np.random.shuffle(self.indexes)
-
-    def __data_generation(self, list_IDs_temp):
-        # Initialization
-        x = np.empty((self.batch_size, *self.dim, self.n_channels))
-        y = np.empty(self.batch_size)
-
-        # Generate data
-        for i, ID in enumerate(list_IDs_temp):
-            # Store sample
-            path = os.path.join(self.data_path, ID + '.npy')
-
-            if self.pre_processing == 'log_mel':
-                s = np.load(path)
-                s = self.compute_log_mel_s(s)
-                s = np.reshape(s, (s.shape[0], s.shape[1], 1))
-                x[i, ] = s
-                s = None
-            elif self.pre_processing == 'reim':
-                s = np.load(path)
-                s = self.compute_reim_s(s)
-                # check for odd number of bins
-                if s.shape[0] % 2 != 0:
-                    s = s[:-1]
-                x[i, ] = s
-                s = None
-            elif self.pre_processing == 'reim_norm':
-                s = np.load(path)
-                s = self.compute_reim_norm_s(s)
-                # check for odd number of bins
-                if s.shape[0] % 2 != 0:
-                    s = s[:-1]
-                x[i, ] = s
-                s = None
-            elif self.pre_processing == 'reim_raw':
-                s = np.load(path)
-                s = self.compute_reim_raw_s(s)
-                x[i, ] = s
-                s = None
-            elif self.pre_processing == 'large_log_mel':
-                s = np.load(path)
-                s = self.compute_large_log_mel_s(s)
-                s = np.reshape(s, (s.shape[0], s.shape[1], 1))
-                x[i, ] = s
-                s = None
-            elif self.pre_processing == 'standard':
-                s = np.load(path)
-                s = process_data(s)
-                x[i, ] = s
+    def __data_generation(self, s):
+        # trim s to a multiple number of batch_size:
+        keptS_length = len(s) - (len(s) % self.batch_size)
+        s_short = s[ :keptS_length] 
+        
+        # create noise
+        noise = self.createNoise_funcs[self.noise_choice](s_short, self.SNR) #create the noise wanted
+        
+        if self.noise_choice == 3: #i.e. if take_file_as_noise
+            noise = self.rdn_noise(s, noise) 
+        
+        if self.convNoise == True or type(self.convNoise)==int :
+            if type(self.convNoise)==int :
+                conv_length = self.convNoise
             else:
-                x[i, ] = None
+                conv_length = self.batch_size
+                
+            x = np.convolve(s_short, noise[ :conv_length], 'same')
+            
+        else: # additive noising
+            x = s_short + noise
+           
+            
+        x = np.reshape(x, (self.nBatch ,self.batch_size ))
+        
+        write_path = os.path.join(self.data_path + 'noise_' + self.SNR + 'dB.wav')
+        librosa.output.write_wav(write_path, s, self.sr)
+#        write(write_path, self.sample_rate, x)
+        return x
 
-            # Store class
-            if self.labels is not None:
-                y[i] = self.labels[ID]
-
-        #x = (x - x.mean()) / x.std()
-
-        if self.y_value == 'label' and self.labels is not None:
-            yy = keras.utils.to_categorical(y, num_classes=self.n_classes)
-        elif self.y_value == 'x':
-            yy = x
-        else:
-            yy = None
-
-        return x, yy
-
-    def compute_log_mel_s(self, x):
-        power_s = np.abs(x) ** 2
-        mel_s = librosa.feature.melspectrogram(S=power_s, n_mels=128)
-        log_mel_s = np.log10(1 + 10 * mel_s)
-        log_mel_s = log_mel_s.astype(np.float32)
-        return log_mel_s
-
-    def compute_reim_s(self, x):
-        # get real and imag parts
-        x_re = librosa.power_to_db(np.real(x) ** 2)
-        x_im = librosa.power_to_db(np.imag(x) ** 2)
-        return np.dstack((x_re, x_im))
-
-    def compute_reim_norm_s(self, x):
-        # get real and imag parts
-        s_abs = np.max(np.abs(x)) + 1e-20
-        s_re = np.real(x)/s_abs
-        s_im = np.imag(x)/s_abs
-        s_re_db = librosa.power_to_db(s_re ** 2)
-        s_im_db = librosa.power_to_db(s_im ** 2)
-        #hardcorded value, obtained by running a script over available data
-        s_re_norm = s_re_db / self.norm_factor + 1
-        s_im_norm = s_im_db / self.norm_factor + 1
-
-        if np.max(s_re_norm) > 1:
-            raise NameError('s_re_norm > 1')
-        if np.max(s_im_norm) > 1:
-            raise NameError('s_im_norm > 1')
-        if np.min(s_re_norm) < 0:
-            raise NameError('s_re_norm < 0')
-        if np.min(s_im_norm) < 0:
-            raise NameError('s_im_norm < 0')
-
-        return np.dstack((s_re_norm, s_im_norm))
-
-    def compute_reim_raw_s(self, x):
-        # get real and imag parts
-        x_re = np.real(x)
-        x_im = np.imag(x)
-        return np.dstack((x_re, x_im))
-
-    def compute_large_log_mel_s(self, x):
-        power_s = np.abs(x) ** 2
-        mel_s = librosa.feature.melspectrogram(S=power_s, n_mels=513)
-        log_mel_s = np.log10(1 + 10 * mel_s)
-        log_mel_s = log_mel_s.astype(np.float32)
-        return log_mel_s
+      
+    
+    def rdn_noise(self, s, noise):
+        # Function: randomize the order of the chunks of the file that is used as noise
+        
+        # Generate data
+        if len(noise) >= len(s):
+            noise = noise[:len(s)]
+            # randomization of the noising track
+            rdnOrder = [np.argsort([rnd.uniform(0,1) for i in range(self.nBatch)])]
+            new_noise = []
+            new_noise.append( [noise[rdni * self.batch_size : (rdni+1) * self.batch_size ] for rdni in rdnOrder ])
+            
+        elif len(noise) < len(s): # need to create some noise in addition: white_noising / interpolation / ...
+            # here: white_noising
+            keptNoise_length = len(noise) - (len(noise) % self.batch_size)
+            noise_noised = noise[ :(len(s) - keptNoise_length)] + [rnd.uniform(-1 ,1) for k in range((len(s) - keptNoise_length))]
+            new_noise = noise[ :keptNoise_length].append( noise_noised )
+#            new_noise = np.reshape( noise[ :keptNoise_length].append( noise_noised ), (1, self.nBatch * self.batch_size ))
+        
+        # TODO: sonme normalisation?
+        return new_noise         
