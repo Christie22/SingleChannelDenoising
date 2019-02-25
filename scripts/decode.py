@@ -6,7 +6,7 @@ from scipy.stats import norm
 from libs.model_utils import LossLayer
 from libs.utilities import load_autoencoder_model, unprocess_data, plot_spectrogram
 
-def main(args):
+def decode(args):
     # set GPU device(s)
     os.environ["CUDA_VISIBLE_DEVICES"] = args['cuda_device']
 

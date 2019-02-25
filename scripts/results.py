@@ -11,9 +11,10 @@ from libs.utilities import load_autoencoder_model, load_data, load_all_as_test_d
 from libs.model_utils import LossLayer
 
 
-def main(args):
+def results(args):
     # set GPU device(s)
     os.environ["CUDA_VISIBLE_DEVICES"] = args['cuda_device']
+    
     # plot training history
     try:
         # load training history

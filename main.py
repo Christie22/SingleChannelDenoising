@@ -48,6 +48,15 @@ def train(ctx,
 
 # RESULTS
 @cli.command()
+@click.pass_context
+@click.argument('model_path', type=click.Path(exists=True))
+@click.argument('dataset_path', type=click.Path(exists=True))
+@click.option('--rows', type=int, default=128)
+@click.option('--cols', type=int, default=32)
+@click.option('--channels', type=int, default=2)
+@click.option('--epochs', type=int, default=50)
+@click.option('--batch_size', type=int, default=32)
+@click.option('--history_path', type=click.Path(), default=None)
 def results():
     click.echo('results')
 

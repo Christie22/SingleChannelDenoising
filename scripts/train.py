@@ -12,12 +12,11 @@ import pickle
 import numpy as np
 import pandas as pd
 from keras import backend as K
-from keras.models import Model, load_model
 from keras.callbacks import EarlyStopping, ModelCheckpoint, TerminateOnNaN
 from sklearn.model_selection import train_test_split
 
 # custom modules
-from libs.utilities import load_data, load_dataset
+from libs.updated_utils import load_dataset, create_autoencoder_model
 from libs.model_utils import LossLayer
 from libs.data_generator import DataGenerator
 
@@ -53,7 +52,7 @@ def train(model_name, dataset_path, rows, cols, channels, epochs, batch_size, mo
 
     # create model
     input_shape = (rows, cols, channels)
-    model = create_model({
+    model = create_autoencoder_model({
         'LossLayer': LossLayer
     }, model_name, input_shape)
 
@@ -97,25 +96,5 @@ def train(model_name, dataset_path, rows, cols, channels, epochs, batch_size, mo
     df = pd.DataFrame(history.history)
     df.to_pickle(history_path)
 
-    # byeeee
+    # end
     print('Done! Training history stored at {}'.format(history_path))
-
-# create the entire model (encoder + decoder)
-def create_model(custom_objects, model_name, input_shape):
-    # import model
-    model_name = model_name
-    if model_name == 'lstm':
-        print('Using model `{}` from {}'.format(model_name, 'model_lstm'))
-    elif model_name == 'conv':
-        print('Using model `{}` from {}'.format(model_name, 'model_conv'))
-    else:
-        print('importing example model :D')
-        import models.model_example as m
-
-    # calc input shape and enforce it
-    K.set_image_data_format('channels_last')
-    # generate model
-    obj = m.AEModelFactory(input_shape=input_shape)
-    model = obj.get_model()
-    return model
-

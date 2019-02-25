@@ -14,11 +14,12 @@ import keras
 import librosa
 import numpy as np
 import pandas as pd
-from updated_utils import *
 import random as rnd
 import time
 rnd.seed(int(time.time())) # generate seed from the time at which this script is run
 #from scipy.io.wavfile import write
+
+import libs.updated_utils
 
 """ functions creating different types of noise """    
 def white_noise(x, SNR):

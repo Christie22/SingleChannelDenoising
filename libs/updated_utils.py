@@ -23,6 +23,37 @@ import librosa.feature as ftr
 import librosa.onset as onst
 
 
+######### v FUNCTIONS THAT ARE ACTUALLY USED v ############
+
+def load_dataset(dataset_path):
+    # TODO implement actual data handling
+    # (requires figuring out data format)
+    print('Loading dataset!')
+    with open(dataset_path, 'rb') as f:
+        print(f)
+    return None
+
+def create_autoencoder_model(custom_objects, model_name, input_shape):
+    # import model factory
+    if model_name == 'lstm':
+        print('Using model `{}` from {}'.format(model_name, 'model_lstm'))
+    elif model_name == 'conv':
+        print('Using model `{}` from {}'.format(model_name, 'model_conv'))
+    else:
+        print('importing example model :D')
+        import models.model_example as m
+
+    # calc input shape and enforce it
+    K.set_image_data_format('channels_last')
+    # generate model
+    obj = m.AEModelFactory(input_shape=input_shape)
+    model = obj.get_model()
+    return model
+
+
+
+######### v NOT VERIFIED OR USED v ############
+
 ### Functions
 # Create
 def create_folder(fd):
@@ -63,14 +94,6 @@ def gen_output_dir(params):
     create_folder(output_curr_dir)
     return output_curr_dir
 
-# Loading 
-def load_dataset(params):
-    annotation_path = os.path.expanduser(os.path.join(params['annotation_path']))
-    print('Reading annotation files from {}'.format(annotation_path))
-    df = pd.read_csv(annotation_path, engine='python')
-    # filenames = df['filepath'].values.tolist()
-    # labels = df.drop(columns='filepath').to_dict('list')
-    return df
 
 def load_model_vae(custom_objects, params):
     model_dir = os.path.join('models', '{pre_processing}_{model}'.format(**params))
