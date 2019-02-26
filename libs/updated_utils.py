@@ -374,19 +374,7 @@ def calc_metrics(y, yest, **kwargs):
     
 
 def calc_STOI(y, yest, **kwargs):
-    "SDR: ref: C. H. Taal, R. C. Hendriks, R. Heusdens, and J. Jensen, 'An Algorithm for Intelligibility Prediction of Time-Frequency Weighted Noisy Speech,' IEEE/ACM"
-    
     keys = kwargs.keys()
-    
-#    if 'norm_yest' in keys:
-#        norm_yest=kwargs.pop('norm_yest', '')
-#    else:
-#        norm_yest=True
-#        
-#    if 'clip_yest' in keys:
-#        clip_yest=kwargs.pop('clip_yest', '')
-#    else:
-#        clip_yest=True
         
     # Parameters
     if 'beta' in keys:
@@ -407,60 +395,101 @@ def calc_STOI(y, yest, **kwargs):
     if 'hop_length' in keys:
         hop_length = kwargs.pop('hop_length','')
     else:
-        hop_length = n_fft/2 
+        hop_length = np.int(n_fft/2) 
             
-    if 'STOIdurFrame' in keys:
-        STOIdurFrame = kwargs.pop('STOIdurFrame','')
+    if 'STOIframe_timeDur' in keys:
+        STOIframe_timeDur = kwargs.pop('STOIframe_timeDur','')
     else:
-        STOIdurFrame = .386 # in sec, optimal for STOI according to the ref
-    STOInFrame= np.int(STOIdurFrame * STOIsamplerate)
+        STOIframe_timeDur = .384 # in sec, optimal for STOI, according to the ref
+    
+    STOIframe_nDur = np.int(STOIframe_timeDur * STOIsamplerate)
+    print('duration in samples of a time frame: {0}'.format(STOIframe_nDur))
+    
+    nbFramesToGetA384ms_longFrame = np.int(STOIframe_nDur / n_fft) # .384/(256 / (fs*2)) = 30.0
+    print('duration in samples of 384ms: {0}'.format(nbFramesToGetA384ms_longFrame))
+    
+    fBands = 15 # cf literature
     
     # stft of time-domain signals / can be done with specs but then includes uncertainties about the parameters' values used
-    Yest = librosa.core.stft(yest, hop_length=hop_length, win_length=n_fft,window='hann')
-    Y    = librosa.core.stft(y,    hop_length=hop_length, win_length=n_fft,window='hann')
+    Yest = librosa.core.stft(yest, hop_length=hop_length, win_length=n_fft, window='hann')
+    Y    = librosa.core.stft(y,    hop_length=hop_length, win_length=n_fft, window='hann')
     
-    Y_dB = librosa.core.amplitude_to_db(Y)
+    Y_dB = librosa.core.amplitude_to_db(np.abs(Y))
+    #librosa.display.specshow(Y_dB)
     
     NRJ_Y = np.sum(Y_dB, axis = 0) / Y_dB.shape[0] 
     indMaxEnergyFrameInCleanSpeech = [ii for ii,Yii in enumerate(NRJ_Y) if Yii == np.max(NRJ_Y) ]
     
-    # find sequences without speech (energy < 40 dB)
+    # find sequences without speech (energy < 40 dB) and eliminate them
     maxEnergyFrameInCleanSpeech = NRJ_Y[indMaxEnergyFrameInCleanSpeech[0]]
-    framesToDiscard = [ii for ii in range(Y_dB.shape[0]) if NRJ_Y[ii] < maxEnergyFrameInCleanSpeech - 40]
-    framesToKeep = set(range(Y_dB.shape[0]), framesToDiscard)
-    
-    # eliminate sequences without speech (energy < 40 dB) 
-    Y = [Y[:,ff] for ff in framesToKeep]
-    Y_dB = librosa.core.amplitude_to_db(Y)
+    framesToKeep = [ii for ii in range(Y_dB.shape[1]) if NRJ_Y[ii] >= maxEnergyFrameInCleanSpeech - 40]
+    tShape = len(framesToKeep)
+    print('{0} frames to keep (tShape)'.format(tShape))
+   
+    Y = np.array([Y[:,tt] for tt in framesToKeep])
+    Y_dB = librosa.core.amplitude_to_db(np.abs(Y))
     Y_power = librosa.core.db_to_power(Y_dB, ref=1.0)
     
-    Yest = [Yest[:,ff] for ff in framesToKeep]
-    Yest_dB = librosa.core.amplitude_to_db(Yest)
+    Yest = np.array([Yest[:,tt] for tt in framesToKeep])
+    Yest_dB = librosa.core.amplitude_to_db(np.abs(Yest))
     Yest_power = librosa.core.db_to_power(Yest_dB, ref=1.0)
+   
     
     # reconstruction of the trimmed signals
 #    y = librosa.core.istft(Y, hop_length=hop_length, win_length=n_fft,window='hann')
 #    yest = librosa.core.istft(Yest, hop_length=hop_length, win_length=n_fft,window='hann')   
     
     # a one-third octave band analysis by grouping DFT-bins. In total 15 one-third octave bands > 150Hz and < 4.3kHz (center of the highest band)
-    logscale = librosa.mel_frequencies(n_mels=16, fmin=100, fmax=5000) 
-    #16, so as to get 15 bands,  5000 = sr/2
+    logscale = librosa.mel_frequencies(n_mels=fBands+1, fmin=100, fmax=5000) 
+    #16, so as to get 15 bands (16 edges),  5000 = sr/2 (coincidence?)
     stepsF = np.floor(logscale/logscale[-1]* Y.shape[0]) - 1
     stepsF[0] = 0
-    #stepsF[-1] = nBands or floor(nfft/2) (+ 1)
-
-    # calculate T-F units
-    TF_units = np.empty(Y.shape[1])
-    for t in range(Y.shape[1]):
-        TF_units[t,] = [np.sum(Y_power[np.int(stepsF[f]):np.int(stepsF[f+1]), :]) for f in range(len(stepsF)-1)]
+    #stepsF[-1] = fBands or floor(nfft/2) (+ 1)
+    print('length stepsF: {0}'.format(stepsF.shape ))
     
-    ## TODO   
-    # short-term segmentation
-    short_term_segments = [TF_units[:,t] ]
+    # calculate T-F units
+    Y_TF_units = np.empty((tShape, fBands)) # time * fBands
+    Yest_TF_units = np.empty((tShape, fBands)) # time * fBands
+    for t in range(tShape):
+        Y_TF_units[t,]    = [np.sqrt(np.sum(Y_power[   np.int(stepsF[f]):np.int(stepsF[f+1]), t])) for f in range(len(stepsF)-1)]
+        Yest_TF_units[t,] = [np.sqrt(np.sum(Yest_power[np.int(stepsF[f]):np.int(stepsF[f+1]), t])) for f in range(len(stepsF)-1)]
+    
+    # Short-term segments: group nbFramesToGetA384ms_longFrame TF-units to create 384ms(ish)-long frames
+    # I'm not sure if the frames are successive or if they are supposed to overlap...
+    #### case: they are successive
+    print('size Yest: {0}'.format(Yest.shape ))
+    nbFrames = np.int(Yest.shape[0] / (STOIframe_nDur / n_fft)) # calculate the number of frames of 384 ms (ish)
+    print('nbFrames: {0}'.format(nbFrames) )
+    
+    Y_short_term_segments    = Y_TF_units.reshape(   nbFrames, nbFramesToGetA384ms_longFrame, fBands).transpose(0,2,1)
+    Yest_short_term_segments = Yest_TF_units.reshape(nbFrames, nbFramesToGetA384ms_longFrame, fBands).transpose(0,2,1)
+    # dim: nbFrames * fBands * nbFramesToGetA384ms_longFrame
+    
+    #### case: they overlap: TODO if necessary
+
     # normalise + clip yest
+    Yest_normalised_clipped = np.empty(tShape,fBands,nbFramesToGetA384ms_longFrame)
+    for tt in range(tShape):
+        for ff in range(fBands):
+            norm_coeff = np.linalg.norm(Y_short_term_segments[tt,ff,:]) / np.linalg.norm(Yest_short_term_segments[tt,ff,:])
+            Yest_normalised_clipped[tt,ff, ] = [np.min(norm_coeff * Yest_short_term_segments[tt,ff,n], (1+10**(-beta/20)*Y_short_term_segments[tt,ff,n])) for n in range(fBands)]
+
     # correlation coeff
+    d = np.empty(tShape,fBands)
+    for tt in range(tShape):
+        for ff in range(fBands):
+            Yjm = Y_short_term_segments[tt,ff,:]
+            Yestbar = Yest_normalised_clipped[tt,ff,:]
+            
+            Y_mu = np.mean(Yjm)
+            Yest_n_c_mu = np.mean(Yestbar)
+            
+            num = (Yjm - Y_mu).T *(Yestbar - Yest_n_c_mu)
+            denom = np.linalg.norm(Yjm - Y_mu)*np.linalg.norm(Yestbar - Yest_n_c_mu)
+            
+            d[tt,ff] = num / denom
     # average
-    STOI = -1
+    STOI = 1/ (tShape*fBands) * np.sum(d)
     
     return STOI
 
