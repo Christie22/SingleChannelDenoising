@@ -12,6 +12,8 @@ Created on Sun Feb 17 10:24:20 2019
 import os
 import pandas as pd
 from keras.models import load_model
+from keras import backend as K
+
 import numpy as np
 from numpy import linalg as LA
 
@@ -33,12 +35,15 @@ def load_dataset(dataset_path):
         print(f)
     return None
 
+
 def create_autoencoder_model(custom_objects, model_name, input_shape):
     # import model factory
     if model_name == 'lstm':
         print('Using model `{}` from {}'.format(model_name, 'model_lstm'))
+        return None
     elif model_name == 'conv':
         print('Using model `{}` from {}'.format(model_name, 'model_conv'))
+        return None
     else:
         print('importing example model :D')
         import models.model_example as m
@@ -50,6 +55,13 @@ def create_autoencoder_model(custom_objects, model_name, input_shape):
     model = obj.get_model()
     return model
 
+
+def load_autoencoder_model(model_path, custom_objects):
+    model = load_model(model_path, custom_objects=custom_objects)
+    # extract encoder from main model
+    encoder = model.get_layer('encoder')
+    decoder = model.get_layer('decoder')
+    return encoder, decoder, model
 
 
 ######### v NOT VERIFIED OR USED v ############

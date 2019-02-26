@@ -74,7 +74,7 @@ def results(ctx,
                    epochs,
                    batch_size,
                    history_path,
-                   cuda_device):
+                   cuda_device)
 
 
 if __name__ == "__main__":
