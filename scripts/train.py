@@ -1,11 +1,5 @@
-# train a model using settings in `params.py` for basic denoising AE
-# TODO:
-# - test
-# - remove args
-# - create_model into utils
+# train an ANN autoencoder model
 
-
-# internal and external modules
 import os
 import time
 import pickle
@@ -22,11 +16,11 @@ from libs.data_generator import DataGenerator
 
 
 def train(model_name, dataset_path, rows, cols, channels, epochs, batch_size, model_path, history_path, cuda_device):
-    # set GPU device(s)
+    # set GPU devices
     os.environ["CUDA_VISIBLE_DEVICES"] = cuda_device
     
     # store DataGenerator args
-    dataset_params ={
+    generator_args ={
         'dim': [rows, cols],
         'dataset_path': dataset_path,
         'channels': channels,
@@ -34,7 +28,7 @@ def train(model_name, dataset_path, rows, cols, channels, epochs, batch_size, mo
         # NOTE insert other DataGenerator args
     }
 
-    # split dataset in train and validation
+    # load dataset filenames and split in train and validation
     print('Splitting data into train, validation and test subsets 80:20:20')
     dataset_df = load_dataset(dataset_path)
     dataset_df_train, dataset_df_valid = train_test_split(
@@ -47,8 +41,8 @@ def train(model_name, dataset_path, rows, cols, channels, epochs, batch_size, mo
     valid_steps_per_epoch = int(len(filenames_valid) / batch_size)
     print('train steps per epoch: ', train_steps_per_epoch)
     print('valid steps per epoch: ', valid_steps_per_epoch)
-    training_generator = DataGenerator(filenames_train, **dataset_params)
-    validation_generator = DataGenerator(filenames_valid, **dataset_params)
+    training_generator = DataGenerator(filenames_train, **generator_args)
+    validation_generator = DataGenerator(filenames_valid, **generator_args)
 
     # create model
     input_shape = (rows, cols, channels)

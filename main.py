@@ -35,15 +35,15 @@ def train(ctx,
           model_path,
           history_path):
     script_train(model_name,
-               dataset_path,
-               rows,
-               cols,
-               channels,
-               epochs,
-               batch_size,
-               model_path,
-               history_path,
-               ctx.obj['cuda_device'])
+                 dataset_path,
+                 rows,
+                 cols,
+                 channels,
+                 epochs,
+                 batch_size,
+                 model_path,
+                 history_path,
+                 ctx.obj['cuda_device'])
 
 
 # RESULTS
@@ -57,8 +57,24 @@ def train(ctx,
 @click.option('--epochs', type=int, default=50)
 @click.option('--batch_size', type=int, default=32)
 @click.option('--history_path', type=click.Path(), default=None)
-def results():
-    click.echo('results')
+def results(ctx,
+            model_path,
+            dataset_path,
+            rows,
+            cols,
+            channels,
+            epochs,
+            batch_size,
+            history_path):
+    script_results(model_path,
+                   dataset_path,
+                   rows,
+                   cols,
+                   channels,
+                   epochs,
+                   batch_size,
+                   history_path,
+                   cuda_device):
 
 
 if __name__ == "__main__":
