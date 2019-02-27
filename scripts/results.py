@@ -1,4 +1,10 @@
 # test and evaluate trained model
+# TODO calculate matrics on training and testing datasets and display/store them
+# metrics: [165 from overview]
+#  - SDR (source-to-distortion ratio) START FROM THIS!!
+#  - STOI
+#  - SIR (source-to- interference ratio)
+#  - SAR (source-to-artifact ratio) 
 
 import os
 import pandas as pd
