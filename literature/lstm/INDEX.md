@@ -28,32 +28,32 @@ Other resources:
 - Metrics/Loss: phase-sensitive spectrum approximation
 - Architecture: bidirectional LSTM
 - Training: multi-stage training, adding layers
-- Dataset: CHiME-2
+- Dataset: CHiME-2 challenge
 - Baseline: 2 lstm layers, 256 nodes, 100 bin log-mel spectogram
 - Evaluation: SDR, SIR
 - Notes: good baseline!
 - Useful refs:
 
 ## `[EMa2015]`
-- Data representation:
-- Target:
-- Metrics/Loss:
-- Architecture:
-- Training:
-- Dataset:
-- Baseline:
-- Evaluation:
-- Notes:
+- Data representation: 10ms power spectrogram -> 26-bin mel -> log
+- Target: novel events
+- Metrics/Loss: mean quare error, positive first order differences, frame energy
+- Architecture: denoising autoencoder with bidirectional LSTM
+- Training: training set = background environmental sounds, test set = ‘abnormal’ sounds
+- Dataset: PASCAL CHiME challenge
+- Baseline: GMM, HMM, and compression autoencoder models
+- Evaluation: precision, recall, f-measure
+- Notes: different purpose than enhancemnt, interesting structure
 - Useful refs:
 
 ## `[FWe2014]`
-- Data representation:
-- Target:
-- Metrics/Loss:
-- Architecture:
+- Data representation: 100 mel ^2/3 auditory spectrum
+- Target: estimated clean speech spectrograms
+- Metrics/Loss: SNR
+- Architecture: LSTM-DRNN, DNN
 - Training:
-- Dataset:
-- Baseline:
-- Evaluation:
-- Notes:
+- Dataset: evaluation: CHiME-2 challenge, training: Wall Street Journal (WSJ-0) corpus of read
+- Baseline: discriminative NMF
+- Evaluation: SDR
+- Notes: nice experimental setup, results & discussion,
 - Useful refs:
