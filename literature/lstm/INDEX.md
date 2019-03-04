@@ -8,7 +8,9 @@
 
 Other resources:
 - http://slazebni.cs.illinois.edu/spring17/lec26_audio.pdf
--
+- https://towardsdatascience.com/how-to-generate-music-using-a-lstm-neural-network-in-keras-68786834d4c5
+- https://gist.github.com/naotokui/12df40fa0ea315de53391ddc3e9dc0b9
+
 
 ## `[GHu2018]`
 - Data representation:

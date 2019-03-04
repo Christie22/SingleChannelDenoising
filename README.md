@@ -1,19 +1,19 @@
 # ML-driven 1-channel denoising system
 > Semester project for *Sound and Music Computing* (AAU SMC 2018)
 
-**Link to report: https://www.overleaf.com/project/**
+**Link to report: https://www.overleaf.com/project/5c781f4804b72d43bf4ded71**
 **Link to datasets: https://drive.google.com/drive/u/0/folders/1MmtiRQF-33Gkx1ZJZ7vSDCzy-vqjaUw6/**
 
 
 ## Proposal
-Implementation of a single-channel denoising system in voice detection applications. 
+Implementation of a single-channel denoising system in voice detection applications.
 The system would be based on deep learning techniques (e.g. autoencoders).
 
-Initially, a baseline model shall be chosen, and an evaluation procedure established. 
-Subsequently, improvements comprising techniques drawn from relevant literature will be implemented into the baseline, and evaluated accordingly. 
+Initially, a baseline model shall be chosen, and an evaluation procedure established.
+Subsequently, improvements comprising techniques drawn from relevant literature will be implemented into the baseline, and evaluated accordingly.
 The project will be carried out in an iterative fashion.
 
-Should satisfactory performances be achieved within a subset of the timeframe, the following further developments could be considered: 
+Should satisfactory performances be achieved within a subset of the timeframe, the following further developments could be considered:
 - Embedded implementation
 - De-reverberation
 - Multiple channels (e.g. with headset)
