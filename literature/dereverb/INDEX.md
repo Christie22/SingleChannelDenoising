@@ -4,12 +4,10 @@
 - `[KHa2014]` Learning spectral mapping for speech dereverberation
 - `[KHa2015]` Learning spectral mapping for speech dereverberation and denoising,
 - `[BWu2017]` A reverberation-time-aware approach to speech dereverberation based on deep neural networks
-- `[YZh2019]` Two-stage deep learning for noisy-reverberant peech enhancement 
-- `[XLu2013]` Speech enhancement based on deep denoising autoencoder - Interloan
-
+- `[YZh2019]` Two-stage deep learning for noisy-reverberant speech enhancement 
 
 Other resources:
-- blabla
+- `[YZh2017]` A two-stage algorithm for noisy and reverberant speech enhancement 
 
 ## `[KHa2014]`
 - Data representation: cochleagram (64-channel gammatone * (20-ms time frames*11 frames)) (+ spectrogram) 
@@ -27,16 +25,17 @@ Other resources:
 - Data representation: log-magnitude spectrogram(161 freq bins* (20-ms time frames*11 frames)) 
 - Target: log magnitude spectrogram of clean speech
 - Metrics/Loss: mean square error
-- Architecture: DNN
-- Training: reverberant, or reverberant and noisy to clean speech , regular training with cross-validation
+- Architecture: supervised DNN
+- Training: pre-training: none + joint dereverberation and denoising training + regular training with cross-validation
 - Dataset:  IEEE (training),  TIMIT (testing), CHiME-2 for various {T60, RIRs (various azimuths), noise types}
 - Baseline: (5) IBM based on single variance-based feature + estimated inverse filters + dereverb IBM + unprocessed 
 - Evaluation: SNR, STOI, PESQ 
-- Notes: post-processing stage to reconstruct the signals (iterative procedure)
-- Useful refs: reconstruction [4]
+- Notes: post-processing stage to reconstruct the signals (iterative procedure). Have quickly tested RNN and encourage readers to use it in future work
+- Useful refs: reconstruction [4], pitch-based studies for separating reverberant voiced speech [30], [15],
+
 
 ## `[BWu2017]`
-- Data representation: log-power spectra (LPS)
+- Data representation: log-power spectra (LPS) (frame size and hop length depend on estimated T60 ) 
 - Target: LPS of corresponding clean speech
 - Metrics/Loss: MMSE
 - Architecture: nonlinear DNN-based regression model
@@ -46,7 +45,8 @@ Other resources:
 - Evaluation: PESQ, frequency-weighted segmental signal-to-noise ratio (fwSegSNR), STOI
 - Notes: 
     - phase is directly extracted from the reverberant speech; 
-    - they also propose a T60-dependent method for the dereverberation stage using 2 parameters (frame length and hop length) , that seems to be the best eventually
+    - dereverberation only
+
 
 
 ## `[YZh2019]`
@@ -65,14 +65,3 @@ Other resources:
 - Useful refs:
 
 
-## `[XLu2013]`
-- Data representation:
-- Target:
-- Metrics/Loss:
-- Architecture:
-- Training:
-- Dataset:
-- Baseline:
-- Evaluation:
-- Notes:
-- Useful refs:
