@@ -65,3 +65,15 @@ Other resources:
 - Useful refs:
 
 
+## `[YUe2016]`
+- Data representation:  cepstrum (9 frames * 39 MFCCs) with Cepstral mean normalization (CMN) 
+were used as input)
+- Target:  clean speech features
+- Metrics/Loss: MSE
+- Architecture: AE
+- Training: pretraining (RBM) + standard training on pair of clean speech and corresponding reverberant speech
+- Dataset: different for training (WSJCAM0 ) and testing ( MC-WSJ-AV + WSJCAM0) with different RIR
+- Baselines: spectral domaim AE, Multi-step linear prediction (MSLP), temporal structure normalization (TSN), CMN, DAE+TSN for simulated and real distant-talking environments
+- Evaluation: Word Error Rates (WERs)
+- Notes: TSN is a post-processing method. Seems to stand apart from the other papers... 
+- Useful refs: MLSP [14], TSN [31]
