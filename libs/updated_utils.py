@@ -33,7 +33,7 @@ def load_dataset(dataset_path):
     # TODO implement actual data handling
     # (requires figuring out data format)
     print('[i] Loading all wav files from {}'.format(dataset_path))
-    filelist = glob.glob('*.wav')
+    filelist = glob.glob(os.path.join(dataset_path, '*.wav'))
     print('[i] Loaded {} files'.format(len(filelist)))
     return filelist
 
