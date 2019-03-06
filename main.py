@@ -12,10 +12,10 @@ defaults = {
     'win_length': 512,
     'frag_hop_length': 128,
     'frag_win_length': 512,
-
-    'data_shape'
     'batch_size': 4,
-    'epochs': 20
+    'epochs': 20,
+    'model_path': None,
+    'history_path': None
 }
 
 
