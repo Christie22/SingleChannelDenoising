@@ -57,6 +57,7 @@ class DataGenerator(keras.utils.Sequence):
         self.batch_size = batch_size
         # local vars
         self.data_shape = (256, 64, 2) # TODO calculate based on n_fft, processing, and fragment
+        self.n_fragments = self.get_n_fragments()
         self.rir_filenames = self.load_rirs()
 
 
@@ -66,21 +67,22 @@ class DataGenerator(keras.utils.Sequence):
         print('[d] Loaded {} files'.format(len(filelist)))
         return filelist or [None]
 
-
     def get_data_shape(self):
         return self.data_shape
 
-
-    def __len__(self):
-        print('[d] Calculating total number of input fragments')
-        variations = len(self.noise_types) * len(self.noise_snrs) * len(self.rir_filenames)
+    def get_n_fragments(self):
         file_durations = [lr.core.get_duration(filename=f) for f in self.filenames]
         file_fragments = lr.core.time_to_frames(
             file_durations, 
             sr=self.sr, 
             hop_length=self.frag_hop_length,
             n_fft=self.frag_win_length) - 1
-        return file_fragments.sum() * variations
+        return file_fragments.sum()
+
+    def __len__(self):
+        print('[d] Calculating total number of input fragments')
+        variations = len(self.noise_types) * len(self.noise_snrs) * len(self.rir_filenames)
+        return self.n_fragments * variations
 
     def __getitem__(self):
 #        path = os.path.join(self.dataset_path + '.wav')
