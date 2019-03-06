@@ -10,8 +10,9 @@ extra parameters (sr, n_mels, etc...))
 
 """
 import os
+import glob
 import keras
-import librosa
+import librosa as lr
 import numpy as np
 import pandas as pd
 import random as rnd
@@ -25,7 +26,7 @@ import libs.processing as processing
 class DataGenerator(keras.utils.Sequence):
     # util.frame : split a vector in overlapping windows
     def __init__(self, filenames,
-                 dataset_path, rir_path, 
+                 dataset_path, sr, rir_path, 
                  noise_types=[], noise_snrs=[0],
                  n_fft=512, hop_length=128, win_length=512, 
                  proc_type=None,
@@ -35,6 +36,7 @@ class DataGenerator(keras.utils.Sequence):
         # dataset cfg
         self.filenames = filenames
         self.dataset_path = os.path.expanduser(dataset_path)
+        self.sr = sr
         # reverberation cfg
         self.rir_path = os.path.expanduser(rir_path)
         # noising cfg
@@ -54,7 +56,15 @@ class DataGenerator(keras.utils.Sequence):
         self.labels = labels
         self.batch_size = batch_size
         # local vars
-        self.data_shape = (0, 0, 0) # TODO calculate based on n_fft, processing, and fragment
+        self.data_shape = (256, 64, 2) # TODO calculate based on n_fft, processing, and fragment
+        self.rir_filenames = self.load_rirs()
+
+
+    def load_rirs(self):
+        print('[d] Loading all RIRs files from {}'.format(self.rir_path))
+        filelist = glob.glob(os.path.join(self.rir_path, '*.wav'))
+        print('[d] Loaded {} files'.format(len(filelist)))
+        return filelist
 
 
     def get_data_shape(self):
@@ -63,23 +73,24 @@ class DataGenerator(keras.utils.Sequence):
 
     def __len__(self):
         print('[d] Calculating total number of input fragments')
-        # estimation of the number of chunks that we'll get
-        if not self.nFragment:
-            nFragment = 1 + int((np.floor(self.length_OrigSignal - self.fragment_size)) / self.hop_length) #hop_length = 1
-            #n_frames = 1 + int((len(y) - frame_length) / hop_length)
-        self.indexes = range(nFragment)
-        
-        return nFragment
+        variations = len(self.noise_types) * len(self.noise_snrs) * len()
+        file_durations = [lr.core.get_duration(filename=f) for f in self.filenames]
+        file_fragments = lr.core.time_to_frames(
+            file_durations, 
+            sr=self.sr, 
+            hop_length=self.frag_hop_length,
+            n_fft=self.frag_win_length) - 1
+        return file_fragments.sum() * variations
 
     def __getitem__(self):
 #        path = os.path.join(self.dataset_path + '.wav')
-#        s = librosa.load(path, self.sr)
+#        s = lr.load(path, self.sr)
         
         # TODO need to consider batch size
         batch, batches = [], []
         for file in self.filenames:
 
-            s = librosa.input.read_wav(file, self.sr)
+            s = lr.input.read_wav(file, self.sr)
             self.length_OrigSignal = len(s)
         
             # Generate data
@@ -90,9 +101,8 @@ class DataGenerator(keras.utils.Sequence):
             batch.append(x)
         return batches 
 
+
     def __data_generation(self, s):
-        
-        
         # trim s to a multiple number of fragment_size:
         keptS_length = len(s) - (len(s) % self.fragment_size)
         s_short = s[ :keptS_length] 
@@ -119,7 +129,7 @@ class DataGenerator(keras.utils.Sequence):
         x = np.reshape(x, (self.nFragment ,self.fragment_size ))
         
         write_path = os.path.join(self.dataset_path + 'noise_' + self.SNR + 'dB.wav')
-        librosa.output.write_wav(write_path, s, self.sr)
+        lr.output.write_wav(write_path, s, self.sr)
 #        write(write_path, self.sample_rate, x)
         return x
 

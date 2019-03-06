@@ -17,7 +17,7 @@ from libs.processing import white_noise, s_to_reim
 
 
 def train(model_name, 
-         dataset_path, rir_path, n_fft, hop_length, win_length, frag_win_length, frag_hop_length, batch_size,
+         dataset_path, sr, rir_path, n_fft, hop_length, win_length, frag_win_length, frag_hop_length, batch_size,
          epochs, model_path, history_path, cuda_device):
     print('[t] Training model {} on dataset {}'.format(model_name, dataset_path))
     print('[t] Training parameters: {}'.format({
@@ -40,6 +40,7 @@ def train(model_name,
     generator_args = {
         # dataset cfg
         'dataset_path': dataset_path,
+        'sr': sr,
         # reverberation cfg
         'rir_path': rir_path,
         # noising cfg

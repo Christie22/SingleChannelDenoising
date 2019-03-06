@@ -6,6 +6,7 @@ from scripts.decode import decode as script_decode
 
 
 defaults = {
+    'sr': 16000,
     'rir_path': '/data/riccardo_datasets/rirs/',
     'n_fft': 512,
     'hop_length': 128,
@@ -31,6 +32,7 @@ def cli(ctx, cuda_device):
 @click.pass_context
 @click.argument('model_name', type=str)
 @click.argument('dataset_path', type=click.Path(exists=True, file_okay=False, dir_okay=True))
+@click.option('--sr', type=int, default=defaults['sr'])
 @click.option('--rir_path', type=click.Path(exists=True, file_okay=False, dir_okay=True), default=defaults['rir_path'])
 @click.option('--n_fft', type=int, default=defaults['n_fft'])
 @click.option('--hop_length', type=int, default=defaults['hop_length'])
@@ -44,6 +46,7 @@ def cli(ctx, cuda_device):
 def train(ctx, 
           model_name, 
           dataset_path, 
+          sr,
           rir_path, 
           n_fft, 
           hop_length,
@@ -56,6 +59,7 @@ def train(ctx,
           history_path):
     script_train(model_name,
                  dataset_path,
+                 sr,
                  rir_path,
                  n_fft,
                  hop_length,
