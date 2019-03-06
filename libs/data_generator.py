@@ -79,12 +79,14 @@ class DataGenerator(keras.utils.Sequence):
             n_fft=self.frag_win_length) - 1
         return file_fragments.sum()
 
+
     def __len__(self):
         print('[d] Calculating total number of input fragments')
         variations = len(self.noise_types) * len(self.noise_snrs) * len(self.rir_filenames)
         return self.n_fragments * variations
 
-    def __getitem__(self):
+
+    def __getitem__(self, index):
 #        path = os.path.join(self.dataset_path + '.wav')
 #        s = lr.load(path, self.sr)
         
