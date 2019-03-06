@@ -70,10 +70,13 @@ def train(model_name,
     validation_generator = DataGenerator(filepath_list_valid, **generator_args)
 
     # create model
-    input_shape = training_generator.get_data_shape()
-    model = create_autoencoder_model({
-        'LossLayer': LossLayer
-    }, model_name, input_shape)
+    model_args = {
+        'input_shape': training_generator.get_data_shape(),
+        'kernel_size': 3,
+        'n_filters': 64,
+    }
+    print('[t] Model factory parameters: {}'.format(model_args))
+    model = create_autoencoder_model(model_name, model_args)
 
     # compile model (loss function must be set in the model class)
     # TODO add metrics https://keras.io/metrics/

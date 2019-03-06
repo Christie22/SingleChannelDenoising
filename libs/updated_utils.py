@@ -38,7 +38,7 @@ def load_dataset(dataset_path):
     return filelist
 
 
-def create_autoencoder_model(custom_objects, model_name, input_shape):
+def create_autoencoder_model(model_name, model_args):
     print('[u] Creating autoencoder model {}'.format(model_name))
     # import model factory
     if model_name == 'lstm':
@@ -52,7 +52,7 @@ def create_autoencoder_model(custom_objects, model_name, input_shape):
     # calc input shape and enforce it
     K.set_image_data_format('channels_last')
     # generate model
-    obj = m.AEModelFactory(input_shape=input_shape)
+    obj = m.AEModelFactory(**model_args)
     model = obj.get_model()
     return model
 
