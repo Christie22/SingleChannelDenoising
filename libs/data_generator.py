@@ -64,7 +64,7 @@ class DataGenerator(keras.utils.Sequence):
         print('[d] Loading all RIRs files from {}'.format(self.rir_path))
         filelist = glob.glob(os.path.join(self.rir_path, '*.wav'))
         print('[d] Loaded {} files'.format(len(filelist)))
-        return filelist
+        return filelist or 1
 
 
     def get_data_shape(self):
@@ -73,7 +73,7 @@ class DataGenerator(keras.utils.Sequence):
 
     def __len__(self):
         print('[d] Calculating total number of input fragments')
-        variations = len(self.noise_types) * len(self.noise_snrs) * len()
+        variations = len(self.noise_types) * len(self.noise_snrs) * len(self.rir_filenames)
         file_durations = [lr.core.get_duration(filename=f) for f in self.filenames]
         file_fragments = lr.core.time_to_frames(
             file_durations, 
