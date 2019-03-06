@@ -25,7 +25,7 @@ def cli(ctx, cuda_device):
 @cli.command()
 @click.pass_context
 @click.argument('model_name', type=str)
-@click.argument('dataset_path', type=click.Path(exists=True, file_okay=False, dir_okay=True)
+@click.argument('dataset_path', type=click.Path(exists=True, file_okay=False, dir_okay=True))
 @click.option('--rows', type=int, default=defaults['rows'])
 @click.option('--cols', type=int, default=defaults['cols'])
 @click.option('--channels', type=int, default=defaults['channels'])
@@ -58,8 +58,8 @@ def train(ctx,
 # RESULTS
 @cli.command()
 @click.pass_context
-@click.argument('model_path', type=click.Path(exists=True))
-@click.argument('dataset_path', type=click.Path(exists=True))
+@click.argument('model_path', type=click.Path(exists=True, file_okay=True, dir_okay=False))
+@click.argument('dataset_path', type=click.Path(exists=True, file_okay=False, dir_okay=True))
 @click.option('--rows', type=int, default=defaults['rows'])
 @click.option('--cols', type=int, default=defaults['cols'])
 @click.option('--channels', type=int, default=defaults['channels'])
