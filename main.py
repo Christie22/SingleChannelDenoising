@@ -39,8 +39,8 @@ def cli(ctx, cuda_device):
 @click.option('--frag_win_length', type=int, default=defaults['frag_win_length'])
 @click.option('--batch_size', type=int, default=defaults['batch_size'])
 @click.option('--epochs', type=int, default=defaults['epochs'])
-@click.option('--model_path', type=click.Path(), default=None)
-@click.option('--history_path', type=click.Path(), default=None)
+@click.option('--model_path', type=click.Path(), default=defaults['model_path'])
+@click.option('--history_path', type=click.Path(), default=defaults['history_path'])
 def train(ctx, 
           model_name, 
           dataset_path, 
@@ -74,12 +74,12 @@ def train(ctx,
 @click.pass_context
 @click.argument('model_path', type=click.Path(exists=True, file_okay=True, dir_okay=False))
 @click.argument('dataset_path', type=click.Path(exists=True, file_okay=False, dir_okay=True))
-@click.option('--rows', type=int, default=defaults['rows'])
-@click.option('--cols', type=int, default=defaults['cols'])
-@click.option('--channels', type=int, default=defaults['channels'])
+@click.option('--rows', type=int, default=None)
+@click.option('--cols', type=int, default=None)
+@click.option('--channels', type=int, default=None)
 @click.option('--epochs', type=int, default=defaults['epochs'])
 @click.option('--batch_size', type=int, default=defaults['batch_size'])
-@click.option('--history_path', type=click.Path(), default=None)
+@click.option('--history_path', type=click.Path(), default=defaults['history_path'])
 def results(ctx,
             model_path,
             dataset_path,
