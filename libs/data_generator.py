@@ -15,121 +15,54 @@ import librosa
 import numpy as np
 import pandas as pd
 import random as rnd
-import time
-rnd.seed(int(time.time())) # generate seed from the time at which this script is run
 #from scipy.io.wavfile import write
 
 import libs.updated_utils
+import libs.processing as processing
 
-""" functions creating different types of noise """    
-def white_noise(x, SNR):
-    print('Using white noise')
-    
-    N = max(x.shape)
-    # N = len(x) alternatively
-    sigma = np.sqrt( (x @ x.T) / (N * 10**(SNR/10)) )
-    noise = [sigma * rnd.uniform(-1,1) for k in range( N) ]
-    
-    return noise
-
-def pink_noise(x, SNR):
-    """Generates pink noise using the Voss-McCartney algorithm.
-        
-    nrows: number of values to generate
-    rcols: number of random sources to add
-    
-    returns: NumPy array
-    """
-    print('Using pink noise')
-    
-    nrows = len(x) #x.shape
-    ncols=16
-    
-    array = np.empty((nrows, ncols))
-    array.fill(np.nan)
-    array[0, :] = np.random.random(ncols)
-    array[:, 0] = np.random.random(nrows)
-    
-    # the total number of changes is nrows
-    n = nrows
-    cols = np.random.geometric(0.5, n)
-    cols[cols >= ncols] = 0
-    rows = np.random.randint(nrows, size=n)
-    array[rows, cols] = np.random.random(n)
-
-    df = pd.DataFrame(array)
-    df.fillna(method='ffill', axis=0, inplace=True)
-    total = df.sum(axis=1)
-
-    sigma = np.sqrt( (x @ x.T) / (nrows * 10**(SNR/10)) )
-    noise= sigma*(total.values-np.mean(total.values)) / (max(total.values) - np.mean(total.values))
-    
-    return noise
-
-
-def velvet_noise(x, SNR):
-    print('Using velvet noise')
-    
-    N = max(x.shape)
-    # N = len(x) alternatively
-    sigma = np.sqrt( (x @ x.T) / (N * 10**(SNR/10)) )
-    print('sigma = {0}'.format(sigma))
-    
-    def createVelvetNoise(rate_zero = .95):
-        ##### Role: create a vector of velvet noise (containing exclusively {-1,0,1})
-        ## Input:
-        # rate_zero(optional): pourcentage (between 0 and 1) of "0" in the output vector. 
-        ## ouput: velvet noise 
-        # V: standard vector
-        # params(optional) (struct): parametres (nb of zeros, indices, values) TODO
-
-        myVelvetNoise = [rnd.uniform(-1, 1) for k in range( N) ] #random numbers between -1 and 1
-        noise = [sigma * ((vv> rate_zero) - (vv < -rate_zero)) for vv in myVelvetNoise]
-        
-        #        params.NonZeros = np.sum(np.abs(noise))
-        #        params.realZeroRate = 1-params.NonZeros/noise.shape[0];
-        #        [params.indNonZeros, ~,params.valNonZeros] = find(SV);
-        #        params.sizeVN = N;
-        return noise#, params
-    return createVelvetNoise() # ??
-  
-
-
-def take_file_as_noise(x, SNR):
-    # checking TODO
-    N = len(x)
-    sigma = np.sqrt( (x @ x.T) / (N * 10**(SNR/10)) )
-    def noising_prototype( filepath):
-        print('Using the following file as noise: {0}'.format(filepath))
-#        path = os.path.join(filepath + '.wav')
-        load_noise = np.load(filepath)
-        noise =  sigma * (load_noise - np.mean(load_noise)) + np.mean(load_noise) 
-        return noise
-    return noising_prototype
 
     
 class DataGenerator(keras.utils.Sequence):
     # util.frame : split a vector in overlapping windows
-    def __init__(self, filenames, dataset_path, channels, batch_size, fragment_size, hop_length, dim=1, noise_choice = 0, sr=22050, noisingFile_path = None,
-            createNoise_funcs = [white_noise, pink_noise, velvet_noise, take_file_as_noise], convNoise = False, SNR = 5):
-        # christie@purwins-SYS-7048GR-TR:/data/riccardo_datasets/cnn_news/newsday031513.wav
+    def __init__(self, filenames,
+                 dataset_path, rir_path, 
+                 noise_types=[], noise_snrs=[0],
+                 n_fft=512, hop_length=128, win_length=512, 
+                 proc_type=None,
+                 frag_hop_length=64, frag_win_length=32, 
+                 shuffle=True, labels='clean', batch_size=32):
+
+        # dataset cfg
         self.filenames = filenames
-        self.batch_size = batch_size
-        self.channels = channels
-        self.sr = sr
-        self.dim = dim
-        self.fragment_size = fragment_size
-        self.hop_length = hop_length
-        self.createNoise_funcs = createNoise_funcs
         self.dataset_path = os.path.expanduser(dataset_path)
-        self.noisingFile_path = os.path.expanduser(noisingFile_path)
-        self.nFragment = None
-        self.SNR = SNR
-        self.noise_choice = noise_choice
-        self.convNoise = convNoise
-        
+        # reverberation cfg
+        self.rir_path = os.path.expanduser(rir_path)
+        # noising cfg
+        self.noise_types = noise_types
+        self.noise_snrs = noise_snrs
+        # stft cfg
+        self.n_fft = n_fft
+        self.hop_length = hop_length
+        self.win_length = win_length
+        # processing cfg
+        self.proc_type = proc_type
+        # fragmenting cfg
+        self.frag_hop_length = frag_hop_length
+        self.frag_win_length = frag_win_length
+        # general cfg
+        self.shuffle = shuffle
+        self.labels = labels
+        self.batch_size = batch_size
+        # local vars
+        self.data_shape = (0, 0, 0) # TODO calculate based on n_fft, processing, and fragment
+
+
+    def get_data_shape(self):
+        return self.data_shape
+
 
     def __len__(self):
+        print('[d] Calculating total number of input fragments')
         # estimation of the number of chunks that we'll get
         if not self.nFragment:
             nFragment = 1 + int((np.floor(self.length_OrigSignal - self.fragment_size)) / self.hop_length) #hop_length = 1

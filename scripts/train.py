@@ -13,14 +13,15 @@ from sklearn.model_selection import train_test_split
 from libs.updated_utils import load_dataset, create_autoencoder_model
 from libs.model_utils import LossLayer
 from libs.data_generator import DataGenerator
+from libs.processing import white_noise, s_to_reim
 
 
-def train(model_name, dataset_path, rows, cols, channels, epochs, batch_size, model_path, history_path, cuda_device):
+def train(model_name, 
+         dataset_path, rir_path, n_fft, hop_length, win_length, frag_win_length, frag_hop_length, batch_size,
+         epochs, model_path, history_path, cuda_device):
     print('[t] Training model {} on dataset {}'.format(model_name, dataset_path))
-    print('[t] Parameters: {}'.format({
-        'shape': (rows, cols, channels),
+    print('[t] Training parameters: {}'.format({
         'epochs': epochs,
-        'batch_size': batch_size,
         'model_path': model_path,
         'history_path': history_path,
         'cuda_device': cuda_device
@@ -29,20 +30,36 @@ def train(model_name, dataset_path, rows, cols, channels, epochs, batch_size, mo
     # set GPU devices
     os.environ["CUDA_VISIBLE_DEVICES"] = cuda_device
 
-    # store DataGenerator args
-    generator_args ={
-        'dim': [rows, cols],
-        'dataset_path': dataset_path,
-        'channels': channels,
-        'batch_size': batch_size,
-        # NOTE insert other DataGenerator args
-    }
-
     # load dataset filenames and split in train and validation
     print('[t] Splitting data into train and validation subsets 80:20')
     filepath_list = load_dataset(dataset_path)
     filepath_list_train, filepath_list_valid = train_test_split(
         filepath_list, test_size=0.2, random_state=1337)
+    
+    # store DataGenerator args
+    generator_args = {
+        # dataset cfg
+        'dataset_path': dataset_path,
+        # reverberation cfg
+        'rir_path': rir_path,
+        # noising cfg
+        'noise_types': [white_noise],
+        'noise_snrs': [0, 5],
+        # stft cfg
+        'n_fft': n_fft,
+        'hop_length': hop_length,
+        'win_length': win_length,
+        # processing cfg
+        'proc_type': s_to_reim,
+        # fragmenting cfg
+        'frag_hop_length': frag_hop_length,
+        'frag_win_length': frag_win_length,
+        # general cfg
+        'shuffle': True,
+        'labels': 'clean',
+        'batch_size': batch_size,
+    }
+    print('[t] Data generator parameters: {}'.format(generator_args))
 
     # create DataGenerator objects
     train_steps_per_epoch = int(len(filepath_list_train) / batch_size)
@@ -53,7 +70,7 @@ def train(model_name, dataset_path, rows, cols, channels, epochs, batch_size, mo
     validation_generator = DataGenerator(filepath_list_valid, **generator_args)
 
     # create model
-    input_shape = (rows, cols, channels)
+    input_shape = training_generator.get_data_shape()
     model = create_autoencoder_model({
         'LossLayer': LossLayer
     }, model_name, input_shape)
@@ -82,7 +99,7 @@ def train(model_name, dataset_path, rows, cols, channels, epochs, batch_size, mo
     ]
 
     # train model
-    print('Training model...')
+    print('[t] Begin training process...')
     history = model.fit_generator(
         generator=training_generator,
         validation_data=validation_generator,
@@ -95,8 +112,10 @@ def train(model_name, dataset_path, rows, cols, channels, epochs, batch_size, mo
         )
 
     # save training history
-    df = pd.DataFrame(history.history)
-    df.to_pickle(history_path)
+    if history_path is not None:
+        print('[t] Storing training history to {}...'.format(history_path))
+        df = pd.DataFrame(history.history)
+        df.to_pickle(history_path)
 
     # end
-    print('Done! Training history stored at {}'.format(history_path))
+    print('[t] Done!')

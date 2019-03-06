@@ -6,9 +6,14 @@ from scripts.decode import decode as script_decode
 
 
 defaults = {
-    'rows': 128,
-    'cols': 32,
-    'channels': 2,
+    'rir_path': '/data/riccardo_datasets/rirs/',
+    'n_fft': 512,
+    'hop_length': 128,
+    'win_length': 512,
+    'frag_hop_length': 128,
+    'frag_win_length': 512,
+
+    'data_shape'
     'batch_size': 4,
     'epochs': 20
 }
@@ -26,30 +31,39 @@ def cli(ctx, cuda_device):
 @click.pass_context
 @click.argument('model_name', type=str)
 @click.argument('dataset_path', type=click.Path(exists=True, file_okay=False, dir_okay=True))
-@click.option('--rows', type=int, default=defaults['rows'])
-@click.option('--cols', type=int, default=defaults['cols'])
-@click.option('--channels', type=int, default=defaults['channels'])
-@click.option('--epochs', type=int, default=defaults['epochs'])
+@click.option('--rir_path', type=click.Path(exists=True, file_okay=False, dir_okay=True), default=defaults['rir_path'])
+@click.option('--n_fft', type=int, default=defaults['n_fft'])
+@click.option('--hop_length', type=int, default=defaults['hop_length'])
+@click.option('--win_length', type=int, default=defaults['win_length'])
+@click.option('--frag_hop_length', type=int, default=defaults['frag_hop_length'])
+@click.option('--frag_win_length', type=int, default=defaults['frag_win_length'])
 @click.option('--batch_size', type=int, default=defaults['batch_size'])
+@click.option('--epochs', type=int, default=defaults['epochs'])
 @click.option('--model_path', type=click.Path(), default=None)
 @click.option('--history_path', type=click.Path(), default=None)
 def train(ctx, 
           model_name, 
           dataset_path, 
-          rows, 
-          cols, 
-          channels, 
-          epochs, 
-          batch_size, 
+          rir_path, 
+          n_fft, 
+          hop_length,
+          win_length,
+          frag_hop_length,
+          frag_win_length,
+          batch_size,
+          epochs,
           model_path,
           history_path):
     script_train(model_name,
                  dataset_path,
-                 rows,
-                 cols,
-                 channels,
-                 epochs,
+                 rir_path,
+                 n_fft,
+                 hop_length,
+                 win_length,
+                 frag_hop_length,
+                 frag_win_length,
                  batch_size,
+                 epochs,
                  model_path,
                  history_path,
                  ctx.obj['cuda_device'])
@@ -83,7 +97,7 @@ def results(ctx,
                    epochs,
                    batch_size,
                    history_path,
-                   cuda_device)
+                   ctx.obj['cuda_device'])
 
 
 if __name__ == "__main__":
