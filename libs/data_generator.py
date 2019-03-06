@@ -64,7 +64,7 @@ class DataGenerator(keras.utils.Sequence):
         print('[d] Loading all RIRs files from {}'.format(self.rir_path))
         filelist = glob.glob(os.path.join(self.rir_path, '*.wav'))
         print('[d] Loaded {} files'.format(len(filelist)))
-        return filelist or 1
+        return filelist or [None]
 
 
     def get_data_shape(self):
