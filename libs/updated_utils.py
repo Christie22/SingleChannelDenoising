@@ -32,22 +32,21 @@ import glob
 def load_dataset(dataset_path):
     # TODO implement actual data handling
     # (requires figuring out data format)
-    print('[i] Loading all wav files from {}'.format(dataset_path))
+    print('[u] Loading all wav files from {}'.format(dataset_path))
     filelist = glob.glob(os.path.join(dataset_path, '*.wav'))
-    print('[i] Loaded {} files'.format(len(filelist)))
+    print('[u] Loaded {} files'.format(len(filelist)))
     return filelist
 
 
 def create_autoencoder_model(custom_objects, model_name, input_shape):
+    print('[u] Creating autoencoder model {}'.format(model_name))
     # import model factory
     if model_name == 'lstm':
-        print('Using model `{}` from {}'.format(model_name, 'model_lstm'))
         return None
     elif model_name == 'conv':
-        print('Using model `{}` from {}'.format(model_name, 'model_conv'))
         return None
     else:
-        print('importing example model :D')
+        print('[u] Importing example model :D')
         import models.model_example as m
 
     # calc input shape and enforce it
@@ -59,6 +58,7 @@ def create_autoencoder_model(custom_objects, model_name, input_shape):
 
 
 def load_autoencoder_model(model_path, custom_objects):
+    print('[u] Loading autoencoder model from {}'.format(model_path))
     model = load_model(model_path, custom_objects=custom_objects)
     # extract encoder from main model
     encoder = model.get_layer('encoder')

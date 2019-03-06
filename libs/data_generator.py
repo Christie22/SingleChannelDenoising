@@ -25,7 +25,7 @@ import libs.updated_utils
 def white_noise(x, SNR):
     print('Using white noise')
     
-    N = max(x.shape);
+    N = max(x.shape)
     # N = len(x) alternatively
     sigma = np.sqrt( (x @ x.T) / (N * 10**(SNR/10)) )
     noise = [sigma * rnd.uniform(-1,1) for k in range( N) ]
@@ -70,7 +70,7 @@ def pink_noise(x, SNR):
 def velvet_noise(x, SNR):
     print('Using velvet noise')
     
-    N = max(x.shape);
+    N = max(x.shape)
     # N = len(x) alternatively
     sigma = np.sqrt( (x @ x.T) / (N * 10**(SNR/10)) )
     print('sigma = {0}'.format(sigma))

@@ -16,6 +16,16 @@ from libs.data_generator import DataGenerator
 
 
 def train(model_name, dataset_path, rows, cols, channels, epochs, batch_size, model_path, history_path, cuda_device):
+    print('[t] Training model {} on dataset {}'.format(model_name, dataset_path))
+    print('[t] Parameters: {}'.format({
+        'shape': (rows, cols, channels),
+        'epochs': epochs,
+        'batch_size': batch_size,
+        'model_path': model_path,
+        'history_path': history_path,
+        'cuda_device': cuda_device
+    }))
+
     # set GPU devices
     os.environ["CUDA_VISIBLE_DEVICES"] = cuda_device
 
@@ -29,7 +39,7 @@ def train(model_name, dataset_path, rows, cols, channels, epochs, batch_size, mo
     }
 
     # load dataset filenames and split in train and validation
-    print('Splitting data into train, validation and test subsets 80:20:20')
+    print('[t] Splitting data into train and validation subsets 80:20')
     filepath_list = load_dataset(dataset_path)
     filepath_list_train, filepath_list_valid = train_test_split(
         filepath_list, test_size=0.2, random_state=1337)
@@ -37,8 +47,8 @@ def train(model_name, dataset_path, rows, cols, channels, epochs, batch_size, mo
     # create DataGenerator objects
     train_steps_per_epoch = int(len(filepath_list_train) / batch_size)
     valid_steps_per_epoch = int(len(filepath_list_valid) / batch_size)
-    print('train steps per epoch: ', train_steps_per_epoch)
-    print('valid steps per epoch: ', valid_steps_per_epoch)
+    print('[t] Train steps per epoch: ', train_steps_per_epoch)
+    print('[t] Valid steps per epoch: ', valid_steps_per_epoch)
     training_generator = DataGenerator(filepath_list_train, **generator_args)
     validation_generator = DataGenerator(filepath_list_valid, **generator_args)
 
