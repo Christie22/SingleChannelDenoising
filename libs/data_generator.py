@@ -78,7 +78,7 @@ class DataGenerator(keras.utils.Sequence):
             print('[d] Loading file {}'.format(filename))
             # load data
             filepath = os.path.join(self.dataset_path, filename)
-            x = lr.core.load(filepath, sr=self.sr, mono=True)
+            x, _ = lr.core.load(filepath, sr=self.sr, mono=True)
             # apply variations of noise + clean (labels)
             for noise_variation in self.noise_variations + ['clean']:
                 print('[d]  Applying noise variation {}'.format(noise_variation))
@@ -123,7 +123,8 @@ class DataGenerator(keras.utils.Sequence):
             noise_variation_str = '{}_{}_{}'.format(
                 noise_func.__name__ if noise_func else 'none',
                 snr,
-                os.path.splitext(rir_filename)[0][-6:]
+                os.path.splitext(rir_filename)[
+                    0][-6:] if rir_filename else 'none'
             )
         path = os.path.join(path, noise_variation_str)
         path = os.path.join(path, proc_func.__name__ if proc_func else 'none')

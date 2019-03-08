@@ -44,14 +44,14 @@ def train(model_name,
         # reverberation cfg
         'rir_path': rir_path,
         # noising cfg
-        'noise_funcs': [white_noise],
+        'noise_funcs': [None],
         'noise_snrs': [0, 5],
         # stft cfg
         'n_fft': n_fft,
         'hop_length': hop_length,
         'win_length': win_length,
         # processing cfg
-        'proc_func': s_to_reim,
+        'proc_func': None,
         'proc_func_label': None,
         # fragmenting cfg
         'frag_hop_length': frag_hop_length,
