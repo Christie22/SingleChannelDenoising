@@ -1,3 +1,5 @@
 {
-    "python.pythonPath": "/Users/miccio/.local/share/virtualenvs/1ch_denoising-ljYo0cdK/bin/python"
+    "python.pythonPath": "/Users/miccio/.local/share/virtualenvs/1ch_denoising-ljYo0cdK/bin/python",
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true
 }
