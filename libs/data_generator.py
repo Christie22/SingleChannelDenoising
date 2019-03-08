@@ -80,7 +80,7 @@ class DataGenerator(keras.utils.Sequence):
             filepath = os.path.join(self.dataset_path, filename)
             x = lr.core.load(filepath, sr=self.sr, mono=True)
             # apply variations of noise + clean (labels)
-            for noise_variation in self.noise_variations + 'clean':
+            for noise_variation in self.noise_variations + ['clean']:
                 print('[d]  Applying noise variation {}'.format(noise_variation))
                 if noise_variation == 'clean':
                     # convert to TF-domain
