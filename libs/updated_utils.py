@@ -27,7 +27,7 @@ import librosa.onset as onst
 import sys
 import glob
 
-from pystoi.stoi import stoi
+# from pystoi.stoi import stoi
 
 
 ######### v FUNCTIONS THAT ARE ACTUALLY USED v ############
@@ -335,7 +335,7 @@ def calc_metrics(y, yest, **kwargs):
 
     #### Calculation of STOI
     # Clean and den should have the same length, and be 1D
-    d = stoi(y, yest, sr, extended=False)
+    d = None # stoi(y, yest, sr, extended=False)
 
     output = {'Signal-To-Distorsion Ratio (SDR)' : SDR, 'Noise Reduction Ratio' : NRR, 'STOI' : d}
     return output

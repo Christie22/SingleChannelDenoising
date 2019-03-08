@@ -46,7 +46,7 @@ class DataGenerator(keras.utils.Sequence):
         self.labels = labels
         self.batch_size = batch_size
         # computed vars
-        self.data_shape = (256, 64, 2) # TODO calculate based on n_fft, processing, and fragment
+        self._data_shape = (256, 64, 2) # TODO calculate based on n_fft, processing, and fragment
         self.rir_filenames = self.load_rirs()
         self.noise_variations = list(itertools.product(self.noise_funcs, self.noise_snrs, self.rir_filenames))
         # local vars
@@ -77,7 +77,7 @@ class DataGenerator(keras.utils.Sequence):
         for filename in self.filenames:
             print('[d] Loading file {}'.format(filename))
             # load data
-            filepath = os.path.join(self.dataset_path, '{}.wav'.format(filename))
+            filepath = os.path.join(self.dataset_path, filename)
             x = lr.core.load(filepath, sr=self.sr, mono=True)
             # apply variations of noise + clean (labels)
             for noise_variation in self.noise_variations + 'clean':
@@ -115,7 +115,7 @@ class DataGenerator(keras.utils.Sequence):
     
     # generate filepath for individual fragments
     def gen_cache_path(self, cache_path, filename, noise_variation, proc_func, frag_index):
-        path = os.path.join(cache_path, filename)
+        path = os.path.join(cache_path, os.path.splitext(filename)[0])
         if noise_variation == 'clean':
             noise_variation_str = noise_variation
         else:
@@ -123,7 +123,7 @@ class DataGenerator(keras.utils.Sequence):
             noise_variation_str = '{}_{}_{}'.format(
                 noise_func.__name__ if noise_func else 'none',
                 snr,
-                rir_filename[-6:]
+                os.path.splitext(rir_filename)[0][-6:]
             )
         path = os.path.join(path, noise_variation_str)
         path = os.path.join(path, proc_func.__name__ if proc_func else 'none')
@@ -183,5 +183,5 @@ class DataGenerator(keras.utils.Sequence):
     # return shape of data
     @property
     def data_shape(self):
-        return self.data_shape
+        return self._data_shape
 
