@@ -14,7 +14,7 @@ import libs.processing as processing
 class DataGenerator(keras.utils.Sequence):
     # util.frame : split a vector in overlapping windows
     def __init__(self, filenames,
-                 dataset_path, sr, rir_path, cache_path=None,
+                 dataset_path, sr, rir_path=None, cache_path=None,
                  noise_funcs=[None], noise_snrs=[0],
                  n_fft=512, hop_length=128, win_length=512, 
                  proc_func=None, proc_func_label=None,
@@ -27,7 +27,7 @@ class DataGenerator(keras.utils.Sequence):
         self.cache_path = os.path.expanduser(cache_path) if cache_path else os.path.join(self.dataset_path, 'cache')
         self.sr = sr
         # reverberation cfg
-        self.rir_path = os.path.expanduser(rir_path)
+        self.rir_path = os.path.expanduser(rir_path) if rir_path else None
         # noising cfg
         self.noise_funcs = noise_funcs
         self.noise_snrs = noise_snrs
@@ -49,17 +49,10 @@ class DataGenerator(keras.utils.Sequence):
         self._data_shape = (256, 64, 2) # TODO calculate based on n_fft, processing, and fragment
         self.rir_filenames = self.load_rirs()
         self.noise_variations = list(itertools.product(self.noise_funcs, self.noise_snrs, self.rir_filenames))
-        # local vars
-        self.n_fragments = None
+        # cached vars
+        self.fragments = None
         self.indexes = []
-        self.batch_buffer = None
-        self.leftover_buffer = None
-        self.pointer = {
-            'index': 0,
-            'variation': 0,
-            'frag': 0,
-        }
-        # init random indexes
+        # init stuff up
         self.init_cache()
         self.on_epoch_end()
 
@@ -73,9 +66,9 @@ class DataGenerator(keras.utils.Sequence):
     # init cache
     def init_cache(self):
         print('[d] Initializing cache...')
-        self.n_fragments = 0
-        for filename in self.filenames:
-            print('[d] Loading file {}'.format(filename))
+        self.fragments = []
+        for i, filename in enumerate(self.filenames):
+            print('[d] Loading file {}/{}: {}'.format(i, len(self.filenames), filename))
             # load data
             filepath = os.path.join(self.dataset_path, filename)
             x, _ = lr.core.load(filepath, sr=self.sr, mono=True)
@@ -104,22 +97,21 @@ class DataGenerator(keras.utils.Sequence):
                 s_frags = self.make_fragments(s_proc, self.frag_hop_length, self.frag_win_length)
                 # store
                 for i, frag in enumerate(s_frags):
+                    print('[d] filename 2: {}'.format(filename))
                     frag_path = self.gen_cache_path(
                         self.cache_path, filename, noise_variation, 
                         self.proc_func if noise_variation != 'clean' else self.proc_func_label, i)
                     print('[d]   Storing frag {} in {}'.format(i, frag_path))
                     #self.store_frag(frag_path, frag)
-                    self.n_fragments += 1
+                    self.fragments.append(frag_path)
         # done
         print('[d] Cache ready.')
     
     # generate filepath for individual fragments
     def gen_cache_path(self, cache_path, filename, noise_variation, proc_func, frag_index):
+        print('[d] filename 1: {}'.format(filename))
         filename_dir = os.path.splitext(filename)[0].replace(' ', '_')
-        print('[d] gen_cache_path 1: {}'.format(cache_path))
-        print('[d] gen_cache_path 1: {}'.format(filename_dir))
         path = os.path.join(cache_path, filename_dir)
-        print('[d] gen_cache_path 3: {}'.format(path))
         if noise_variation == 'clean':
             noise_variation_str = noise_variation
         else:
@@ -134,18 +126,6 @@ class DataGenerator(keras.utils.Sequence):
         path = os.path.join(path, proc_func.__name__ if proc_func else 'none')
         path = os.path.join(path, 'frag_{}.npy'.format(frag_index))
         return path
-
-
-
-    # return overall number of fragments
-    def get_n_fragments(self):
-        file_durations = [lr.core.get_duration(filename=f) for f in self.filenames]
-        file_fragments = lr.core.time_to_frames(
-            file_durations, 
-            sr=self.sr, 
-            hop_length=self.frag_hop_length,
-            n_fft=self.frag_win_length) - 1
-        return file_fragments.sum()
 
     # store processed audio fragment into cache
     def store_frag(self, filepath, s):
@@ -165,28 +145,40 @@ class DataGenerator(keras.utils.Sequence):
 
     # callback at each epoch (shuffles batches)
     def on_epoch_end(self):
-        self.indexes = np.arange(len(self.filenames))
+        self.indexes = np.arange(len(self.fragments))
         if self.shuffle:
             np.random.shuffle(self.indexes)
 
     # number of batches
     def __len__(self):
-        if not self.n_fragments:
+        if not self.fragments:
             self.init_cache()
-        return self.n_fragments // self.batch_size
+        return len(self.fragments) // self.batch_size
 
     # return one batch of data
     def __getitem__(self, index):
-        
-        
-
-
         #x, y = self.__data_generation(filenames_batch)
-        
         return None
     
     # return shape of data
     @property
     def data_shape(self):
         return self._data_shape
+    
+    # return number of individual audio fragments
+    @property
+    def n_fragments(self):
+        return len(self.fragments)
 
+
+# testing the module
+if __name__ == 'main':
+    filenames = ['a.wav', 'b.wav', 'c.wav']
+    dataset_path = '/path/to/data/'
+    sr = 16000
+    generator = DataGenerator(filenames, dataset_path, sr)
+    print('len:     ', len(generator))
+    print('n frags: ', generator.n_fragments)
+    print('shape:   ', generator.data_shape)
+    for batch in generator:
+        print(batch)
