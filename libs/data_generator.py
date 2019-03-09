@@ -14,9 +14,8 @@ import libs.processing as processing
 
 class DataGenerator(keras.utils.Sequence):
     # util.frame : split a vector in overlapping windows
-    def __init__(self, filepaths,
-                 sr, rir_path=None, cache_path=None,
-                 noise_funcs=[None], noise_snrs=[0],
+    def __init__(self, filepaths, cache_path=None, sr=16000, 
+                 rir_path=None, noise_funcs=[None], noise_snrs=[0],
                  n_fft=512, hop_length=128, win_length=512, 
                  proc_func=None, proc_func_label=None,
                  frag_hop_length=64, frag_win_length=32, 

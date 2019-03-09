@@ -39,11 +39,10 @@ def train(model_name,
     # store DataGenerator args
     generator_args = {
         # dataset cfg
-        'dataset_path': dataset_path,
         'sr': sr,
-        # reverberation cfg
+        'cache_path': None,
+        # noising/reverberation cfg
         'rir_path': rir_path,
-        # noising cfg
         'noise_funcs': [None],
         'noise_snrs': [0, 5],
         # stft cfg
@@ -58,7 +57,7 @@ def train(model_name,
         'frag_win_length': frag_win_length,
         # general cfg
         'shuffle': True,
-        'labels': 'clean',
+        'label_type': 'clean',
         'batch_size': batch_size,
     }
     print('[t] Data generator parameters: {}'.format(generator_args))
