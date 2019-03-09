@@ -101,6 +101,7 @@ class DataGenerator(keras.utils.Sequence):
                         self.cache_path, filepath, noise_variation, 
                         self.proc_func if noise_variation != 'clean' else self.proc_func_label, i)
                     print('[d]   Storing frag {} in {}'.format(i, frag_path))
+                    os.makedirs(frag_path, exist_ok=True)
                     np.save(frag_path, frag)
                     # append fragment path to proper list (labels, processed)
                     if noise_variation == 'clean':
