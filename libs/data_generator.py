@@ -115,9 +115,11 @@ class DataGenerator(keras.utils.Sequence):
     
     # generate filepath for individual fragments
     def gen_cache_path(self, cache_path, filename, noise_variation, proc_func, frag_index):
-        print('[d] gen_cache_path chache_path: {}'.format(cache_path))
-        path = os.path.join(cache_path, os.path.splitext(filename)[0].replace(' ', '_'))
-        print('[d] gen_cache_path path: {}'.format(path))
+        filename_dir = os.path.splitext(filename)[0].replace(' ', '_')
+        print('[d] gen_cache_path 1: {}'.format(cache_path))
+        print('[d] gen_cache_path 1: {}'.format(filename_dir))
+        path = os.path.join(cache_path, filename_dir)
+        print('[d] gen_cache_path 3: {}'.format(path))
         if noise_variation == 'clean':
             noise_variation_str = noise_variation
         else:
