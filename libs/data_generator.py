@@ -97,7 +97,6 @@ class DataGenerator(keras.utils.Sequence):
                 s_frags = self.make_fragments(s_proc, self.frag_hop_length, self.frag_win_length)
                 # store
                 for i, frag in enumerate(s_frags):
-                    print('[d] filename 2: {}'.format(filename))
                     frag_path = self.gen_cache_path(
                         self.cache_path, filename, noise_variation, 
                         self.proc_func if noise_variation != 'clean' else self.proc_func_label, i)
@@ -110,7 +109,7 @@ class DataGenerator(keras.utils.Sequence):
     # generate filepath for individual fragments
     def gen_cache_path(self, cache_path, filename, noise_variation, proc_func, frag_index):
         print('[d] filename 1: {}'.format(filename))
-        filename_dir = os.path.splitext(filename)[0].replace(' ', '_')
+        filename_dir = os.path.splitext(os.path.basename(filename))[0].replace(' ', '_')
         path = os.path.join(cache_path, filename_dir)
         if noise_variation == 'clean':
             noise_variation_str = noise_variation
