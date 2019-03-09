@@ -24,7 +24,9 @@ class DataGenerator(keras.utils.Sequence):
         # dataset cfg
         self.filenames = filenames
         self.dataset_path = os.path.expanduser(dataset_path)
+        print('[d] input chache_path: {}'.format(cache_path))
         self.cache_path = os.path.expanduser(cache_path) if cache_path else os.path.join(self.dataset_path, 'cache')
+        print('[d] dataset_path: {}, chache_path: {}'.format(self.dataset_path, self.cache_path))
         self.sr = sr
         # reverberation cfg
         self.rir_path = os.path.expanduser(rir_path)
