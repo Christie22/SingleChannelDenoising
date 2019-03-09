@@ -5,6 +5,7 @@ import keras
 import librosa as lr
 import numpy as np
 import pandas as pd
+import os.path as osp
 #from scipy.io.wavfile import write
 
 import libs.updated_utils
@@ -13,21 +14,20 @@ import libs.processing as processing
 
 class DataGenerator(keras.utils.Sequence):
     # util.frame : split a vector in overlapping windows
-    def __init__(self, filenames,
-                 dataset_path, sr, rir_path=None, cache_path=None,
+    def __init__(self, filepaths,
+                 sr, rir_path=None, cache_path=None,
                  noise_funcs=[None], noise_snrs=[0],
                  n_fft=512, hop_length=128, win_length=512, 
                  proc_func=None, proc_func_label=None,
                  frag_hop_length=64, frag_win_length=32, 
-                 shuffle=True, labels='clean', batch_size=32):
+                 shuffle=True, label_type='clean', batch_size=32):
 
         # dataset cfg
-        self.filenames = filenames
-        self.dataset_path = os.path.expanduser(dataset_path)
-        self.cache_path = os.path.expanduser(cache_path) if cache_path else os.path.join(self.dataset_path, 'cache')
+        self.filepaths = filepaths
+        self.cache_path = osp.expanduser(cache_path) if cache_path else osp.join(osp.dirname(filepaths[0]), 'cache')
         self.sr = sr
         # reverberation cfg
-        self.rir_path = os.path.expanduser(rir_path) if rir_path else None
+        self.rir_path = osp.expanduser(rir_path) if rir_path else None
         # noising cfg
         self.noise_funcs = noise_funcs
         self.noise_snrs = noise_snrs
@@ -43,14 +43,15 @@ class DataGenerator(keras.utils.Sequence):
         self.frag_win_length = frag_win_length
         # general cfg
         self.shuffle = shuffle
-        self.labels = labels
+        self.label_type = label_type
         self.batch_size = batch_size
         # computed vars
         self._data_shape = (256, 64, 2) # TODO calculate based on n_fft, processing, and fragment
-        self.rir_filenames = self.load_rirs()
-        self.noise_variations = list(itertools.product(self.noise_funcs, self.noise_snrs, self.rir_filenames))
+        self.rir_filepaths = self.load_rirs()
+        self.noise_variations = list(itertools.product(self.noise_funcs, self.noise_snrs, self.rir_filepaths))
         # cached vars
-        self.fragments = None
+        self.fragments_x = None
+        self.fragments_y = None
         self.indexes = []
         # init stuff up
         self.init_cache()
@@ -59,18 +60,18 @@ class DataGenerator(keras.utils.Sequence):
     # load list of RIR files
     def load_rirs(self):
         print('[d] Loading all RIRs files from {}'.format(self.rir_path))
-        filelist = glob.glob(os.path.join(self.rir_path, '*.wav'))
+        filelist = glob.glob(osp.join(self.rir_path, '*.wav'))
         print('[d] Loaded {} files'.format(len(filelist)))
         return filelist or [None]
 
     # init cache
     def init_cache(self):
         print('[d] Initializing cache...')
-        self.fragments = []
-        for i, filename in enumerate(self.filenames):
-            print('[d] Loading file {}/{}: {}'.format(i, len(self.filenames), filename))
+        self.fragments_x = []
+        self.fragments_y = []
+        for i, filepath in enumerate(self.filepaths):
+            print('[d] Loading file {}/{}: {}'.format(i, len(self.filepaths), filepath))
             # load data
-            filepath = os.path.join(self.dataset_path, filename)
             x, _ = lr.core.load(filepath, sr=self.sr, mono=True)
             # apply variations of noise + clean (labels)
             for noise_variation in self.noise_variations + ['clean']:
@@ -82,9 +83,9 @@ class DataGenerator(keras.utils.Sequence):
                     # apply label preprocessing
                     s_proc = self.proc_func_label(s) if self.proc_func_label else s 
                 else:
-                    noise_func, snr, rir_filename = noise_variation
+                    noise_func, snr, rir_filepath = noise_variation
                     # apply room
-                    x_rev = self.apply_reverb(x, rir_filename) if rir_filename else x
+                    x_rev = self.apply_reverb(x, rir_filepath) if rir_filepath else x
                     # apply noise function
                     x_noise = noise_func(x_rev, sr=self.sr, snr=snr) if noise_func else x_rev
                     # convert to TF-domain
@@ -95,46 +96,41 @@ class DataGenerator(keras.utils.Sequence):
 
                 # fragment data
                 s_frags = self.make_fragments(s_proc, self.frag_hop_length, self.frag_win_length)
-                # store
+                # store fragments as numpy arrays
                 for i, frag in enumerate(s_frags):
                     frag_path = self.gen_cache_path(
-                        self.cache_path, filename, noise_variation, 
+                        self.cache_path, filepath, noise_variation, 
                         self.proc_func if noise_variation != 'clean' else self.proc_func_label, i)
                     print('[d]   Storing frag {} in {}'.format(i, frag_path))
-                    #self.store_frag(frag_path, frag)
-                    self.fragments.append(frag_path)
+                    np.save(frag_path, frag)
+                    # append fragment path to proper list (labels, processed)
+                    if noise_variation == 'clean':
+                        self.fragments_y.append(frag_path)
+                    else:
+                        self.fragments_x.append(frag_path)
         # done
-        print('[d] Cache ready.')
+        print('[d] Cache ready, generated {} fragments'.format(len(self.fragments_y) + len(self.fragments_x)))
     
     # generate filepath for individual fragments
-    def gen_cache_path(self, cache_path, filename, noise_variation, proc_func, frag_index):
-        print('[d] filename 1: {}'.format(filename))
-        filename_dir = os.path.splitext(os.path.basename(filename))[0].replace(' ', '_')
-        path = os.path.join(cache_path, filename_dir)
+    def gen_cache_path(self, cache_path, filepath, noise_variation, proc_func, frag_index):
+        filepath_dir = osp.splitext(osp.basename(filepath))[0].replace(' ', '_')
+        path = osp.join(cache_path, filepath_dir)
         if noise_variation == 'clean':
             noise_variation_str = noise_variation
         else:
-            noise_func, snr, rir_filename = noise_variation
+            noise_func, snr, rir_filepath = noise_variation
             noise_variation_str = '{}_{}_{}'.format(
                 noise_func.__name__ if noise_func else 'none',
                 snr,
-                os.path.splitext(rir_filename)[
-                    0][-6:] if rir_filename else 'none'
+                osp.splitext(rir_filepath)[
+                    0][-6:] if rir_filepath else 'none'
             )
-        path = os.path.join(path, noise_variation_str)
-        path = os.path.join(path, proc_func.__name__ if proc_func else 'none')
-        path = os.path.join(path, 'frag_{}.npy'.format(frag_index))
+        path = osp.join(path, noise_variation_str)
+        path = osp.join(path, proc_func.__name__ if proc_func else 'none')
+        path = osp.join(path, 'frag_{}.npy'.format(frag_index))
         return path
 
-    # store processed audio fragment into cache
-    def store_frag(self, filepath, s):
-        np.save(filepath, s)
-
-    # load processed audio fragment from cache
-    def load_frag(self, filepath):
-        return np.load(filepath)
-
-    def apply_reverb(self, x, rir_filename):
+    def apply_reverb(self, x, rir_filepath):
         # TODO
         return x
 
@@ -144,20 +140,50 @@ class DataGenerator(keras.utils.Sequence):
 
     # callback at each epoch (shuffles batches)
     def on_epoch_end(self):
-        self.indexes = np.arange(len(self.fragments))
+        self.indexes = np.arange(len(self.fragments_x))
         if self.shuffle:
             np.random.shuffle(self.indexes)
 
     # number of batches
     def __len__(self):
-        if not self.fragments:
+        if not self.fragments_x:
             self.init_cache()
-        return len(self.fragments) // self.batch_size
+        return len(self.fragments_x) // self.batch_size
 
     # return one batch of data
     def __getitem__(self, index):
-        #x, y = self.__data_generation(filenames_batch)
-        return None
+        # generate indexes
+        lower_bound = index * self.batch_size
+        upper_bound = (index+1)*self.batch_size
+        indexes = self.indexes[lower_bound:upper_bound]
+        # generate list of fragments
+        filepaths = [self.fragments_x[i] for i in indexes]
+        # initializing arrays
+        x = np.empty((self.batch_size, *self.data_shape))
+        # load data
+        for i, filepath in enumerate(filepaths):
+            print('[d] loading file {}'.format(filepath))
+            x[i,] = np.load(filepath)
+
+        # handle labels
+        if self.label_type == 'clean':
+            y = np.empty((self.batch_size, *self.data_shape))
+            for i, filepath in enumerate(filepaths):
+                # TODO find a way and use gen_cache_path?
+                filename = osp.basename(filepath)
+                basedir = osp.dirname(osp.dirname(osp.dirname(filename)))
+                proc_str = self.proc_func_label.__name__ if self.proc_func_label else 'none'
+                filepath_y = osp.join(basedir, 'clean', proc_str, filename)
+                # laad data
+                print('[d] loading file {}'.format(filepath_y))
+                y[i,] = np.load(filepath_y)
+        elif self.label_type == 'x':
+            y = x
+        else:
+            print('[d] Label type unsupported, y = empty!')
+            y = np.empty((self.batch_size))
+
+        return x, y
     
     # return shape of data
     @property
@@ -167,17 +193,4 @@ class DataGenerator(keras.utils.Sequence):
     # return number of individual audio fragments
     @property
     def n_fragments(self):
-        return len(self.fragments)
-
-
-# testing the module
-if __name__ == 'main':
-    filenames = ['a.wav', 'b.wav', 'c.wav']
-    dataset_path = '/path/to/data/'
-    sr = 16000
-    generator = DataGenerator(filenames, dataset_path, sr)
-    print('len:     ', len(generator))
-    print('n frags: ', generator.n_fragments)
-    print('shape:   ', generator.data_shape)
-    for batch in generator:
-        print(batch)
+        return len(self.fragments_x) + len(self.fragments_y)
