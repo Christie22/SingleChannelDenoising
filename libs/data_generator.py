@@ -1,161 +1,196 @@
-"""
-preprocess data! edit `__init__`, `__len__`, `__data_generation`, etc to support:
-- input files as spectrograms / time-domain signals
-- (DONE) fragmentation of input files (long file => multiple chunks)
-- pre-processing function as input argument! (accepts time-domain data and 
-extra parameters (sr, n_mels, etc...))
-- (DONE) clean up the label mess 
-- _noising_ functions as input argument! i.e. pass list of functions to DataGenerator 
-(each function take time-domain data and SNR value __only__)
-
-"""
 import os
 import glob
+import itertools
 import keras
 import librosa as lr
 import numpy as np
 import pandas as pd
-import random as rnd
+import os.path as osp
 #from scipy.io.wavfile import write
 
 import libs.updated_utils
 import libs.processing as processing
 
 
-    
 class DataGenerator(keras.utils.Sequence):
     # util.frame : split a vector in overlapping windows
-    def __init__(self, filenames,
-                 dataset_path, sr, rir_path, 
-                 noise_types=[], noise_snrs=[0],
+    def __init__(self, filepaths, cache_path=None, sr=16000, 
+                 rir_path=None, noise_funcs=[None], noise_snrs=[0],
                  n_fft=512, hop_length=128, win_length=512, 
-                 proc_type=None,
+                 proc_func=None, proc_func_label=None,
                  frag_hop_length=64, frag_win_length=32, 
-                 shuffle=True, labels='clean', batch_size=32):
+                 shuffle=True, label_type='clean', batch_size=32):
 
         # dataset cfg
-        self.filenames = filenames
-        self.dataset_path = os.path.expanduser(dataset_path)
+        self.filepaths = filepaths
+        self.cache_path = osp.expanduser(cache_path) if cache_path else osp.join(osp.dirname(filepaths[0]), 'cache')
         self.sr = sr
         # reverberation cfg
-        self.rir_path = os.path.expanduser(rir_path)
+        self.rir_path = osp.expanduser(rir_path) if rir_path else None
         # noising cfg
-        self.noise_types = noise_types
+        self.noise_funcs = noise_funcs
         self.noise_snrs = noise_snrs
         # stft cfg
         self.n_fft = n_fft
         self.hop_length = hop_length
         self.win_length = win_length
         # processing cfg
-        self.proc_type = proc_type
+        self.proc_func = proc_func
+        self.proc_func_label = proc_func_label
         # fragmenting cfg
         self.frag_hop_length = frag_hop_length
         self.frag_win_length = frag_win_length
         # general cfg
         self.shuffle = shuffle
-        self.labels = labels
+        self.label_type = label_type
         self.batch_size = batch_size
-        # local vars
-        self.data_shape = (256, 64, 2) # TODO calculate based on n_fft, processing, and fragment
-        self.n_fragments = self.get_n_fragments()
-        self.rir_filenames = self.load_rirs()
+        # computed vars
+        self._data_shape = (256, 64, 2) # TODO calculate based on n_fft, processing, and fragment
+        self.rir_filepaths = self.load_rirs()
+        self.noise_variations = list(itertools.product(self.noise_funcs, self.noise_snrs, self.rir_filepaths))
+        # cached vars
+        self.fragments_x = None
+        self.fragments_y = None
+        self.indexes = []
+        # init stuff up
+        self.init_cache()
+        self.on_epoch_end()
 
-
+    # load list of RIR files
     def load_rirs(self):
         print('[d] Loading all RIRs files from {}'.format(self.rir_path))
-        filelist = glob.glob(os.path.join(self.rir_path, '*.wav'))
+        filelist = glob.glob(osp.join(self.rir_path, '*.wav'))
         print('[d] Loaded {} files'.format(len(filelist)))
         return filelist or [None]
 
-    def get_data_shape(self):
-        return self.data_shape
+    # init cache
+    def init_cache(self):
+        print('[d] Initializing cache...')
+        self.fragments_x = []
+        self.fragments_y = []
+        for i, filepath in enumerate(self.filepaths):
+            print('[d] Loading file {}/{}: {}'.format(i, len(self.filepaths), filepath))
+            # load data
+            x, _ = lr.core.load(filepath, sr=self.sr, mono=True)
+            # apply variations of noise + clean (labels)
+            for noise_variation in self.noise_variations + ['clean']:
+                print('[d]  Applying noise variation {}'.format(noise_variation))
+                if noise_variation == 'clean':
+                    # convert to TF-domain
+                    s = lr.core.stft(
+                        x, n_fft=self.n_fft, hop_length=self.hop_length, win_length=self.win_length)
+                    # apply label preprocessing
+                    s_proc = self.proc_func_label(s) if self.proc_func_label else s 
+                else:
+                    noise_func, snr, rir_filepath = noise_variation
+                    # apply room
+                    x_rev = self.apply_reverb(x, rir_filepath) if rir_filepath else x
+                    # apply noise function
+                    x_noise = noise_func(x_rev, sr=self.sr, snr=snr) if noise_func else x_rev
+                    # convert to TF-domain
+                    s_noise = lr.core.stft(
+                        x_noise, n_fft=self.n_fft, hop_length=self.hop_length, win_length=self.win_length)
+                    # apply data repr processing
+                    s_proc = self.proc_func(s_noise) if self.proc_func else s_noise 
 
-    def get_n_fragments(self):
-        file_durations = [lr.core.get_duration(filename=f) for f in self.filenames]
-        file_fragments = lr.core.time_to_frames(
-            file_durations, 
-            sr=self.sr, 
-            hop_length=self.frag_hop_length,
-            n_fft=self.frag_win_length) - 1
-        return file_fragments.sum()
+                # fragment data
+                s_frags = self.make_fragments(s_proc, self.frag_hop_length, self.frag_win_length)
+                # store fragments as numpy arrays
+                for i, frag in enumerate(s_frags):
+                    frag_path = self.gen_cache_path(
+                        self.cache_path, filepath, noise_variation, 
+                        self.proc_func if noise_variation != 'clean' else self.proc_func_label, i)
+                    print('[d]   Storing frag {} in {}'.format(i, frag_path))
+                    os.makedirs(osp.dirname(frag_path), exist_ok=True)
+                    np.save(frag_path, frag)
+                    # append fragment path to proper list (labels, processed)
+                    if noise_variation == 'clean':
+                        self.fragments_y.append(frag_path)
+                    else:
+                        self.fragments_x.append(frag_path)
+        # done
+        print('[d] Cache ready, generated {} fragments'.format(len(self.fragments_y) + len(self.fragments_x)))
+    
+    # generate filepath for individual fragments
+    def gen_cache_path(self, cache_path, filepath, noise_variation, proc_func, frag_index):
+        filepath_dir = osp.splitext(osp.basename(filepath))[0].replace(' ', '_')
+        path = osp.join(cache_path, filepath_dir)
+        if noise_variation == 'clean':
+            noise_variation_str = noise_variation
+        else:
+            noise_func, snr, rir_filepath = noise_variation
+            noise_variation_str = '{}_{}_{}'.format(
+                noise_func.__name__ if noise_func else 'none',
+                snr,
+                osp.splitext(rir_filepath)[
+                    0][-6:] if rir_filepath else 'none'
+            )
+        path = osp.join(path, noise_variation_str)
+        path = osp.join(path, proc_func.__name__ if proc_func else 'none')
+        path = osp.join(path, 'frag_{}.npy'.format(frag_index))
+        return path
 
-
-    def __len__(self):
-        print('[d] Calculating total number of input fragments')
-        variations = len(self.noise_types) * len(self.noise_snrs) * len(self.rir_filenames)
-        return self.n_fragments * variations
-
-
-    def __getitem__(self, index):
-#        path = os.path.join(self.dataset_path + '.wav')
-#        s = lr.load(path, self.sr)
-        
-        # TODO need to consider batch size
-        batch, batches = [], []
-        for file in self.filenames:
-
-            s = lr.input.read_wav(file, self.sr)
-            self.length_OrigSignal = len(s)
-        
-            # Generate data
-            x = self.__data_generation(s)
-            if batch.shape > self.batch_size:
-                batches.append(batch)
-                batch = []
-            batch.append(x)
-        return batches 
-
-
-    def __data_generation(self, s):
-        # trim s to a multiple number of fragment_size:
-        keptS_length = len(s) - (len(s) % self.fragment_size)
-        s_short = s[ :keptS_length] 
-        
-        # create noise        
-        if self.convNoise == False:# additive noising
-            noise = self.createNoise_funcs[self.noise_choice](s_short, self.SNR) #create the noise wanted
-            x = s_short + noise
-            
-        else: # self.convNoise == True or type(self.convNoise)==int :
-            s_veryshort = s[ :self.fragment_size]
-            noise = self.createNoise_funcs[self.noise_choice](s_veryshort, self.SNR) #create the noise wanted
-            
-            if type(self.convNoise)==int :
-                conv_length = self.convNoise
-            else:
-                conv_length = self.fragment_size
-            if self.noise_choice == 3: #i.e. if take_file_as_noise
-                noise = self.rdn_noise(s, noise) 
-            
-            x = np.convolve(s_short, noise[ :conv_length], 'same')
-                 
-            
-        x = np.reshape(x, (self.nFragment ,self.fragment_size ))
-        
-        write_path = os.path.join(self.dataset_path + 'noise_' + self.SNR + 'dB.wav')
-        lr.output.write_wav(write_path, s, self.sr)
-#        write(write_path, self.sample_rate, x)
+    def apply_reverb(self, x, rir_filepath):
+        # TODO
         return x
 
-      
+    # convert T-F data into fragments
+    def make_fragments(self, s, frag_hop_len, frag_win_len):
+        return [s, s]
+
+    # callback at each epoch (shuffles batches)
+    def on_epoch_end(self):
+        self.indexes = np.arange(len(self.fragments_x))
+        if self.shuffle:
+            np.random.shuffle(self.indexes)
+
+    # number of batches
+    def __len__(self):
+        if not self.fragments_x:
+            self.init_cache()
+        return len(self.fragments_x) // self.batch_size
+
+    # return one batch of data
+    def __getitem__(self, index):
+        # generate indexes
+        lower_bound = index * self.batch_size
+        upper_bound = (index+1)*self.batch_size
+        indexes = self.indexes[lower_bound:upper_bound]
+        # generate list of fragments
+        filepaths = [self.fragments_x[i] for i in indexes]
+        # initializing arrays
+        x = np.empty((self.batch_size, *self.data_shape))
+        # load data
+        for i, filepath in enumerate(filepaths):
+            print('[d] loading file {}'.format(filepath))
+            x[i,] = np.load(filepath)
+
+        # handle labels
+        if self.label_type == 'clean':
+            y = np.empty((self.batch_size, *self.data_shape))
+            for i, filepath in enumerate(filepaths):
+                # TODO find a way and use gen_cache_path?
+                filename = osp.basename(filepath)
+                basedir = osp.dirname(osp.dirname(osp.dirname(filename)))
+                proc_str = self.proc_func_label.__name__ if self.proc_func_label else 'none'
+                filepath_y = osp.join(basedir, 'clean', proc_str, filename)
+                # laad data
+                print('[d] loading file {}'.format(filepath_y))
+                y[i,] = np.load(filepath_y)
+        elif self.label_type == 'x':
+            y = x
+        else:
+            print('[d] Label type unsupported, y = empty!')
+            y = np.empty((self.batch_size))
+
+        return x, y
     
-    def rdn_noise(self, s, noise):
-        # Function: randomize the order of the chunks of the file that is used as noise
-        
-        # Generate data
-        if len(noise) >= len(s):
-            noise = noise[:len(s)]
-            # randomization of the noising track
-            rdnOrder = [np.argsort([rnd.uniform(0,1) for i in range(self.nFragment)])]
-            new_noise = []
-            new_noise.append( [noise[rdni * self.fragment_size : (rdni+1) * self.fragment_size ] for rdni in rdnOrder ])
-            
-        elif len(noise) < len(s): # need to create some noise in addition: white_noising / interpolation / ...
-            # here: white_noising
-            keptNoise_length = len(noise) - (len(noise) % self.fragment_size)
-            noise_noised = noise[ :(len(s) - keptNoise_length)] + [rnd.uniform(-1 ,1) for k in range((len(s) - keptNoise_length))]
-            new_noise = noise[ :keptNoise_length].append( noise_noised )
-#            new_noise = np.reshape( noise[ :keptNoise_length].append( noise_noised ), (1, self.nFragment * self.fragment_size ))
-        
-        # TODO: sonme normalisation?
-        return new_noise         
+    # return shape of data
+    @property
+    def data_shape(self):
+        return self._data_shape
+    
+    # return number of individual audio fragments
+    @property
+    def n_fragments(self):
+        return len(self.fragments_x) + len(self.fragments_y)

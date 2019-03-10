@@ -39,25 +39,25 @@ def train(model_name,
     # store DataGenerator args
     generator_args = {
         # dataset cfg
-        'dataset_path': dataset_path,
         'sr': sr,
-        # reverberation cfg
+        'cache_path': None,
+        # noising/reverberation cfg
         'rir_path': rir_path,
-        # noising cfg
-        'noise_types': [white_noise],
+        'noise_funcs': [None],
         'noise_snrs': [0, 5],
         # stft cfg
         'n_fft': n_fft,
         'hop_length': hop_length,
         'win_length': win_length,
         # processing cfg
-        'proc_type': s_to_reim,
+        'proc_func': None,
+        'proc_func_label': None,
         # fragmenting cfg
         'frag_hop_length': frag_hop_length,
         'frag_win_length': frag_win_length,
         # general cfg
         'shuffle': True,
-        'labels': 'clean',
+        'label_type': 'clean',
         'batch_size': batch_size,
     }
     print('[t] Data generator parameters: {}'.format(generator_args))
@@ -72,7 +72,7 @@ def train(model_name,
 
     # create model
     model_args = {
-        'input_shape': training_generator.get_data_shape(),
+        'input_shape': training_generator.data_shape,
         'kernel_size': 3,
         'n_filters': 64,
     }

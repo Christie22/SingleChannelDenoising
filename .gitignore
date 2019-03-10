@@ -1,2 +1,7 @@
 *.pdf
 .DS_Store
+.vscode/settings.json
+
+__pycache__/
+*.py[cod]
+*$py.class
