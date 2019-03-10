@@ -5,6 +5,8 @@ import pandas as pd
 import random as rnd
 import time
 
+import libs.rir_simulator_python.roomsimove_single as room
+
 # generate seed from the time at which this script is run
 rnd.seed(int(time.time()))
 
@@ -95,7 +97,6 @@ def velvet_noise(x, SNR):
         #        [params.indNonZeros, ~,params.valNonZeros] = find(SV);
         #        params.sizeVN = N;
         return noise#, params
-    return createVelvetNoise() # ??
   
 
 
@@ -110,3 +111,57 @@ def take_file_as_noise(x, SNR):
         noise =  sigma * (load_noise - np.mean(load_noise)) + np.mean(load_noise) 
         return noise
     return noising_prototype
+
+
+### CREATE REVERB FILTERS
+def create_RIR(config_file_or_default=None):
+    if config_file_or_default is not None:
+        if isinstance(config_file_or_default, str):
+            # config_file
+            sim_rir = roomsimove_single.RoomSim.init_from_config_file(config_file)
+
+        elif isinstance(config_file_or_default, dict):
+            # retrieve params' values
+            keys = config_file_or_default.keys()
+            if 'room_dim' in keys:
+                room_dim = config_file_or_default.pop('room_dim', '')
+            else:
+                room_dim = [4.2, 3.4, 5.2]
+            room = roomsimove_single.Room(room_dim)
+
+            if 'mic_pos' in keys:
+                mic_pos = config_file_or_default.pop('mic_pos', '')
+            else:
+                mic_pos = [2, 2, 2]
+            mic = []
+            for p in range(mic_pos.shape):
+                mic.append(roomsimove_single.Microphone(mic_pos[p,], 1,  \
+                                    orientation=[0.0, 0.0, 0.0], direction='omnidirectional'))
+            if 'sampling_rate' in keys:
+                sampling_rate = config_file_or_default.pop('sampling_rate', '')
+            else:
+                sampling_rate = 16e3
+
+            if 'RT60' in keys:
+                RT60 = config_file_or_default.pop('RT60', '')
+
+            sim_rir = roomsimove_single.RoomSim(sample_rate, room, mics, RT60=300)
+                
+        else:
+            # default
+            room_dim = [4.2, 3.4, 5.2]
+            room = roomsimove_single.Room(room_dim)
+            mic_pos = [2, 2, 2]
+            mic1 = roomsimove_single.Microphone(mic_pos, 1,  \
+            orientation=[0.0, 0.0, 0.0], direction='omnidirectional'):
+            mic_pos = [2, 2, 1]
+            mic2 = roomsimove_single.Microphone(mic_pos, 2,  \
+                                                orientation=[0.0, 0.0, 0.0], direction='cardioid'):
+            mics = [mic1, mic2]
+            sampling_rate = 16000
+            sim_rir = roomsimove_single.RoomSim(sample_rate, room, mics, RT60=300)
+
+        source_pos = [1, 1, 1]
+        rir = sim_rir.create_rir(source_pos)
+    return rir
+    # TODO: write it somewhere if necessary

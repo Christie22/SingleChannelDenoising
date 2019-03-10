@@ -6,10 +6,12 @@ import librosa as lr
 import numpy as np
 import pandas as pd
 import os.path as osp
+import fftfilt
 #from scipy.io.wavfile import write
 
 import libs.updated_utils
 import libs.processing as processing
+import libs.rir_simulator_python.roomsimove_single as room
 
 
 class DataGenerator(keras.utils.Sequence):
@@ -131,7 +133,8 @@ class DataGenerator(keras.utils.Sequence):
         return path
 
     def apply_reverb(self, x, rir_filepath):
-        # TODO
+        rir = np.load(rir_filepath)
+        x = fftfilt.fftfilt(rir,x)
         return x
 
     # convert T-F data into fragments
