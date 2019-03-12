@@ -6,8 +6,8 @@ import librosa as lr
 import numpy as np
 import pandas as pd
 import os.path as osp
-import tqdm
 from scipy.signal import fftconvolve
+from tqdm import tqdm
 #from scipy.io.wavfile import write
 
 import libs.updated_utils
@@ -72,12 +72,12 @@ class DataGenerator(keras.utils.Sequence):
         self.fragments_x = []
         self.fragments_y = []
         for i, filepath in tqdm(enumerate(self.filepaths)):
-            print('[d] Loading file {}/{}: {}'.format(i, len(self.filepaths), filepath))
+            #print('[d] Loading file {}/{}: {}'.format(i, len(self.filepaths), filepath))
             # load data
             x, _ = lr.core.load(filepath, sr=self.sr, mono=True)
             # apply variations of noise + clean (labels)
             for noise_variation in self.noise_variations + ['clean']:
-                print('[d]  Applying noise variation {}'.format(noise_variation))
+                #print('[d]  Applying noise variation {}'.format(noise_variation))
                 if noise_variation == 'clean':
                     # convert to TF-domain
                     s = lr.core.stft(
@@ -109,7 +109,7 @@ class DataGenerator(keras.utils.Sequence):
                     frag_path = self.gen_cache_path(
                         self.cache_path, filepath, noise_variation, 
                         self.proc_func if noise_variation != 'clean' else self.proc_func_label, i)
-                    print('[d]   Storing frag {} in {}'.format(i, frag_path))
+                    #print('[d]   Storing frag {} in {}'.format(i, frag_path))
                     os.makedirs(osp.dirname(frag_path), exist_ok=True)
                     np.save(frag_path, frag)
                     # append fragment path to proper list (labels, processed)
