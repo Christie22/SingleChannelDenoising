@@ -129,6 +129,5 @@ class AEModelFactory(object):
         x_true = Input(shape=self.input_shape, name='input')
         z = self._encoder(x_true)
         x_pred = self._decoder(z)
-        loss = LossLayer(name='loss')(
-            [x_true, x_pred, z])
-        self._model = Model(inputs=[x_true], outputs=[loss])
+        loss = LossLayer(name='loss')([x_true, x_pred, z])
+        self._model = Model(inputs=[x_true], outputs=[x_pred, loss])

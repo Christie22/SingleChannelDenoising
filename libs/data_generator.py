@@ -179,7 +179,7 @@ class DataGenerator(keras.utils.Sequence):
         x = np.empty((self.batch_size, *self.data_shape))
         # load data
         for i, filepath in enumerate(filepaths):
-            print('[d] loading file {}'.format(filepath))
+            #print('[d] loading file {}'.format(filepath))
             x[i,] = np.load(filepath)
 
         # handle labels
@@ -192,7 +192,7 @@ class DataGenerator(keras.utils.Sequence):
                 proc_str = self.proc_func_label.__name__ if self.proc_func_label else 'none'
                 filepath_y = osp.join(basedir, 'clean', proc_str, filename)
                 # laad data
-                print('[d] loading file {}'.format(filepath_y))
+                #print('[d] loading file {}'.format(filepath_y))
                 y[i,] = np.load(filepath_y)
         elif self.label_type == 'x':
             y = x
