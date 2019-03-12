@@ -57,7 +57,8 @@ def create_autoencoder_model(model_name, model_args):
     # generate model
     obj = m.AEModelFactory(**model_args)
     model = obj.get_model()
-    return model
+    # return loss function too (TODO: only if there)
+    return (model, obj.get_lossfunc if True else None)
 
 
 def load_autoencoder_model(model_path, custom_objects):
