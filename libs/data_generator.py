@@ -136,6 +136,7 @@ class DataGenerator(keras.utils.Sequence):
 
     # convert T-F data into fragments
     def make_fragments(self, s, frag_hop_len, frag_win_len):
+        # TODO!
         return [s, s]
 
     # callback at each epoch (shuffles batches)
