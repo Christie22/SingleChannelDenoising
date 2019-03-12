@@ -50,8 +50,8 @@ def train(model_name,
         'hop_length': hop_length,
         'win_length': win_length,
         # processing cfg
-        'proc_func': None,
-        'proc_func_label': None,
+        'proc_func': s_to_reim,
+        'proc_func_label': s_to_reim,
         # fragmenting cfg
         'frag_hop_length': frag_hop_length,
         'frag_win_length': frag_win_length,
