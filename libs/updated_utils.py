@@ -309,7 +309,7 @@ def calc_metrics(y, yest, **kwargs):
             stepsT = np.array([0,sizY[0]])
 
 
-    SDR, NRR = np.zeros(fBands,tBands), np.zeros(fBands,tBands)
+    SDR, NRR = np.zeros((fBands,tBands)), np.zeros((fBands,tBands))
 
     for nf in range(fBands):
         for nt in range(tBands):
