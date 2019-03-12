@@ -19,7 +19,7 @@ class AEModelFactory(object):
         self.input_shape = input_shape
         self.kernel_size = kernel_size
         self.n_filters = n_filters
-        self.n_tot_dim = input_shape[0] * input_shape[1] * input_shape[2]
+        self.n_tot_dim = np.prod(input_shape)
         self.n_inter_dim = n_intermediate_dim
         self.n_latent_dim = n_latent_dim
         self._encoder = None
@@ -83,9 +83,7 @@ class AEModelFactory(object):
             activation='relu')(inputs)
         dense = BatchNormalization()(dense)
         dense = Dense(
-            self.conv_shape[1] *
-            self.conv_shape[2] *
-            self.conv_shape[3],
+            np.prod(self.conv_shape[1:]),
             activation='relu')(inputs)
         dense = Dropout(0.4)(dense)
         dense = BatchNormalization()(dense)

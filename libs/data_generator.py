@@ -89,7 +89,7 @@ class DataGenerator(keras.utils.Sequence):
                             self._data_shape = (s_proc.shape[0], self.frag_win_length)
                         if len(s_proc.shape) == 3:
                             self._data_shape = (s_proc.shape[0], self.frag_win_length, s_proc.shape[2])
-                        else
+                        else:
                             print('[d] Data processed, resulting shape: {}'.format(s_proc.shape))
                 else:
                     noise_func, snr, rir_filepath = noise_variation
