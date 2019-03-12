@@ -6,7 +6,7 @@ import librosa as lr
 import numpy as np
 import pandas as pd
 import os.path as osp
-import fftfilt
+from scipy.signal import fftconvolve
 #from scipy.io.wavfile import write
 
 import libs.updated_utils
@@ -61,7 +61,7 @@ class DataGenerator(keras.utils.Sequence):
     # load list of RIR files
     def load_rirs(self):
         print('[d] Loading all RIRs files from {}'.format(self.rir_path))
-        filelist = glob.glob(osp.join(self.rir_path, '*.wav'))
+        filelist = glob.glob(osp.join(self.rir_path, '*.npy'))
         print('[d] Loaded {} files'.format(len(filelist)))
         return filelist or [None]
 
@@ -134,13 +134,19 @@ class DataGenerator(keras.utils.Sequence):
 
     def apply_reverb(self, x, rir_filepath):
         rir = np.load(rir_filepath)
-        x = fftfilt.fftfilt(rir,x)
+        x = fftconvolve(rir, x)
         return x
 
     # convert T-F data into fragments
+    # frag_hop_len, frag_win_len provided in seconds?
     def make_fragments(self, s, frag_hop_len, frag_win_len):
-        # TODO!
-        return [s, s]
+        n_frags = int((s.shape[1] - frag_win_len) / frag_hop_len + 1)
+        def get_slice(i):
+            lower_bound = i*frag_hop_len
+            upper_bound = i*frag_hop_len+frag_win_len
+            return s[:, lower_bound:upper_bound]
+        frags = [get_slice(i) for i in range(n_frags)]
+        return frags
 
     # callback at each epoch (shuffles batches)
     def on_epoch_end(self):
