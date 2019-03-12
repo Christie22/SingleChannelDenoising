@@ -22,32 +22,26 @@ Should satisfactory performances be achieved within a subset of the timeframe, t
 ## Instructions
 ### Setup
 - Setup remote environment:
-```sh
-conda create --name ml_env1 --file spec-file.txt
-source activate ml_env1
-```
+  ```sh
+  conda create --name <env_name> --file spec-file.txt
+  source activate <env_name>
+  ```
+- Every time the `spec-file.txt` is modified, update environment:
+  ```sh
+  conda install --name <env_name> --file spec-file.txt
+  ```
 ### Model definition
-- Create new model as in `models/` as `model_<model_name>.py`
-  - Implement a custom class named `AEModelFactory`
-  - Constructor takes model parameters
-  - Expose `get_model()` methos which returns a `keras.Model` object
-  - Define encoder and decoder as separate models
-  - Name explicitly all layers in autoencoder models
-  - Define loss function in a dummy layer
-  - See `model_example.py` for reference
-  - List the source, reference paper, etc!
-- In `train.py`, inside of `create_model_vae`, add clause in `# import model` section (stuff in <> needs to be filled):
-```py
-  elif model_name == '<MODEL_NAME>':
-    print('Using model `{}` from {}'.format(model_name, '<MODEL_FILENAME>'))
-    import <MODEL_FILENAME> as model_vae
-```
+Create new model as in `models/` as `model_<model_name>.py`.
+- Implement a custom class
+- Constructor takes model parameters
+- Expose `get_model()` method which returns a `keras.Model` object
+- Expose `get_lossfunc()` method with return a loss function taking `x_pred` and `x_true` as arguments
+- Define encoder and decoder as separate models
+- Name explicitly all layers in autoencoder model
+- See `model_example.py` for reference
+- Cite the source (paper, repo, etc) on top
 ### Usage
-- train model: `python train.py <options>`
-- get training results and show scatter plots of latent space dimensions: `python results.py <options>`
-- get latent space representations for given spectrograms: `python encode.py <options>`
-- generate spectrograms from latent space representations: `python decode.py <options>`
-- convert spectrograms to audio files: `python playAudio.py <options>`
+- List available commands: `python main.py --help`
 
 
 ## Structure
