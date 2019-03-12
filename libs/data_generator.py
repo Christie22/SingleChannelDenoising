@@ -82,15 +82,13 @@ class DataGenerator(keras.utils.Sequence):
                     s = lr.core.stft(
                         x, n_fft=self.n_fft, hop_length=self.hop_length, win_length=self.win_length)
                     # apply label preprocessing
-                    s_proc = self.proc_func_label(s) if self.proc_func_label else np.reshape(s, (*s.shape, 1)) 
+                    s_proc = self.proc_func_label(s) if self.proc_func_label else s 
                     # store shape!
                     if not self._data_shape:
                         if len(s_proc.shape) == 2:
                             self._data_shape = (s_proc.shape[0], self.frag_win_length, 1)
                         if len(s_proc.shape) == 3:
                             self._data_shape = (s_proc.shape[0], self.frag_win_length, s_proc.shape[2])
-                        else:
-                            print('[d] Data processed, resulting shape: {}'.format(s_proc.shape))
                 else:
                     noise_func, snr, rir_filepath = noise_variation
                     # apply room
@@ -101,7 +99,7 @@ class DataGenerator(keras.utils.Sequence):
                     s_noise = lr.core.stft(
                         x_noise, n_fft=self.n_fft, hop_length=self.hop_length, win_length=self.win_length)
                     # apply data repr processing
-                    s_proc = self.proc_func(s_noise) if self.proc_func else s_noise 
+                    s_proc = self.proc_func(s_noise) if self.proc_func else np.reshape(s_noise, (*s_noise.shape, 1)) 
 
                 # fragment data
                 s_frags = self.make_fragments(s_proc, self.frag_hop_length, self.frag_win_length)
