@@ -85,7 +85,12 @@ class DataGenerator(keras.utils.Sequence):
                     s_proc = self.proc_func_label(s) if self.proc_func_label else s 
                     # store shape!
                     if not self._data_shape:
-                        self._data_shape = s_proc.shape
+                        if len(s_proc.shape) == 2:
+                            self._data_shape = (s_proc.shape[0], self.frag_win_length)
+                        if len(s_proc.shape) == 3:
+                            self._data_shape = (s_proc.shape[0], self.frag_win_length, s_proc.shape[2])
+                        else
+                            print('[d] Data processed, resulting shape: {}'.format(s_proc.shape))
                 else:
                     noise_func, snr, rir_filepath = noise_variation
                     # apply room
