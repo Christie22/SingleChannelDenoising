@@ -47,7 +47,7 @@ class DataGenerator(keras.utils.Sequence):
         self.label_type = label_type
         self.batch_size = batch_size
         # computed vars
-        self._data_shape = (256, 64, 2) # TODO calculate based on n_fft, processing, and fragment
+        self._data_shape = None
         self.rir_filepaths = self.load_rirs()
         self.noise_variations = list(itertools.product(self.noise_funcs, self.noise_snrs, self.rir_filepaths))
         # cached vars
@@ -83,6 +83,9 @@ class DataGenerator(keras.utils.Sequence):
                         x, n_fft=self.n_fft, hop_length=self.hop_length, win_length=self.win_length)
                     # apply label preprocessing
                     s_proc = self.proc_func_label(s) if self.proc_func_label else s 
+                    # store shape!
+                    if not self._data_shape:
+                        self._data_shape = s_proc.shape
                 else:
                     noise_func, snr, rir_filepath = noise_variation
                     # apply room

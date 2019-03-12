@@ -5,8 +5,8 @@ import pandas as pd
 import random as rnd
 import time
 
-import roomsimove_single 
-#import libs.rir_simulator_python.roomsimove_single as roomsimove_single 
+#import libs.roomsimove_single 
+import libs.rir_simulator_python.roomsimove_single as roomsimove_single 
 
 # generate seed from the time at which this script is run
 rnd.seed(int(time.time()))
