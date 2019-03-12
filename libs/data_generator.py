@@ -6,6 +6,7 @@ import librosa as lr
 import numpy as np
 import pandas as pd
 import os.path as osp
+import tqdm
 from scipy.signal import fftconvolve
 #from scipy.io.wavfile import write
 
@@ -70,7 +71,7 @@ class DataGenerator(keras.utils.Sequence):
         print('[d] Initializing cache...')
         self.fragments_x = []
         self.fragments_y = []
-        for i, filepath in enumerate(self.filepaths):
+        for i, filepath in tqdm(enumerate(self.filepaths)):
             print('[d] Loading file {}/{}: {}'.format(i, len(self.filepaths), filepath))
             # load data
             x, _ = lr.core.load(filepath, sr=self.sr, mono=True)
@@ -189,7 +190,7 @@ class DataGenerator(keras.utils.Sequence):
                 print(filepath)
                 filename = osp.basename(filepath)
                 print(filename)
-                basedir = osp.dirname(osp.dirname(osp.dirname(filename)))
+                basedir = osp.dirname(osp.dirname(osp.dirname(filepath)))
                 print(basedir)
                 proc_str = self.proc_func_label.__name__ if self.proc_func_label else 'none'
                 filepath_y = osp.join(basedir, 'clean', proc_str, filename)
