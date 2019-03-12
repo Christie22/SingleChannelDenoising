@@ -3,7 +3,6 @@
 from keras.layers import Input, Dense, Conv2D, Conv2DTranspose, MaxPool2D, BatchNormalization, Flatten, Reshape, Dropout
 from keras.models import Model
 from keras import backend as K
-from libs.model_utils import LossLayer
 import numpy as np
 
 
@@ -26,6 +25,11 @@ class AEModelFactory(object):
         self._encoder = None
         self._decoder = None
         self._model = None
+
+    def get_lossfunc(self):
+        def lossfunc(x_true, x_pred):
+            return K.mean(K.square(x_true - x_pred))
+        return lossfunc
 
     def get_encoder(self):
         return self._encoder
@@ -129,5 +133,4 @@ class AEModelFactory(object):
         x_true = Input(shape=self.input_shape, name='input')
         z = self._encoder(x_true)
         x_pred = self._decoder(z)
-        loss = LossLayer(name='loss')([x_true, x_pred, z])
-        self._model = Model(inputs=[x_true], outputs=[x_pred, loss])
+        self._model = Model(inputs=[x_true], outputs=[x_pred])
