@@ -1,3 +1,8 @@
+# TODO
+# - multithreaded caching?
+# - verify (x, target) matching
+# - implement other label_type modes
+
 import os
 import glob
 import itertools
