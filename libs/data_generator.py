@@ -82,11 +82,11 @@ class DataGenerator(keras.utils.Sequence):
                     s = lr.core.stft(
                         x, n_fft=self.n_fft, hop_length=self.hop_length, win_length=self.win_length)
                     # apply label preprocessing
-                    s_proc = self.proc_func_label(s) if self.proc_func_label else s 
+                    s_proc = self.proc_func_label(s) if self.proc_func_label else np.reshape(s, (*s.shape, 1)) 
                     # store shape!
                     if not self._data_shape:
                         if len(s_proc.shape) == 2:
-                            self._data_shape = (s_proc.shape[0], self.frag_win_length)
+                            self._data_shape = (s_proc.shape[0], self.frag_win_length, 1)
                         if len(s_proc.shape) == 3:
                             self._data_shape = (s_proc.shape[0], self.frag_win_length, s_proc.shape[2])
                         else:
