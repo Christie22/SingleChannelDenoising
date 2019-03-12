@@ -71,7 +71,7 @@ class DataGenerator(keras.utils.Sequence):
         print('[d] Initializing cache...')
         self.fragments_x = []
         self.fragments_y = []
-        for i, filepath in tqdm(enumerate(self.filepaths)):
+        for i, filepath in enumerate(tqdm(self.filepaths)):
             #print('[d] Loading file {}/{}: {}'.format(i, len(self.filepaths), filepath))
             # load data
             x, _ = lr.core.load(filepath, sr=self.sr, mono=True)
@@ -83,7 +83,7 @@ class DataGenerator(keras.utils.Sequence):
                     s = lr.core.stft(
                         x, n_fft=self.n_fft, hop_length=self.hop_length, win_length=self.win_length)
                     # apply label preprocessing
-                    s_proc = self.proc_func_label(s) if self.proc_func_label else s 
+                    s_proc = self.proc_func_label(s) if self.proc_func_label else np.reshape(s, (*s.shape, 1))  
                     # store shape!
                     if not self._data_shape:
                         if len(s_proc.shape) == 2:
@@ -100,7 +100,7 @@ class DataGenerator(keras.utils.Sequence):
                     s_noise = lr.core.stft(
                         x_noise, n_fft=self.n_fft, hop_length=self.hop_length, win_length=self.win_length)
                     # apply data repr processing
-                    s_proc = self.proc_func(s_noise) if self.proc_func else np.reshape(s_noise, (*s_noise.shape, 1)) 
+                    s_proc = self.proc_func(s_noise) if self.proc_func else np.reshape(s_noise, (*s_noise.shape, 1))
 
                 # fragment data
                 s_frags = self.make_fragments(s_proc, self.frag_hop_length, self.frag_win_length)
@@ -187,14 +187,10 @@ class DataGenerator(keras.utils.Sequence):
             y = np.empty((self.batch_size, *self.data_shape))
             for i, filepath in enumerate(filepaths):
                 # TODO find a way and use gen_cache_path?
-                print(filepath)
                 filename = osp.basename(filepath)
-                print(filename)
                 basedir = osp.dirname(osp.dirname(osp.dirname(filepath)))
-                print(basedir)
                 proc_str = self.proc_func_label.__name__ if self.proc_func_label else 'none'
                 filepath_y = osp.join(basedir, 'clean', proc_str, filename)
-                print(filepath_y)
                 # laad data
                 print('[d] loading file {}'.format(filepath_y))
                 y[i,] = np.load(filepath_y)
