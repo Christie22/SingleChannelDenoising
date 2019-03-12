@@ -4,6 +4,7 @@ from keras.layers import Input, Dense, Conv2D, Conv2DTranspose, MaxPool2D, Batch
 from keras.models import Model
 from keras import backend as K
 from libs.model_utils import LossLayer
+import numpy as np
 
 
 # model
@@ -42,23 +43,23 @@ class AEModelFactory(object):
         x = Conv2D(
             self.n_filters // 4,
             kernel_size=self.kernel_size,
-            padding='valid',
-            activation='relu',
-            dilation_rate=(64,8))(inputs)
+            padding='same',
+            strides=(2, 2),
+            activation='relu')(inputs)
         x = BatchNormalization()(x)
         x = Conv2D(
             self.n_filters // 2,
             kernel_size=self.kernel_size,
-            padding='valid',
-            activation='relu',
-            dilation_rate=(32,8))(x)
+            padding='same',
+            strides=(2, 2),
+            activation='relu')(x)
         x = BatchNormalization()(x)
         x = Conv2D(
             self.n_filters,
             kernel_size=self.kernel_size,
-            padding='valid',
-            activation='relu',
-            dilation_rate=(16,8))(x)
+            padding='same',
+            strides=(2, 2),
+            activation='relu')(x)
         x = BatchNormalization()(x)
         x = Conv2D(
             self.n_filters,
@@ -74,6 +75,7 @@ class AEModelFactory(object):
         dense = Dropout(0.4)(dense)
         z = Dense(self.n_latent_dim)(dense)
         self._encoder = Model(inputs, z)
+        self._encoder.summary()
         self._encoder.name = 'encoder'
 
     def gen_decoder(self):
@@ -116,6 +118,7 @@ class AEModelFactory(object):
             padding='same',
             strides=1)(x)
         self._decoder = Model(inputs, x)
+        self._decoder.summary()
         self._decoder.name = 'decoder'
 
     def gen_model(self):
