@@ -2,7 +2,7 @@
 Fs	16000
 
 % Room size (in meters)
-room_size	4.45	3.55	2.5
+room_size	10	7	3
 
 % Frequency-dependent absorption for surfaces x=0, x=Lx, y=0, y=Ly, z=0, z=Lz
 F_abs	125	250	500	1000	2000	4000	8000
@@ -26,4 +26,4 @@ so3	 -45	0	0
 % Sensor direction-dependent impulse responses (e.g. gains or HRTFs)
 sd1	 'omnidirectional'
 sd2	 'omnidirectional'
-sd3	 'cardioid'
+sd3	 'omnidirectional'

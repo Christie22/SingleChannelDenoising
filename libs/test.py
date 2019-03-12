@@ -31,3 +31,9 @@ class Generator():
 gen2 = Generator(funcs=[a, b])
 x_noised = gen2.process(42)
 print("Noised data:", x_noised)
+
+
+#
+#from processing import create_RIR
+#
+#rir = create_RIR('room_sensor_config.txt')

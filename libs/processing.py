@@ -5,7 +5,8 @@ import pandas as pd
 import random as rnd
 import time
 
-import libs.rir_simulator_python.roomsimove_single as room
+import roomsimove_single 
+#import libs.rir_simulator_python.roomsimove_single as roomsimove_single 
 
 # generate seed from the time at which this script is run
 rnd.seed(int(time.time()))
@@ -114,54 +115,53 @@ def take_file_as_noise(x, SNR):
 
 
 ### CREATE REVERB FILTERS
-def create_RIR(config_file_or_default=None):
-    if config_file_or_default is not None:
-        if isinstance(config_file_or_default, str):
-            # config_file
-            sim_rir = roomsimove_single.RoomSim.init_from_config_file(config_file)
+def create_RIR(config_file_or_dict=None):
+    if config_file_or_dict is None:
+        return None
+    
 
-        elif isinstance(config_file_or_default, dict):
-            # retrieve params' values
-            keys = config_file_or_default.keys()
-            if 'room_dim' in keys:
-                room_dim = config_file_or_default.pop('room_dim', '')
-            else:
-                room_dim = [4.2, 3.4, 5.2]
-            room = roomsimove_single.Room(room_dim)
-
-            if 'mic_pos' in keys:
-                mic_pos = config_file_or_default.pop('mic_pos', '')
-            else:
-                mic_pos = [2, 2, 2]
-            mic = []
-            for p in range(mic_pos.shape):
-                mic.append(roomsimove_single.Microphone(mic_pos[p,], 1,  \
-                                    orientation=[0.0, 0.0, 0.0], direction='omnidirectional'))
-            if 'sampling_rate' in keys:
-                sampling_rate = config_file_or_default.pop('sampling_rate', '')
-            else:
-                sampling_rate = 16e3
-
-            if 'RT60' in keys:
-                RT60 = config_file_or_default.pop('RT60', '')
-
-            sim_rir = roomsimove_single.RoomSim(sample_rate, room, mics, RT60=300)
-                
-        else:
-            # default
-            room_dim = [4.2, 3.4, 5.2]
-            room = roomsimove_single.Room(room_dim)
-            mic_pos = [2, 2, 2]
-            mic1 = roomsimove_single.Microphone(mic_pos, 1,  \
-            orientation=[0.0, 0.0, 0.0], direction='omnidirectional'):
-            mic_pos = [2, 2, 1]
-            mic2 = roomsimove_single.Microphone(mic_pos, 2,  \
-                                                orientation=[0.0, 0.0, 0.0], direction='cardioid'):
-            mics = [mic1, mic2]
-            sampling_rate = 16000
-            sim_rir = roomsimove_single.RoomSim(sample_rate, room, mics, RT60=300)
-
-        source_pos = [1, 1, 1]
+    if isinstance(config_file_or_dict, str):
+        #room_sensor_config.txt
+        # config_file
+        print('Reading room configuration from a config file')
+        sim_rir = roomsimove_single.RoomSim.init_from_config_file(config_file_or_dict)
+        source_pos = [1,1,1] #[rnd.random()*room_dim[ii] for ii in range(3)]
         rir = sim_rir.create_rir(source_pos)
+        
+    elif isinstance(config_file_or_dict, dict):
+        # retrieve params' values
+        print('Reading room configuration from a dict')
+        keys = config_file_or_dict.keys()
+        
+        room_dim = config_file_or_dict.pop('room_dim', '') if 'room_dim' in keys else [10, 7, 3]
+        rt60 = config_file_or_dict.pop('rt60', '')  if 'rt60' in keys else 0.3
+        absorption = roomsimove_single.rt60_to_absorption(room_dim, rt60)
+        
+        room = roomsimove_single.Room(room_dim, abs_coeff=absorption)
+
+        mic_pos = config_file_or_dict.pop('mic_pos', '') if 'mic_pos' in keys else [2, 2, 2]
+#            mics = []
+#            for p in range(mic_pos.shape):
+#                mics.append(roomsimove_single.Microphone(mic_pos[p,], 1,  \
+#                                    orientation=[0.0, 0.0, 0.0], direction='omnidirectional'))
+        mics = roomsimove_single.Microphone(mic_pos, 1,  \
+                                orientation=[0.0, 0.0, 0.0], direction='omnidirectional')
+        
+
+        sampling_rate = config_file_or_dict.pop('sampling_rate', '') if 'sampling_rate' in keys else 16000
+        
+        sim_rir = roomsimove_single.RoomSim(sampling_rate, room, mics, rt60)
+        
+        source_pos = config_file_or_dict.pop('source_pos', '') if 'source_pos' in keys else [2,2,2]
+        #[rnd.random()*room_dim[ii] for ii in range(3)]
+        #    checkDistance = scipy.linalg.norm(np.array(source_pos)- np.array(mic_pos))
+        #source_pos = source_pos/np.linalg.norm(source_pos) + mic_pos #normalise to have 1m distance between source and mic
+        rir = roomsimove_single.do_everything(room_dim, mic_pos, source_pos, rt60)
+    
+ 
+    for ii in range(rir.shape[1]):
+        np.save('rirs/rir'+str(ii) ,rir[:,ii])
+        
+    print('Creation of the RIRs completed')    
+    
     return rir
-    # TODO: write it somewhere if necessary
