@@ -103,6 +103,13 @@ class AEModelFactory(object):
             strides=(2,2))(x)
         x = BatchNormalization()(x)
         x = Conv2DTranspose(
+            self.n_filters,
+            kernel_size=self.kernel_size,
+            padding='same',
+            activation='relu',
+            strides=(2,2))(x)
+        x = BatchNormalization()(x)
+        x = Conv2DTranspose(
             self.n_filters // 2,
             kernel_size=self.kernel_size,
             padding='same',
@@ -111,13 +118,13 @@ class AEModelFactory(object):
         x = BatchNormalization()(x)
         x = Conv2DTranspose(
             self.n_filters // 4,
-            kernel_size=self.kernel_size,
+            kernel_size=1,
             padding='same',
             activation='relu',
-            strides=(2,1))(x)
+            strides=(2,2))(x)
         x = BatchNormalization()(x)
         x = Conv2DTranspose(
-            2,
+            self.input_shape[2],
             kernel_size=1,
             padding='same',
             strides=1)(x)
