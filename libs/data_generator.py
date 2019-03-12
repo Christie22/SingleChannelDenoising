@@ -186,10 +186,14 @@ class DataGenerator(keras.utils.Sequence):
             y = np.empty((self.batch_size, *self.data_shape))
             for i, filepath in enumerate(filepaths):
                 # TODO find a way and use gen_cache_path?
+                print(filepath)
                 filename = osp.basename(filepath)
+                print(filename)
                 basedir = osp.dirname(osp.dirname(osp.dirname(filename)))
+                print(basedir)
                 proc_str = self.proc_func_label.__name__ if self.proc_func_label else 'none'
                 filepath_y = osp.join(basedir, 'clean', proc_str, filename)
+                print(filepath_y)
                 # laad data
                 print('[d] loading file {}'.format(filepath_y))
                 y[i,] = np.load(filepath_y)
