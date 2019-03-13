@@ -7,6 +7,7 @@ from scripts.denoise import denoise as script_denoise
 defaults = {
     'sr': 16000,
     'rir_path': '/data/riccardo_datasets/rirs/',
+    'noise_snrs': [0, 5],
     'n_fft': 512,
     'hop_length': 128,
     'win_length': 512,
@@ -33,6 +34,7 @@ def cli(ctx, cuda_device):
 @click.argument('dataset_path', type=click.Path(exists=True, file_okay=False, dir_okay=True))
 @click.option('--sr', type=int, default=defaults['sr'])
 @click.option('--rir_path', type=click.Path(exists=True, file_okay=False, dir_okay=True), default=defaults['rir_path'])
+@click.option('--noise_snrs', type=int, nargs=-1, default=defaults['noise_snrs'])
 @click.option('--n_fft', type=int, default=defaults['n_fft'])
 @click.option('--hop_length', type=int, default=defaults['hop_length'])
 @click.option('--win_length', type=int, default=defaults['win_length'])
@@ -47,6 +49,7 @@ def train(ctx,
           dataset_path, 
           sr,
           rir_path, 
+          noise_snrs,
           n_fft, 
           hop_length,
           win_length,
@@ -60,6 +63,7 @@ def train(ctx,
                  dataset_path,
                  sr,
                  rir_path,
+                 noise_snrs,
                  n_fft,
                  hop_length,
                  win_length,

@@ -17,8 +17,10 @@ from libs.processing import white_noise, s_to_reim
 
 
 def train(model_name, 
-         dataset_path, sr, rir_path, n_fft, hop_length, win_length, frag_win_length, frag_hop_length, batch_size,
-         epochs, model_path, history_path, cuda_device):
+          dataset_path, sr, 
+          rir_path, noise_snrs, 
+          n_fft, hop_length, win_length, frag_win_length, frag_hop_length, 
+          batch_size, epochs, model_path, history_path, cuda_device):
     print('[t] Training model {} on dataset {}'.format(model_name, dataset_path))
     print('[t] Training parameters: {}'.format({
         'epochs': epochs,
@@ -44,7 +46,7 @@ def train(model_name,
         # noising/reverberation cfg
         'rir_path': rir_path,
         'noise_funcs': [None],
-        'noise_snrs': [0, 5],
+        'noise_snrs': noise_snrs,
         # stft cfg
         'n_fft': n_fft,
         'hop_length': hop_length,
