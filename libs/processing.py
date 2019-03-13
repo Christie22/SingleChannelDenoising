@@ -223,3 +223,4 @@ def create_RIR(config_file_or_dict=None):
     print('Creation of the RIRs completed')    
     
     return rir
+/data/riccardo_datasets/rirs
