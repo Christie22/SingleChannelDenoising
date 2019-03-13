@@ -116,51 +116,98 @@ def take_file_as_noise(x, SNR):
 
 ### CREATE REVERB FILTERS
 def create_RIR(config_file_or_dict=None):
+    
+    bool_begin = 1
+    
     if config_file_or_dict is None:
         return None
-    
 
-    if isinstance(config_file_or_dict, str):
-        #room_sensor_config.txt
-        # config_file
-        print('Reading room configuration from a config file')
-        sim_rir = roomsimove_single.RoomSim.init_from_config_file(config_file_or_dict)
-        source_pos = [1,1,1] #[rnd.random()*room_dim[ii] for ii in range(3)]
-        rir = sim_rir.create_rir(source_pos)
-        
-    elif isinstance(config_file_or_dict, dict):
+    if isinstance(config_file_or_dict, dict):
         # retrieve params' values
         print('Reading room configuration from a dict')
-        keys = config_file_or_dict.keys()
+        rir_dict = config_file_or_dict
+        keys = rir_dict.keys()
         
-        room_dim = config_file_or_dict.pop('room_dim', '') if 'room_dim' in keys else [10, 7, 3]
-        rt60 = config_file_or_dict.pop('rt60', '')  if 'rt60' in keys else 0.3
+        sampling_rate = rir_dict.pop('sampling_rate', '') if 'sampling_rate' in keys else 16000
+        room_dim = rir_dict.pop('room_dim', '') if 'room_dim' in keys else [10, 7, 3]
+        rt60 = rir_dict.pop('rt60', '')  if 'rt60' in keys else 0.3
         absorption = roomsimove_single.rt60_to_absorption(room_dim, rt60)
         
-        room = roomsimove_single.Room(room_dim, abs_coeff=absorption)
-
-        mic_pos = config_file_or_dict.pop('mic_pos', '') if 'mic_pos' in keys else [2, 2, 2]
-#            mics = []
-#            for p in range(mic_pos.shape):
-#                mics.append(roomsimove_single.Microphone(mic_pos[p,], 1,  \
-#                                    orientation=[0.0, 0.0, 0.0], direction='omnidirectional'))
-        mics = roomsimove_single.Microphone(mic_pos, 1,  \
-                                orientation=[0.0, 0.0, 0.0], direction='omnidirectional')
+        mic_pos = rir_dict.pop('mic_pos', '') if 'mic_pos' in keys else [2, 2, 2]
+        source_pos = rir_dict.pop('source_pos', '') if 'source_pos' in keys else [2,2,2]
         
-
-        sampling_rate = config_file_or_dict.pop('sampling_rate', '') if 'sampling_rate' in keys else 16000
+        #print('absorption is {}'.format(absorption))
+                
+        # TODO add constraints on the position of the source relatively to the mikes if necessary
         
-        sim_rir = roomsimove_single.RoomSim(sampling_rate, room, mics, rt60)
-        
-        source_pos = config_file_or_dict.pop('source_pos', '') if 'source_pos' in keys else [2,2,2]
         #[rnd.random()*room_dim[ii] for ii in range(3)]
         #    checkDistance = scipy.linalg.norm(np.array(source_pos)- np.array(mic_pos))
         #source_pos = source_pos/np.linalg.norm(source_pos) + mic_pos #normalise to have 1m distance between source and mic
-        rir = roomsimove_single.do_everything(room_dim, mic_pos, source_pos, rt60)
-    
- 
-    for ii in range(rir.shape[1]):
-        np.save('rirs/rir'+str(ii) ,rir[:,ii])
+        Adim = ['Ax1','Ax2','Ay1','Ay2','Az1','Az2']
+        for ia, a in enumerate(absorption):
+            A = tuple([a for i in range(7)])
+            print('aborpt:'+str(a))
+            if bool_begin == 1:
+                config_file = 'config_file.txt'
+                f = open(config_file, "w+")
+                f.write('% Sampling frequency (in hertz)\n')
+                f.write("Fs \t%d\n\n" % sampling_rate) #f.seek(5) 
+                f.write('% Room size (in meters)\n')
+                f.write('room_size \t%d\t%d\t%d\n\n' % (room_dim[0], room_dim[1], room_dim[2]))
+                f.write('% Frequency-dependent absorption for surfaces x=0, x=Lx, y=0, y=Ly, z=0, z=Lz\n')
+                f.write("F_abs \t%d\t%d\t%d\t%d\t%d\t%d\t%d\n" % (125,250,500,1000,	2000,4000,8000))
+                for ad in Adim:
+                    f.write(ad+ "\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n" % A)
+
+                f.write('\n')
+                f.write('% Sensor positions (in meters)\n')
+                if len(np.array(mic_pos).shape) == 1:
+                    f.write("sp"+str(1)+"\t%.2f\t%.2f\t%.2f\n" % (mic_pos[0],mic_pos[1],mic_pos[2]))
+                    f.write("% Sensor orientations (azimuth, elevation and roll offset in degrees, positive for slew left, nose up or right wing down)\n" )
+                    f.write("so"+str(1)+"\t%.2f\t%.2f\t%.2f\n" % (0,0,0))
+                    f.write("% Sensor direction-dependent impulse responses (e.g. gains or HRTFs)\n")
+                    f.write("sd"+str(1)+"\t%s\n" % 'omnidirectional\n')
+                else:
+                    for n in range(np.array(mic_pos).shape[0]):
+                        f.write("sp"+str(n+1)+"\t%.2f\t%.2f\t%.2f\n" % (mic_pos[n][0],mic_pos[n][1],mic_pos[n][2]))
+                    f.write("% Sensor orientations (azimuth, elevation and roll offset in degrees, positive for slew left, nose up or right wing down)\n" )
+                    for n in range(np.array(mic_pos).shape[0]):
+                        f.write("so"+str(n+1)+"\t%.2f\t%.2f\t%.2f\n" % (0,0,0))
+                    f.write("% Sensor direction-dependent impulse responses (e.g. gains or HRTFs)\n")
+                    for n in range(np.array(mic_pos).shape[0]):
+                        f.write("sd"+str(n+1)+"\t%s\n" % 'omnidirectional\n')
+        
+                f.close()
+#                bool_begin = 0
+                #config_file_or_dict = config_file
+                
+            else:
+                f = open(config_file, "r+")
+                for line in f:
+                    print(line)
+                    line = line.strip()
+                    if line.startswith('A') :
+                        # TODO replace
+                        content = f.readlines()
+                        for ad in Adim:
+#                            f.write(ad + "\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n" % A)
+                            f.write(content.replace(absorption[ia-1], a))
+
+                        break
+
+                f.close()
+                content = f.read()
+                f.seek(0)
+                f.truncate()
+                f.write(content.replace('replace this', 'with this'))
+            
+            print('Reading room configuration from a config file')
+            sim_rir = roomsimove_single.RoomSim.init_from_config_file(config_file)
+            source_pos = [1,1,1] #[rnd.random()*room_dim[ii] for ii in range(3)]
+            rir = sim_rir.create_rir(source_pos)
+        
+            for ii in range(rir.shape[1]):
+                np.save('rirs/rir_absor_'+'%.2f' % a +'_mic_'+str(ii) ,rir[:,ii])
         
     print('Creation of the RIRs completed')    
     
