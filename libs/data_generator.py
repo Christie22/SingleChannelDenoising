@@ -27,7 +27,7 @@ class DataGenerator(keras.utils.Sequence):
                  n_fft=512, hop_length=128, win_length=512, 
                  proc_func=None, proc_func_label=None,
                  frag_hop_length=64, frag_win_length=32, 
-                 shuffle=True, label_type='clean', batch_size=32):
+                 shuffle=True, label_type='clean', batch_size=32, disable_cacheinit=True):
 
         # dataset cfg
         self.filepaths = filepaths
@@ -163,9 +163,9 @@ class DataGenerator(keras.utils.Sequence):
 
     # callback at each epoch (shuffles batches)
     def on_epoch_end(self):
-        print('batch size: ', self.batch_size)
+        print('\n\nbatch_s: ', self.batch_size)
         print('n_frags: ', self.n_fragments)
-        print('len: ', self.__len__)
+        print('len: ', self.__len__(), '\n')
         self.indexes = np.arange(len(self.fragments_x))
         if self.shuffle:
             np.random.shuffle(self.indexes)
