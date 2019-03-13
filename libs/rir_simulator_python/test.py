@@ -21,3 +21,4 @@ f.write('rt60: %.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t\n' %
 f.write("mic_pos: "+str(1)+"\t%.2f\t%.2f\t%.2f\n" % (mic_pos[0],mic_pos[1],mic_pos[2]))
 f.write("source_pos: "+str(1)+"\t%.2f\t%.2f\t%.2f\n" % (source_pos[0],source_pos[1],source_pos[2]))
 
+f.close()

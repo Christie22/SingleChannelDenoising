@@ -181,6 +181,7 @@ def create_RIR(config_file_or_dict=None):
 #                bool_begin = 0
                 #config_file_or_dict = config_file
                 
+                
             else:
                 f = open(config_file, "r+")
                 for line in f:
@@ -196,10 +197,10 @@ def create_RIR(config_file_or_dict=None):
                         break
 
                 f.close()
-                content = f.read()
-                f.seek(0)
-                f.truncate()
-                f.write(content.replace('replace this', 'with this'))
+                #content = f.read()
+                #f.seek(0)
+                #f.truncate()
+                #f.write(content.replace('replace this', 'with this'))
             
             print('Reading room configuration from a config file')
             sim_rir = roomsimove_single.RoomSim.init_from_config_file(config_file)
@@ -208,7 +209,17 @@ def create_RIR(config_file_or_dict=None):
         
             for ii in range(rir.shape[1]):
                 np.save('rirs/rir_absor_'+'%.2f' % a +'_mic_'+str(ii) ,rir[:,ii])
-        
+
+            fp = open('RIR_params.txt','a')
+            fp.write('sampling_rate: \t%d\n' % 16000)
+            fp.write("room_dim: "+str(1)+"\t%.2f\t%.2f\t%.2f\n" % (room_dim[0],room_dim[1],room_dim[2]))
+            fp.write('rt60: %.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t\n' % tuple(list(rt60)))
+            fp.write('corresp absorptions: %.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t\n' % tuple(list(absorption)))
+            fp.write("mic_pos: "+str(1)+"\t%.2f\t%.2f\t%.2f\n" % (mic_pos[0],mic_pos[1],mic_pos[2]))
+            fp.write("source_pos: "+str(1)+"\t%.2f\t%.2f\t%.2f\n" % (source_pos[0],source_pos[1],source_pos[2]))
+            fp.write('\n\n')
+            fp.close()
+
     print('Creation of the RIRs completed')    
     
     return rir
