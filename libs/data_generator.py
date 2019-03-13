@@ -197,9 +197,6 @@ class DataGenerator(keras.utils.Sequence):
 
     # callback at each epoch (shuffles batches)
     def on_epoch_end(self):
-        print('\n\nbatch_s: ', self.batch_size)
-        print('n_frags: ', self.n_fragments)
-        print('len: ', self.__len__(), '\n')
         self.indexes = np.arange(len(self.fragments_x))
         if self.shuffle:
             np.random.shuffle(self.indexes)
