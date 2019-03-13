@@ -27,7 +27,7 @@ class DataGenerator(keras.utils.Sequence):
                  n_fft=512, hop_length=128, win_length=512, 
                  proc_func=None, proc_func_label=None,
                  frag_hop_length=64, frag_win_length=32, 
-                 shuffle=True, label_type='clean', batch_size=32):
+                 shuffle=True, label_type='clean', batch_size=32, disable_cacheinit=True):
 
         # dataset cfg
         self.filepaths = filepaths
@@ -61,7 +61,10 @@ class DataGenerator(keras.utils.Sequence):
         self.fragments_y = None
         self.indexes = []
         # init stuff up
-        self.init_cache()
+        if disable_cacheinit:
+            self.load_cache()
+        else:
+            self.init_cache()
         self.on_epoch_end()
 
     # load list of RIR files
@@ -80,7 +83,7 @@ class DataGenerator(keras.utils.Sequence):
             #print('[d] Loading file {}/{}: {}'.format(i, len(self.filepaths), filepath))
             # load data
             x, _ = lr.core.load(filepath, sr=self.sr, mono=True)
-            # apply variations of noise + clean (labels)
+            # apply variations of noise parameters + clean (labels)
             for noise_variation in self.noise_variations + ['clean']:
                 #print('[d]  Applying noise variation {}'.format(noise_variation))
                 if noise_variation == 'clean':
@@ -89,12 +92,7 @@ class DataGenerator(keras.utils.Sequence):
                         x, n_fft=self.n_fft, hop_length=self.hop_length, win_length=self.win_length)
                     # apply label preprocessing
                     s_proc = self.proc_func_label(s) if self.proc_func_label else np.reshape(s, (*s.shape, 1))  
-                    # store shape!
-                    if not self._data_shape:
-                        if len(s_proc.shape) == 2:
-                            self._data_shape = (s_proc.shape[0], self.frag_win_length, 1)
-                        if len(s_proc.shape) == 3:
-                            self._data_shape = (s_proc.shape[0], self.frag_win_length, s_proc.shape[2])
+                    
                 else:
                     noise_func, snr, rir_filepath = noise_variation
                     # apply room
@@ -109,22 +107,59 @@ class DataGenerator(keras.utils.Sequence):
 
                 # fragment data
                 s_frags = self.make_fragments(s_proc, self.frag_hop_length, self.frag_win_length)
+                # store shape!
+                if not self._data_shape:
+                    self._data_shape = s_frags[0].shape
+
                 # store fragments as numpy arrays
                 for i, frag in enumerate(s_frags):
+                    # generate filepath from parameters
                     frag_path = self.gen_cache_path(
                         self.cache_path, filepath, noise_variation, 
                         self.proc_func if noise_variation != 'clean' else self.proc_func_label, i)
                     #print('[d]   Storing frag {} in {}'.format(i, frag_path))
                     os.makedirs(osp.dirname(frag_path), exist_ok=True)
                     np.save(frag_path, frag)
-                    # append fragment path to proper list (labels, processed)
+                    # append fragment path to proper list (labels or processed)
                     if noise_variation == 'clean':
                         self.fragments_y.append(frag_path)
                     else:
                         self.fragments_x.append(frag_path)
         # done
-        print('[d] Cache ready, generated {} fragments'.format(len(self.fragments_y) + len(self.fragments_x)))
+        print('[d] Cache ready, generated {} noisy and {} clean fragments'.format(
+            len(self.fragments_y), len(self.fragments_x)))
     
+    # load a pre-initialized cache (use with caution)
+    def load_cache(self):
+        print('[d] Cache generation disabled. Indexing cache...')
+        self.fragments_x = []
+        self.fragments_y = []
+        for i, filepath in enumerate(tqdm(self.filepaths)):
+            # get audio duration in sample length
+            n_samples = lr.time_to_samples(lr.get_duration(filename=filepath), sr=self.sr)
+            # calculate number of stft frames
+            n_frames = int((n_samples - self.win_length) / self.hop_length + 1)
+            # calculate number of fragments
+            n_frags = int((n_frames - self.frag_win_length) / self.frag_hop_length + 1)
+            # apply variations of noise parameters + clean (labels)
+            for noise_variation in self.noise_variations + ['clean']:
+                for i in range(n_frags):
+                    # generate filepath from parameters
+                    frag_path = self.gen_cache_path(
+                        self.cache_path, filepath, noise_variation,
+                        self.proc_func if noise_variation != 'clean' else self.proc_func_label, i)
+                    # append fragment path to proper list (labels or processed)
+                    if noise_variation == 'clean':
+                        self.fragments_y.append(frag_path)
+                    else:
+                        self.fragments_x.append(frag_path)
+        # load last one to get shape
+        self._data_shape = np.load(frag_path).shape
+        # done
+        print('[d] Cache ready, indexed {} noisy and {} clean fragments'.format(
+            len(self.fragments_y), len(self.fragments_x)))
+
+
     # generate filepath for individual fragments
     def gen_cache_path(self, cache_path, filepath, noise_variation, proc_func, frag_index):
         filepath_dir = osp.splitext(osp.basename(filepath))[0].replace(' ', '_')

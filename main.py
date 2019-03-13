@@ -1,8 +1,7 @@
 import click
 from scripts.train import train as script_train
 from scripts.results import results as script_results
-from scripts.encode import encode as script_encode
-from scripts.decode import decode as script_decode
+from scripts.denoise import denoise as script_denoise
 
 
 defaults = {
@@ -13,7 +12,7 @@ defaults = {
     'win_length': 512,
     'frag_hop_length': 128,
     'frag_win_length': 512,
-    'batch_size': 4,
+    'batch_size': 32,
     'epochs': 20,
     'model_path': '/data/riccardo_models/denoising/model_e{epoch}.h5',
     'history_path': None
@@ -101,6 +100,39 @@ def results(ctx,
                    epochs,
                    batch_size,
                    history_path,
+                   ctx.obj['cuda_device'])
+
+# DENOISE
+@cli.command()
+@click.pass_context
+@click.argument('model_path', type=click.Path(exists=True, file_okay=True, dir_okay=False))
+@click.argument('data_path', type=click.Path(exists=True))
+@click.option('--sr', type=int, default=defaults['sr'])
+@click.option('--n_fft', type=int, default=defaults['n_fft'])
+@click.option('--hop_length', type=int, default=defaults['hop_length'])
+@click.option('--win_length', type=int, default=defaults['win_length'])
+@click.option('--frag_hop_length', type=int, default=defaults['frag_hop_length'])
+@click.option('--frag_win_length', type=int, default=defaults['frag_win_length'])
+@click.option('--batch_size', type=int, default=defaults['batch_size'])
+def denoise(ctx,
+            model_path,
+            data_path,
+            sr,
+            n_fft,
+            hop_length,
+            win_length,
+            frag_hop_length,
+            frag_win_length,
+            batch_size):
+    script_denoise(model_path,
+                   data_path,
+                   sr,
+                   n_fft,
+                   hop_length,
+                   win_length,
+                   frag_hop_length,
+                   frag_win_length,
+                   batch_size,
                    ctx.obj['cuda_device'])
 
 
