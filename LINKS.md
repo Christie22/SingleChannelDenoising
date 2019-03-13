@@ -4,6 +4,7 @@
 - keras examples https://github.com/keras-team/keras/tree/master/examples
 - cheatsheet ml https://stanford.edu/~shervine/teaching/cs-229/
 - cheatsheet dnn https://stanford.edu/~shervine/teaching/cs-230/
+- generators https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly
 
 ## denoising autoencoders
 - https://github.com/TheAILearner/Denoising-Autoencoders-in-Keras
