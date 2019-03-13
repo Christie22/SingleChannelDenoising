@@ -65,8 +65,8 @@ def train(model_name,
     # create DataGenerator objects
     training_generator = DataGenerator(filepath_list_train, **generator_args)
     validation_generator = DataGenerator(filepath_list_valid, **generator_args)
-    train_steps_per_epoch = len(training_generator.n_fragments)
-    valid_steps_per_epoch = len(validation_generator.n_fragments)
+    train_steps_per_epoch = len(training_generator)
+    valid_steps_per_epoch = len(validation_generator)
     print('[t] Train steps per epoch: ', train_steps_per_epoch)
     print('[t] Valid steps per epoch: ', valid_steps_per_epoch)
 
