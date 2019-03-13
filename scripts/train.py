@@ -50,8 +50,8 @@ def train(model_name,
         'hop_length': hop_length,
         'win_length': win_length,
         # processing cfg
-        'proc_func': None,
-        'proc_func_label': None,
+        'proc_func': s_to_reim,
+        'proc_func_label': s_to_reim,
         # fragmenting cfg
         'frag_hop_length': frag_hop_length,
         'frag_win_length': frag_win_length,
@@ -77,11 +77,11 @@ def train(model_name,
         'n_filters': 64,
     }
     print('[t] Model factory parameters: {}'.format(model_args))
-    model = create_autoencoder_model(model_name, model_args)
+    model, lossfunc = create_autoencoder_model(model_name, model_args)
 
     # compile model (loss function must be set in the model class)
     # TODO add metrics https://keras.io/metrics/
-    model.compile(optimizer='adam', loss=None, metrics=['mse'])
+    model.compile(optimizer='adam', loss=lossfunc, metrics=['mse'])
     # print model summaries
     model.get_layer('encoder').summary()
     model.get_layer('decoder').summary()

@@ -1,3 +1,8 @@
+# TODO
+# - multithreaded caching?
+# - verify (x, target) matching
+# - implement other label_type modes
+
 import os
 import glob
 import itertools
@@ -6,7 +11,8 @@ import librosa as lr
 import numpy as np
 import pandas as pd
 import os.path as osp
-import fftfilt
+from scipy.signal import fftconvolve
+from tqdm import tqdm
 #from scipy.io.wavfile import write
 
 import libs.updated_utils
@@ -47,7 +53,7 @@ class DataGenerator(keras.utils.Sequence):
         self.label_type = label_type
         self.batch_size = batch_size
         # computed vars
-        self._data_shape = (256, 64, 2) # TODO calculate based on n_fft, processing, and fragment
+        self._data_shape = None
         self.rir_filepaths = self.load_rirs()
         self.noise_variations = list(itertools.product(self.noise_funcs, self.noise_snrs, self.rir_filepaths))
         # cached vars
@@ -60,8 +66,8 @@ class DataGenerator(keras.utils.Sequence):
 
     # load list of RIR files
     def load_rirs(self):
-        print('[d] Loading all RIR files from {}'.format(self.rir_path))
-        filelist = glob.glob(osp.join(self.rir_path, '*.wav'))
+        print('[d] Loading all RIRs files from {}'.format(self.rir_path))
+        filelist = glob.glob(osp.join(self.rir_path, '*.npy'))
         print('[d] Loaded {} files'.format(len(filelist)))
         return filelist or [None]
 
@@ -70,19 +76,25 @@ class DataGenerator(keras.utils.Sequence):
         print('[d] Initializing cache...')
         self.fragments_x = []
         self.fragments_y = []
-        for i, filepath in enumerate(self.filepaths):
-            print('[d] Loading file {}/{}: {}'.format(i, len(self.filepaths), filepath))
+        for i, filepath in enumerate(tqdm(self.filepaths)):
+            #print('[d] Loading file {}/{}: {}'.format(i, len(self.filepaths), filepath))
             # load data
             x, _ = lr.core.load(filepath, sr=self.sr, mono=True)
             # apply variations of noise + clean (labels)
             for noise_variation in self.noise_variations + ['clean']:
-                print('[d]  Applying noise variation {}'.format(noise_variation))
+                #print('[d]  Applying noise variation {}'.format(noise_variation))
                 if noise_variation == 'clean':
                     # convert to TF-domain
                     s = lr.core.stft(
                         x, n_fft=self.n_fft, hop_length=self.hop_length, win_length=self.win_length)
                     # apply label preprocessing
-                    s_proc = self.proc_func_label(s) if self.proc_func_label else s 
+                    s_proc = self.proc_func_label(s) if self.proc_func_label else np.reshape(s, (*s.shape, 1))  
+                    # store shape!
+                    if not self._data_shape:
+                        if len(s_proc.shape) == 2:
+                            self._data_shape = (s_proc.shape[0], self.frag_win_length, 1)
+                        if len(s_proc.shape) == 3:
+                            self._data_shape = (s_proc.shape[0], self.frag_win_length, s_proc.shape[2])
                 else:
                     noise_func, snr, rir_filepath = noise_variation
                     # apply room
@@ -93,7 +105,7 @@ class DataGenerator(keras.utils.Sequence):
                     s_noise = lr.core.stft(
                         x_noise, n_fft=self.n_fft, hop_length=self.hop_length, win_length=self.win_length)
                     # apply data repr processing
-                    s_proc = self.proc_func(s_noise) if self.proc_func else s_noise 
+                    s_proc = self.proc_func(s_noise) if self.proc_func else np.reshape(s_noise, (*s_noise.shape, 1))
 
                 # fragment data
                 s_frags = self.make_fragments(s_proc, self.frag_hop_length, self.frag_win_length)
@@ -102,7 +114,7 @@ class DataGenerator(keras.utils.Sequence):
                     frag_path = self.gen_cache_path(
                         self.cache_path, filepath, noise_variation, 
                         self.proc_func if noise_variation != 'clean' else self.proc_func_label, i)
-                    print('[d]   Storing frag {} in {}'.format(i, frag_path))
+                    #print('[d]   Storing frag {} in {}'.format(i, frag_path))
                     os.makedirs(osp.dirname(frag_path), exist_ok=True)
                     np.save(frag_path, frag)
                     # append fragment path to proper list (labels, processed)
@@ -134,12 +146,19 @@ class DataGenerator(keras.utils.Sequence):
 
     def apply_reverb(self, x, rir_filepath):
         rir = np.load(rir_filepath)
-        x = fftfilt.fftfilt(rir,x)
+        x = fftconvolve(rir, x)
         return x
 
     # convert T-F data into fragments
+    # frag_hop_len, frag_win_len provided in seconds?
     def make_fragments(self, s, frag_hop_len, frag_win_len):
-        return [s, s]
+        n_frags = int((s.shape[1] - frag_win_len) / frag_hop_len + 1)
+        def get_slice(i):
+            lower_bound = i*frag_hop_len
+            upper_bound = i*frag_hop_len+frag_win_len
+            return s[:, lower_bound:upper_bound]
+        frags = [get_slice(i) for i in range(n_frags)]
+        return frags
 
     # callback at each epoch (shuffles batches)
     def on_epoch_end(self):
@@ -165,7 +184,7 @@ class DataGenerator(keras.utils.Sequence):
         x = np.empty((self.batch_size, *self.data_shape))
         # load data
         for i, filepath in enumerate(filepaths):
-            print('[d] loading file {}'.format(filepath))
+            #print('[d] loading file {}'.format(filepath))
             x[i,] = np.load(filepath)
 
         # handle labels
@@ -174,11 +193,11 @@ class DataGenerator(keras.utils.Sequence):
             for i, filepath in enumerate(filepaths):
                 # TODO find a way and use gen_cache_path?
                 filename = osp.basename(filepath)
-                basedir = osp.dirname(osp.dirname(osp.dirname(filename)))
+                basedir = osp.dirname(osp.dirname(osp.dirname(filepath)))
                 proc_str = self.proc_func_label.__name__ if self.proc_func_label else 'none'
                 filepath_y = osp.join(basedir, 'clean', proc_str, filename)
                 # laad data
-                print('[d] loading file {}'.format(filepath_y))
+                #print('[d] loading file {}'.format(filepath_y))
                 y[i,] = np.load(filepath_y)
         elif self.label_type == 'x':
             y = x

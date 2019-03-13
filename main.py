@@ -15,7 +15,7 @@ defaults = {
     'frag_win_length': 512,
     'batch_size': 4,
     'epochs': 20,
-    'model_path': None,
+    'model_path': '/data/riccardo_models/denoising/model_e{epoch}.h5',
     'history_path': None
 }
 
