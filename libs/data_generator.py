@@ -136,7 +136,7 @@ class DataGenerator(keras.utils.Sequence):
         self.fragments_y = []
         for i, filepath in enumerate(tqdm(self.filepaths)):
             # get audio duration in sample length
-            n_samples = lr.time_to_samples(lr.get_duration(filepath), sr=self.sr)
+            n_samples = lr.time_to_samples(lr.get_duration(filename=filepath), sr=self.sr)
             # calculate number of stft frames
             n_frames = int((n_samples - self.win_length) / self.hop_length + 1)
             # calculate number of fragments
