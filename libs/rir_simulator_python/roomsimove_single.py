@@ -287,17 +287,11 @@ class RoomSim(object):
         mic_count = 0
 #        mics=[]
         
-        for mic in self.mics:# range(len(mics)):#
-#        for mic_idx in range(len(self.sp_keys)):#
+        for mic in self.mics:
             mic_count += 1
             mic._id = str(mic_count)
 
-#            mic_count += 1
-#            _xp, _yp, _zp = self.config['sp'+str(mic_idx)]
-#            orientation = self.config['so'+str(mic_idx)]
-#            direction = self.config['sd'+str(mic_idx)][0].replace("'",'')
-#            mics.append(Microphone([_xp, _yp, _zp], mic_idx,\
-#                                  orientation = orientation, direction = direction))
+
         self.channels = len(self.mics)
         self.room_size = room.room_size
         self.F_abs = room.freq_dep_absorption['F_abs']
