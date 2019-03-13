@@ -80,7 +80,7 @@ class DataGenerator(keras.utils.Sequence):
             #print('[d] Loading file {}/{}: {}'.format(i, len(self.filepaths), filepath))
             # load data
             x, _ = lr.core.load(filepath, sr=self.sr, mono=True)
-            # apply variations of noise + clean (labels)
+            # apply variations of noise parameters + clean (labels)
             for noise_variation in self.noise_variations + ['clean']:
                 #print('[d]  Applying noise variation {}'.format(noise_variation))
                 if noise_variation == 'clean':
@@ -111,13 +111,14 @@ class DataGenerator(keras.utils.Sequence):
                 s_frags = self.make_fragments(s_proc, self.frag_hop_length, self.frag_win_length)
                 # store fragments as numpy arrays
                 for i, frag in enumerate(s_frags):
+                    # generate filepath from parameters
                     frag_path = self.gen_cache_path(
                         self.cache_path, filepath, noise_variation, 
                         self.proc_func if noise_variation != 'clean' else self.proc_func_label, i)
                     #print('[d]   Storing frag {} in {}'.format(i, frag_path))
                     os.makedirs(osp.dirname(frag_path), exist_ok=True)
                     np.save(frag_path, frag)
-                    # append fragment path to proper list (labels, processed)
+                    # append fragment path to proper list (labels or processed)
                     if noise_variation == 'clean':
                         self.fragments_y.append(frag_path)
                     else:
@@ -162,6 +163,9 @@ class DataGenerator(keras.utils.Sequence):
 
     # callback at each epoch (shuffles batches)
     def on_epoch_end(self):
+        print('batch size: ', self.batch_size)
+        print('n_frags: ', self.n_fragments)
+        print('len: ', self.__len__)
         self.indexes = np.arange(len(self.fragments_x))
         if self.shuffle:
             np.random.shuffle(self.indexes)
