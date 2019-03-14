@@ -1,6 +1,14 @@
+36 RIRs were created with all possible combinations of the following parameters:
 
-sampling_rate: 	16000
-room_dim: 1	10.00	7.00	3.00
-rt60: 0.1	0.2	0.3	0.4	0.5	0.6	0.7	0.8	0.9	1.0	
-mic_pos: 1	2.00	2.00	1.00
-source_pos: 1	1.00	1.00	1.00
+Sampling_rate (in Hz): 	16000
+
+Room dimensions (in m): 0	10.00	7.00	3.00
+
+Attenuation time [-60dB] (in sec):0.10	0.20	0.30	0.40	0.50	0.60	0.70	0.80	0.90	
+Corresponding absorptions:0.75	0.50	0.37	0.29	0.24	0.21	0.18	0.16	0.14	
+
+Position of the mike (0): 	2.00	1.00	1.00
+Position of the mike (1): 	8.00	5.00	1.00
+
+Position of the source (0): 	1.00	1.00	1.00
+Position of the source (1): 	5.00	3.50	1.50

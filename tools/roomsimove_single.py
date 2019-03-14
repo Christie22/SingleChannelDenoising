@@ -72,7 +72,7 @@ import scipy.signal as scipy_sig
 
 
 def do_everything(room_dim, mic_positions, source_pos, rt60):
-    print('Calling do_everything')
+    #print('Calling do_everything')
     absorption = rt60_to_absorption(room_dim, rt60)
     room = Room(room_dim, abs_coeff=absorption)
     mics = []
@@ -85,7 +85,7 @@ def do_everything(room_dim, mic_positions, source_pos, rt60):
     return rir
 
 def get_rt60(F_abs, room_size, A):
-    print('Calling get_rt60')
+    #print('Calling get_rt60')
     '''
     Get RT 60 given the room characteristics
     '''
@@ -110,7 +110,7 @@ def get_rt60(F_abs, room_size, A):
     return RT60
 
 def rt60_to_absorption(room_obj_dim, rt60):
-    print('Calling rt60_to_absorption')
+    #print('Calling rt60_to_absorption')
     '''
     Norris-Eyring formula %%
      Converts a given reverberation time into a single absorption coefficient for all surfaces 
@@ -129,7 +129,7 @@ class Microphone(object):
     '''
     def __init__(self, pos, id_val,  \
             orientation=[0.0, 0.0, 0.0], direction='omnidirectional'):
-        print('Calling Microphone:__init__')
+        #print('Calling Microphone:__init__')
         self.x_pos = pos[0] 
         self.y_pos = pos[1]
         self.z_pos = pos[2]
@@ -143,7 +143,7 @@ class Room(object):
     Room characteristics
     '''
     def __init__(self, dim, F_abs=None, abs_coeff=None):
-        print('Calling Room:__init__')
+        #print('Calling Room:__init__')
         self.x_val = dim[0]
         self.y_val = dim[1]
         self.z_val = dim[2]
@@ -167,7 +167,7 @@ class Room(object):
                 self.freq_dep_absorption['Az2'] = np.array(abs_coeff[5])
 
     def __set_absorption(self, abs_val=0.671):
-        print('Calling Room:__set_absorption')
+        #print('Calling Room:__set_absorption')
         self.freq_dep_absorption['Ax1'] = np.array([abs_val] * len(self.freq_dep_absorption['F_abs']))
         self.freq_dep_absorption['Ax2'] = np.array([abs_val] * len(self.freq_dep_absorption['F_abs']))
         self.freq_dep_absorption['Ay1'] = np.array([abs_val] * len(self.freq_dep_absorption['F_abs']))
@@ -181,7 +181,7 @@ class Config(object):
     Interface to read config files and put it to the right objects
     '''
     def __init__(self, config_file):
-        print('Calling Config:__init__')
+        #print('Calling Config:__init__')
         self._file = config_file
         self.config = {}
         with open(config_file) as fid:
@@ -204,7 +204,7 @@ class Config(object):
 
 
     def __verify_config(self):
-        print('Calling Config:__verify_config ')
+        #print('Calling Config:__verify_config ')
         assert 'room_size' in self.config, 'room_size not found in config'
         assert 'F_abs' in self.config, 'F_abs not found in config'
         assert 'Ax1' in self.config, 'Ax1 not found in config'
@@ -220,7 +220,7 @@ class Config(object):
             'sp, sd and so are not of same length'
 
     def create_room_et_mic_objects(self):
-        print('Calling Config:create_room_et_mic_objects')
+        #print('Calling Config:create_room_et_mic_objects')
         room_size = [float(_) for _ in self.config['room_size']]
         F_abs = [float(_) for _ in self.config['F_abs']]
         Ax1 = [float(_) for _ in self.config['Ax1']]
@@ -250,12 +250,12 @@ class RoomSim(object):
     '''
 
     def __init__(self, fs, room, mics, RT60=None):
-        print('Calling RoomSim:__init__')
+        #print('Calling RoomSim:__init__')
         self._do_init(fs, room, mics, RT60)
         self.verify_positions()
 
     def verify_positions(self):
-        print('Calling RoomSim:verify_positions')
+        #print('Calling RoomSim:verify_positions')
         '''
         Method to verify if all the microphones are inside the room
         '''
@@ -270,7 +270,7 @@ class RoomSim(object):
 
     @classmethod
     def init_from_config_file(cls, room_config_file, RT60=None):
-        print('Calling RoomSim:init_from_config_file')
+        #print('Calling RoomSim:init_from_config_file')
         '''
         constructor to read config file and initialize an instance
         '''
@@ -280,7 +280,7 @@ class RoomSim(object):
         return obj
 
     def _do_init(self, fs, room, mics, RT60):
-        print('Calling RoomSim:_do_init')
+        #print('Calling RoomSim:_do_init')
         self.sampling_rate = fs
         self.room = room
         self.mics = mics if isinstance(mics, list) else [mics]
@@ -328,7 +328,7 @@ class RoomSim(object):
 
 
     def create_rir(self, source_xyz, source_off=None, source_dir=None):
-        print('Calling RoomSim:create_rir')
+        #print('Calling RoomSim:create_rir')
         '''
         Create the RIR
         source_xyz : list containing xyz position of the source
@@ -548,7 +548,7 @@ class RoomSim(object):
                     stop_index_Hp = min(adjust_delay+len_h, H_length)
                     start_index_h = max(-adjust_delay, 0)
                     stop_index_h = start_index_h + (stop_index_Hp - start_index_Hp)
-                    #print(temp_count, start_index_Hp, stop_index_Hp, start_index_h, stop_index_h)
+                    ##print(temp_count, start_index_Hp, stop_index_Hp, start_index_h, stop_index_h)
                     temp_count += 1
                     if stop_index_h < 0:
                         continue
@@ -560,7 +560,7 @@ class RoomSim(object):
 
 
     def __create_psi_theta_phi(self, source_off):
-        print('Calling RoomSim:__create_psi_theta_phi')
+        #print('Calling RoomSim:__create_psi_theta_phi')
         c_psi = np.cos(np.pi/180*source_off[0])
         s_psi = np.sin(np.pi/180*source_off[0])
         c_theta = np.cos(-np.pi/180*source_off[1])
@@ -570,7 +570,7 @@ class RoomSim(object):
         return [c_psi, s_psi, c_theta, s_theta, c_phi, s_phi]
 
     def __create_tm(self, psi_theta_phi):
-        print('Calling RoomSim:__create_tm')
+        #print('Calling RoomSim:__create_tm')
         c_psi, s_psi, c_theta, s_theta, c_phi, s_phi = psi_theta_phi
         tm_source = np.array([[c_theta*c_psi, \
                         c_theta*s_psi, \
