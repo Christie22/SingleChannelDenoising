@@ -6,7 +6,7 @@ import random as rnd
 import time
 
 #import libs.roomsimove_single 
-import libs.rir_simulator_python.roomsimove_single as roomsimove_single 
+import tools.roomsimove_single as roomsimove_single
 
 # generate seed from the time at which this script is run
 rnd.seed(int(time.time()))
@@ -223,4 +223,4 @@ def create_RIR(config_file_or_dict=None):
     print('Creation of the RIRs completed')    
     
     return rir
-/data/riccardo_datasets/rirs
+#/data/riccardo_datasets/rirs
