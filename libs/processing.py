@@ -6,6 +6,7 @@ import random as rnd
 import time
 import os
 from os import path
+import scipy
 
 import roomsimove_single
 #import tools.roomsimove_single as roomsimove_single
@@ -147,13 +148,42 @@ def create_RIR(config_file_or_dict=None):
         rir_dict = config_file_or_dict
         keys = rir_dict.keys()
         
-        # Reading input arguments
+        # Reading input arguments and converting into array
         sampling_rate = rir_dict.pop('sampling_rate', '') if 'sampling_rate' in keys else 16000
-        room_dim = rir_dict.pop('room_dim', '') if 'room_dim' in keys else [10, 7, 3]
-        rt60 = rir_dict.pop('rt60', '')  if 'rt60' in keys else 0.3
-        rt60 = np.rray([rt60]) if isinstance(rt60, float) else rt60
-        mic_pos = rir_dict.pop('mic_pos', '') if 'mic_pos' in keys else [2, 2, 2]
-        source_pos = rir_dict.pop('source_pos', '') if 'source_pos' in keys else [1, 1, 1]
+        room_dim = np.array(rir_dict.pop('room_dim', '')) if 'room_dim' in keys else [10, 7, 3]
+        rt60 = rir_dict.pop('rt60', '')  if 'rt60' in keys else [0.3]
+        if isinstance(rt60, float):
+            rt60 = np.array([rt60]) 
+        elif isinstance(rt60, list):
+            rt60 = np.array(rt60) 
+        else:
+            rt60
+        mic_pos = np.array(rir_dict.pop('mic_pos', '')) if 'mic_pos' in keys else np.array([])
+        source_pos = np.array(rir_dict.pop('source_pos', '')) if 'source_pos' in keys else np.array([])
+        check_options= 1 if (len(mic_pos.shape)==0 or len(source_pos.shape)==0) else 0
+        
+        # Optional parameters: constraints on the position of the source relatively to the mikes 
+        if 'options' in keys:
+            options = rir_dict.pop('options','')  
+            opt_keys = options.keys()
+            dist_mic_source = options.pop('dist_mic_source','') if 'dist_mic_source' in opt_keys else []
+            if isinstance(dist_mic_source,float) or isinstance(dist_mic_source,int):
+                dist_mic_source= np.array([dist_mic_source])
+            elif isinstance(dist_mic_source,list):
+                dist_mic_source= np.array(dist_mic_source)
+            n_gen_rdn = np.array(options.pop('gen_rdn_sources_and_mics','')) if 'gen_rdn_sources_and_mics' in opt_keys else np.array([])
+
+            if n_gen_rdn.shape[0]>0 and n_gen_rdn.shape[0]!=2: 
+                raise AssertionError('2 integers are needed for the creation of randomized positions: \n 1st is the number of sources, 2nd is the number of mics.\n If you want to randomize only the sources, put argument 2 to 0.')
+                    
+            if dist_mic_source.shape[0]>0 and dist_mic_source.shape[0]>2 : 
+                raise AssertionError('1 or 2 floats are needed to constrain the mics relatively to each source: \n - if 1 argument: all mics are located on the circle of radius arg and centered on the source;\n - if 2 arg: 1st arg is the minimal radius tolerated (default: 0), 2nd is the maximal radius (default: max dim of the room).')
+                
+            [source_pos, mic_pos] = generate_rdn_positions(room_dim, mic_pos, source_pos, dist_mic_source, n_gen_rdn)
+
+        elif check_options==1:
+            raise AssertionError('You didn''t give instructions either for the mics positions, or for the source positions')
+
         
         # Calculating nb of rirs that will be calculated
         n_room = 1 if len(np.array(room_dim).shape) == 1 else np.array(room_dim).shape[0]
@@ -163,12 +193,7 @@ def create_RIR(config_file_or_dict=None):
         n_rirs = n_room * n_absorption * n_mics * n_source
          
         print('%d RIRs to be created' % n_rirs)               
-        # TODO add constraints on the position of the source relatively to the mikes if necessary
-        
-        #[rnd.random()*room_dim[ii] for ii in range(3)]
-        #    checkDistance = scipy.linalg.norm(np.array(source_pos)- np.array(mic_pos))
-        #source_pos = source_pos/np.linalg.norm(source_pos) + mic_pos #normalise to have 1m distance between source and mic
-        
+
         Adim = ['Ax1','Ax2','Ay1','Ay2','Az1','Az2']
         config_file = os.path.join(os.path.abspath('../rirs')+'/config_file.txt')
         
@@ -177,7 +202,7 @@ def create_RIR(config_file_or_dict=None):
             
             
             absorption = roomsimove_single.rt60_to_absorption(ro, rt60)
-            absorption = [absorption] if isinstance(absorption, float) else absorption
+            absorption = np.array([absorption])if isinstance(absorption, float) else absorption
             
 
             
@@ -242,7 +267,6 @@ def create_RIR(config_file_or_dict=None):
                                 f.write("sd"+str(n+1)+"\t%s\n" % 'omnidirectional')
                             f.write('\n')
                             
-#                        f.close()
                         bool_begin = 0
                         
                         
@@ -273,9 +297,9 @@ def create_RIR(config_file_or_dict=None):
         fp.write('Sampling_rate (in Hz): \t%d\n\n' % 16000)
         
         if n_room==1:
-            fp.write("Room dimensions (in m): "+str(0)+"\t%.2f\t%.2f\t%.2f\n" % (room_dim[0],room_dim[1],room_dim[2]))
+            fp.write("Room dimensions (in m) ("+str(0)+"): \t%.2f\t%.2f\t%.2f\n" % (room_dim[0],room_dim[1],room_dim[2]))
         else:
-            [fp.write("Room dimensions (in m): "+str(r)+"\t%.2f\t%.2f\t%.2f\n" % (room_dim[r][0],room_dim[r][1],room_dim[r][2])) for r in range(n_room)]
+            [fp.write("Room dimensions (in m) )"+str(r)+"): \t%.2f\t%.2f\t%.2f\n" % (room_dim[r][0],room_dim[r][1],room_dim[r][2])) for r in range(n_room)]
         fp.write('\n')
         fp.write('Attenuation time [-60dB] (in sec):' + '%.2f\t'*n_absorption % tuple(list(rt60)) +'\n' )
         fp.write('Corresponding absorptions:'+ '%.2f\t'*n_absorption % tuple(absorption) +'\n\n' )
@@ -298,3 +322,118 @@ def create_RIR(config_file_or_dict=None):
           '.\n Their description is available in %s' % os.path.join(os.path.abspath('../rirs')+'/RIR_params.txt'))    
     
     return rir
+
+def generate_rdn_positions(room_dim, mic_pos, source_pos, dist_mic_source, n_gen_rdn):
+    #generate_rdn_positions(rir_dict):
+#    keys = rir_dict.keys()
+    
+    #[rnd.random()*room_dim[ii] for ii in range(3)]
+    #    checkDistance = scipy.linalg.norm(np.array(source_pos)- np.array(mic_pos))
+    #source_pos = source_pos/np.linalg.norm(source_pos) + mic_pos #normalise to have 1m distance between source and mic
+    
+    diagdiag = np.sqrt(room_dim[0]**2 + room_dim[1]**2 +room_dim[2]**2)    
+    
+    # Initialisation and verifications
+    d_constr = len(np.array(dist_mic_source).shape)>0 # constraint on the distance is activated
+    if np.array(dist_mic_source).shape[0] == 1:
+        d_min = np.min((np.max((0,dist_mic_source[0] )), diagdiag))
+        d_max = d_min
+    elif np.array(dist_mic_source).shape[0] == 2:
+        d_min = dist_mic_source[0] if d_constr else 0
+        d_max = dist_mic_source[1] if d_constr else diagdiag
+        d_max = np.min((d_max, diagdiag))
+        if d_min > d_max :
+            d_min, d_max = d_max, d_min 
+    
+    n_s, n_m = n_gen_rdn[0], n_gen_rdn[1] 
+    if n_s == 0:
+        # means that  we don't want to simulate random positions for the sources but take the source(s) whose position(s) is/are given in source_pos
+        assert source_pos.shape[0]>0 #we need at least one source
+        n_source =  1 if len(source_pos.shape)==1 else source_pos.shape[0]
+    else:
+        n_source = n_s
+        # generate positions:
+        source_pos = np.array([[rnd.uniform(0,room_dim[0]), rnd.uniform(0,room_dim[1]), rnd.uniform(0,room_dim[2]) ] for s in range(n_source)])
+
+     
+    if n_m == 0:
+        # means that  we don't want to simulate random positions for the mics but take the mic(s) whose position(s) is/are given in mics_pos
+        assert mic_pos.shape[0]>0 #we need at least one source
+        n_mics = 1 if len(mic_pos.shape)==1 else mic_pos.shape[0]
+    else:
+        n_mics = n_m 
+        # generate positions:
+        mic_pos = np.array([[rnd.uniform(0,room_dim[0]), rnd.uniform(0,room_dim[1]), rnd.uniform(0,room_dim[2]) ] for m in range(n_mics)])
+                    
+    if d_constr and d_min==d_max:#projection of all positions on the circle of radius d_min=d_max
+        if n_s == 0:
+            mic_pos = [source_pos + (source_pos-mm)/scipy.linalg.norm(source_pos-mm)*d_min for mm in mic_pos]
+        elif n_m == 0:
+            source_pos = [mic_pos + (mic_pos-ss)/scipy.linalg.norm(ss-mic_pos)*d_min for ss in source_pos]
+        else:
+            all_pos = np.zeros((n_source, n_mics))
+            for ss in source_pos:
+                for mm in mic_pos:
+                    m_s = mic_pos[mm]-source_pos[ss]
+                    all_pos[ss,mm] = ss + m_s/scipy.linalg.norm(m_s)*d_min
+                    
+           
+                
+    elif d_constr and d_min<d_max:   
+        # search max and min
+        Max_norm_m_s = np.max([scipy.linalg.norm(mm-ss) for ss in source_pos for mm in mic_pos])
+        min_norm_m_s = np.min([scipy.linalg.norm(mm-ss) for ss in source_pos for mm in mic_pos])
+        
+        
+        if n_s == 0:
+            for mind,mval in enumerate(n_mics):
+                norm_m_s = scipy.linalg.norm(mval-source_pos) 
+                new_norm = (norm_m_s -min_norm_m_s)/(Max_norm_m_s-min_norm_m_s)*(d_max-d_min)+d_min
+                mic_pos[mind] = source_pos + (mval-source_pos)/scipy.linalg.norm(norm_m_s)*new_norm
+#                if norm_m_s < d_min:
+#                    mic_pos[mm] = source_pos + norm_m_s/scipy.linalg.norm(norm_m_s)*min_norm_m_s
+#                elif norm_m_s > d_max:
+#                    mic_pos[mm] = source_pos + norm_m_s/scipy.linalg.norm(norm_m_s)*Max_norm_m_s
+
+        elif n_m == 0:
+            for sind,sval in enumerate(source_pos):
+                
+                norm_m_s = scipy.linalg.norm(mic_pos-sval) 
+                new_norm = (norm_m_s -min_norm_m_s)/(Max_norm_m_s-min_norm_m_s)*(d_max-d_min)+d_min
+                source_pos[sind] = sval + norm_m_s/scipy.linalg.norm(norm_m_s)*new_norm
+#                if norm_m_s < d_min:
+#                    source_pos[ss] = ss + norm_m_s/scipy.linalg.norm(norm_m_s)*min_norm_m_s
+#                elif norm_m_s > d_max:
+#                    source_pos[ss] = ss + norm_m_s/scipy.linalg.norm(norm_m_s)*Max_norm_m_s
+
+
+        else:
+            print('todo! (or not)')
+#            all_pos = np.zeros((n_source, n_mics))
+#            for ss in source_pos:
+#                for mm in mic_pos:
+#                    norm_m_s = scipy.linalg.norm(mm-ss) 
+#                    if norm_m_s < d_min:
+#                    
+#                    elif norm_m_s > d_max:
+#                
+
+    # check that all items are still in the room   
+    if n_s == 0:      
+        for j in range(3):
+            if n_mics==1:
+                mic_pos[j] = np.min((np.max((mic_pos[j],0)), room_dim[j]))
+            else:
+                for m in range(n_mics):
+                    mic_pos[m][j] = np.min((np.max((mic_pos[m][j],0)), room_dim[j]))
+    if n_m == 0:      
+        for j in range(3):
+            if n_source==1:
+                source_pos[j] = np.min((np.max((source_pos[j],0)), room_dim[j]))
+            else:
+                for s in range(n_source):
+                    source_pos[s][j] = np.min((np.max((source_pos[s][j],0)), room_dim[j]))
+
+    return source_pos, mic_pos
+        
+        
