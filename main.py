@@ -7,7 +7,7 @@ from scripts.denoise import denoise as script_denoise
 defaults = {
     'sr': 16000,
     'rir_path': '/data/riccardo_datasets/rirs/',
-    'noise_snrs': [0, 5],
+    'noise_snrs': '0 5',
     'n_fft': 512,
     'hop_length': 128,
     'win_length': 512,
