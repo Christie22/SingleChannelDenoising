@@ -8,7 +8,7 @@ import os
 from os import path
 import scipy
 
-import roomsimove_single
+# import roomsimove_single
 #import tools.roomsimove_single as roomsimove_single
 
 # generate seed from the time at which this script is run
@@ -201,7 +201,7 @@ def create_RIR(config_file_or_dict=None):
             ro = room_dim if n_room==1 else room_dim[r]
             
             
-            absorption = roomsimove_single.rt60_to_absorption(ro, rt60)
+            absorption = None #roomsimove_single.rt60_to_absorption(ro, rt60)
             absorption = np.array([absorption])if isinstance(absorption, float) else absorption
             
 
@@ -281,7 +281,7 @@ def create_RIR(config_file_or_dict=None):
         
                     
                     print('Reading room configuration from a config file')
-                    sim_rir = roomsimove_single.RoomSim.init_from_config_file(config_file)
+                    sim_rir = None #roomsimove_single.RoomSim.init_from_config_file(config_file)
 
                     rir = sim_rir.create_rir(s_p)
             
