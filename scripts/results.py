@@ -70,9 +70,9 @@ def results(model_path, dataset_path,
     print('[t] Train steps per epoch: ', train_steps_per_epoch)
 
     # load encoder
-    print('loading encoder from {}...'.format(args['model_path']))
+    print('loading encoder from {}...'.format(model_path))
     encoder, decoder, model = load_autoencoder_model(
-        args['model_path'], {
+        model_path, {
             'LossLayer': LossLayer
         })
 
@@ -84,57 +84,5 @@ def results(model_path, dataset_path,
         #workers=8
     )
 
-    for plot_path, label in zip(args['latent_space_paths'], args['label_types']):
-        # choose label
-        print('choosing label...')
-        df_labels = df_labels.head(encoded_train_data.shape[0])
-        labels = df_labels[label].values
-
-        # plot data
-        fig_latent = plot_latent_space(encoded_train_data, labels, args['n_latent_dim'], label, 4)
-        fig_latent.savefig(plot_path)
-        print("{} saved".format(plot_path))
-
     print('Done! Check content of {} and {}'.format(args['latent_space_paths'], args['history_plot_path']))
 
-
-# create latent space plot
-def plot_latent_space(encoded_train_data, train_labels, n_latent_dim, label_type, ax_rows = 3):
-    data_frame = pd.DataFrame(encoded_train_data)
-
-    ax_pairs = list(itertools.combinations(range(n_latent_dim), 2))
-    ax_cols = int(np.ceil(len(ax_pairs) / ax_rows))
-    fig, ax_latent = plt.subplots(
-        nrows=ax_rows,
-        ncols=ax_cols,
-        figsize=(ax_cols*8, ax_rows*7),
-        tight_layout=False,
-        squeeze=False
-        )
-    title = 'Latent Space, Color: ' + label_type
-    fig.suptitle(title, fontsize=20, fontweight='heavy')
-
-    print('plotting {} dimension combinations into a subplot of size {}...'.format(len(ax_pairs), ax_latent.shape))
-
-    ax_i = 0
-    for r in range(ax_rows):
-        for c in range(ax_cols):
-            pair = ax_pairs[ax_i]
-            ax = data_frame.plot.scatter(
-                pair[0],
-                pair[1],
-                c=train_labels,
-                colormap='viridis',
-                colorbar=True,
-                alpha=0.5,
-                ax=ax_latent[r][c])
-            xlabel = 'Latent Dimension {}'.format(pair[0])
-            ylabel = 'Latent Dimension {}'.format(pair[1])
-            ax.set_xlabel(xlabel, fontsize='large', fontweight='heavy')
-            ax.set_ylabel(ylabel, fontsize='large', fontweight='heavy')
-            ax_i += 1
-            if ax_i >= len(ax_pairs):
-                fig.tight_layout(rect=[0, 0.03, 1, 0.97])
-                return fig
-    fig.tight_layout(rect=[0, 0.03, 1, 0.97])
-    return fig

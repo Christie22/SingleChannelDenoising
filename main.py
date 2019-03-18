@@ -34,8 +34,7 @@ def cli(ctx, cuda_device):
 @click.argument('dataset_path', type=click.Path(exists=True, file_okay=False, dir_okay=True))
 @click.option('--sr', type=int, default=defaults['sr'])
 @click.option('--rir_path', type=click.Path(exists=True, file_okay=False, dir_okay=True), default=defaults['rir_path'])
-@click.option('--noise_snrs', type=int, nargs=0, default=defaults['noise_snrs'])
-@click.argument('noise_snrs', type=int, nargs=-1, default=defaults['noise_snrs'])
+@click.option('--noise_snrs', type=str, default=defaults['noise_snrs'])
 @click.option('--n_fft', type=int, default=defaults['n_fft'])
 @click.option('--hop_length', type=int, default=defaults['hop_length'])
 @click.option('--win_length', type=int, default=defaults['win_length'])
@@ -60,11 +59,12 @@ def train(ctx,
           epochs,
           model_path,
           history_path):
+    noise_snrs_list = [int(n) for n in noise_snrs.split(' ')]
     script_train(model_name,
                  dataset_path,
                  sr,
                  rir_path,
-                 noise_snrs,
+                 noise_snrs_list,
                  n_fft,
                  hop_length,
                  win_length,
