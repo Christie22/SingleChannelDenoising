@@ -13,8 +13,8 @@ class AEModelFactory(object):
             input_shape,
             kernel_size,
             n_filters,
-            n_intermediate_dim=128,
-            n_latent_dim=2
+            n_intermediate_dim=1024,
+            n_latent_dim=128
             ):
         self.input_shape = input_shape
         self.kernel_size = kernel_size
@@ -80,7 +80,7 @@ class AEModelFactory(object):
         dense = Dropout(0.4)(dense)
         z = Dense(self.n_latent_dim)(dense)
         self._encoder = Model(inputs, z)
-        self._encoder.summary()
+        #self._encoder.summary()
         self._encoder.name = 'encoder'
 
     def gen_decoder(self):
@@ -130,7 +130,7 @@ class AEModelFactory(object):
             padding='same',
             strides=1)(x)
         self._decoder = Model(inputs, x)
-        self._decoder.summary()
+        #self._decoder.summary()
         self._decoder.name = 'decoder'
 
     def gen_model(self):
