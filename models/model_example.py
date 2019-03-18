@@ -26,7 +26,8 @@ class AEModelFactory(object):
         self._decoder = None
         self._model = None
 
-    def get_lossfunc(self):
+    @staticmethod
+    def get_lossfunc():
         def lossfunc(x_true, x_pred):
             return K.mean(K.square(x_true - x_pred))
         return lossfunc

@@ -80,6 +80,7 @@ def train(ctx,
 # RESULTS
 @cli.command()
 @click.pass_context
+@click.argument('model_name', type=str)
 @click.argument('model_path', type=click.Path(exists=True, file_okay=True, dir_okay=False))
 @click.argument('dataset_path', type=click.Path(exists=True, file_okay=False, dir_okay=True))
 @click.option('--sr', type=int, default=defaults['sr'])
@@ -92,6 +93,7 @@ def train(ctx,
 @click.option('--frag_win_length', type=int, default=defaults['frag_win_length'])
 @click.option('--batch_size', type=int, default=defaults['batch_size'])
 def results(ctx,
+            model_name,
             model_path,
             dataset_path,
             sr,
@@ -104,7 +106,8 @@ def results(ctx,
             frag_win_length,
             batch_size):
     noise_snrs_list = [int(n) for n in noise_snrs.split(' ')]
-    script_results(model_path,
+    script_results(model_name,
+                   model_path,
                    dataset_path,
                    sr,
                    rir_path,

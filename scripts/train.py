@@ -73,6 +73,7 @@ def train(model_name,
     print('[t] Valid steps per epoch: ', valid_steps_per_epoch)
 
     # create model
+    # TODO parametrical model creation
     model_args = {
         'input_shape': training_generator.data_shape,
         'kernel_size': 3,
@@ -100,7 +101,7 @@ def train(model_name,
                         save_weights_only=False),
         TerminateOnNaN()
         # save logs for tensorboard
-        # TODO prolly needs some fixing to include metrics?
+        # TODO include tensorboard callbacks
         #TrainValTensorBoard(log_dir=logs_dir, write_graph=False)
     ]
 
@@ -118,6 +119,7 @@ def train(model_name,
         )
 
     # save training history
+    # TODO directly plot training history
     if history_path is not None:
         print('[t] Storing training history to {}...'.format(history_path))
         df = pd.DataFrame(history.history)

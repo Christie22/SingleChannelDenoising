@@ -15,13 +15,13 @@ import matplotlib.pyplot as plt
 from keras.models import load_model
 
 # custom modules
-from libs.updated_utils import load_dataset, load_autoencoder_model
+from libs.updated_utils import load_dataset, load_autoencoder_lossfunc, load_autoencoder_model
 from libs.model_utils import LossLayer
 from libs.data_generator import DataGenerator
 from libs.processing import white_noise, s_to_reim
 
 
-def results(model_path, 
+def results(model_name, model_path, 
             dataset_path, sr, 
             rir_path, noise_snrs,
             n_fft, hop_length, win_length, frag_hop_length, frag_win_length,
@@ -70,9 +70,10 @@ def results(model_path,
     test_steps_per_epoch = len(testing_generator)
     print('[t] Test steps per epoch: ', test_steps_per_epoch)
 
-    # load encoder
-    print('loading encoder from {}...'.format(model_path))
-    encoder, decoder, model = load_autoencoder_model(model_path)
+    # load model
+    print('[t] Loading model from {}...'.format(model_path))
+    lossfunc = load_autoencoder_lossfunc(model_name)
+    encoder, decoder, model = load_autoencoder_model(model_path, {'lossfunc': lossfunc})
 
     # run predictions
     encoded_test_data, _ = model.predict_generator(

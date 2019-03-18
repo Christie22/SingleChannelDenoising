@@ -50,15 +50,15 @@ def create_autoencoder_model(model_name, model_args):
         return None
     else:
         print('[u] Importing example model :D')
-        import models.model_example as m
+        from models.model_example import AEModelFactory
 
     # calc input shape and enforce it
     K.set_image_data_format('channels_last')
     # generate model
-    obj = m.AEModelFactory(**model_args)
+    obj = AEModelFactory(**model_args)
     model = obj.get_model()
     # return loss function too (TODO: only if there)
-    return (model, obj.get_lossfunc() if True else None)
+    return (model, AEModelFactory.get_lossfunc() if True else None)
 
 
 def load_autoencoder_model(model_path, custom_objects=None):
@@ -68,6 +68,20 @@ def load_autoencoder_model(model_path, custom_objects=None):
     encoder = model.get_layer('encoder')
     decoder = model.get_layer('decoder')
     return encoder, decoder, model
+
+def load_autoencoder_lossfunc(model_name):
+    print('[u] Loading loss function for  autoencoder model {}'.format(model_name))
+    # import model factory
+    if model_name == 'lstm':
+        return None
+    elif model_name == 'conv':
+        return None
+    else:
+        print('[u] Importing example model :D')
+        from models.model_example import AEModelFactory
+
+    # return loss function too (TODO: only if there)
+    return AEModelFactory.get_lossfunc()
 
 
 ######### v NOT VERIFIED OR USED v ############
