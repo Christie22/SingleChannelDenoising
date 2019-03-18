@@ -19,6 +19,7 @@ from libs.updated_utils import load_dataset, load_autoencoder_lossfunc, load_aut
 from libs.model_utils import LossLayer
 from libs.data_generator import DataGenerator
 from libs.processing import white_noise, s_to_reim
+from libs.metrics import calc_metrics
 
 
 def results(model_name, model_path, 
@@ -62,11 +63,12 @@ def results(model_name, model_path,
         'shuffle': False,
         'label_type': 'clean',
         'batch_size': batch_size,
+        'disable_cacheinit': True
     }
     print('[t] Data generator parameters: {}'.format(generator_args))
 
     # create DataGenerator objects
-    testing_generator = DataGenerator(filepath_list, **generator_args)
+    testing_generator = DataGenerator(filepath_list[:4], **generator_args)
     test_steps_per_epoch = len(testing_generator)
     print('[t] Test steps per epoch: ', test_steps_per_epoch)
 
@@ -76,12 +78,16 @@ def results(model_name, model_path,
     encoder, decoder, model = load_autoencoder_model(model_path, {'lossfunc': lossfunc})
 
     # run predictions
-    encoded_test_data, _ = model.predict_generator(
+    encoded_test_data = model.predict_generator(
         generator=testing_generator,
         steps=test_steps_per_epoch,
         use_multiprocessing=True,
-        workers=8
+        workers=16
     )
 
-    print('Done! Check content of {} and {}'.format(args['latent_space_paths'], args['history_plot_path']))
+    print(encoded_test_data.shape)
+
+    calc_metrics(, encoded_test_data)
+
+    print('Done!')
 
