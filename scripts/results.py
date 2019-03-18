@@ -21,8 +21,10 @@ from libs.data_generator import DataGenerator
 from libs.processing import white_noise, s_to_reim
 
 
-def results(model_path, dataset_path,
-            sr, n_fft, hop_length, win_length, frag_hop_length, frag_win_length,
+def results(model_path, 
+            dataset_path, sr, 
+            rir_path, noise_snrs,
+            n_fft, hop_length, win_length, frag_hop_length, frag_win_length,
             batch_size, cuda_device):
     print('[r] Calculating results for model {} on dataset {}'.format(model_path, dataset_path))
     print('[r] Parameters: {}'.format({
@@ -36,8 +38,6 @@ def results(model_path, dataset_path,
 
     # load dataset filenames and split in train and validation
     filepath_list = load_dataset(dataset_path)
-    filepath_list_train, filepath_list_valid = train_test_split(
-        filepath_list, test_size=0.2, random_state=1337)
 
     # store DataGenerator args
     generator_args = {
@@ -45,6 +45,7 @@ def results(model_path, dataset_path,
         'sr': sr,
         'cache_path': None,
         # noising/reverberation cfg
+        'rir_path': rir_path,
         'noise_funcs': [None],
         'noise_snrs': noise_snrs,
         # stft cfg
@@ -58,16 +59,16 @@ def results(model_path, dataset_path,
         'frag_hop_length': frag_hop_length,
         'frag_win_length': frag_win_length,
         # general cfg
-        'shuffle': True,
+        'shuffle': False,
         'label_type': 'clean',
         'batch_size': batch_size,
     }
     print('[t] Data generator parameters: {}'.format(generator_args))
 
     # create DataGenerator objects
-    training_generator = DataGenerator(filepath_list_train, **generator_args)
-    train_steps_per_epoch = len(training_generator)
-    print('[t] Train steps per epoch: ', train_steps_per_epoch)
+    testing_generator = DataGenerator(filepath_list, **generator_args)
+    train_steps_per_epoch = len(testing_generator)
+    print('[t] Test steps per epoch: ', train_steps_per_epoch)
 
     # load encoder
     print('loading encoder from {}...'.format(model_path))
@@ -77,7 +78,7 @@ def results(model_path, dataset_path,
         })
 
     # run predictions
-    encoded_train_data, _ = encoder.predict_generator(
+    encoded_train_data, _ = model.predict_generator(
         generator=testing_generator,
         steps=test_steps_per_epoch,
         #use_multiprocessing=True,
