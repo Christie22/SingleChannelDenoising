@@ -15,50 +15,63 @@ import matplotlib.pyplot as plt
 from keras.models import load_model
 
 # custom modules
-from libs.updated_utils import load_autoencoder_model
+from libs.updated_utils import load_dataset, load_autoencoder_model
 from libs.model_utils import LossLayer
 from libs.data_generator import DataGenerator
+from libs.processing import white_noise, s_to_reim
 
 
-def results(model_path, dataset_path, rows, cols, channels, epochs, batch_size, history_path, cuda_device):
+def results(model_path, dataset_path,
+            sr, n_fft, hop_length, win_length, frag_hop_length, frag_win_length,
+            batch_size, cuda_device):
+    print('[r] Calculating results for model {} on dataset {}'.format(model_path, dataset_path))
+    print('[r] Parameters: {}'.format({
+        'model_path': model_path,
+        'dataset_path': dataset_path,
+        'cuda_device': cuda_device,
+    }))
+
     # set GPU devices
     os.environ["CUDA_VISIBLE_DEVICES"] = cuda_device
 
-    # plot training history
-    try:
-        # load training history
-        history_df = pd.read_pickle(history_path)
+    # load dataset filenames and split in train and validation
+    filepath_list = load_dataset(dataset_path)
+    filepath_list_train, filepath_list_valid = train_test_split(
+        filepath_list, test_size=0.2, random_state=1337)
 
-        if(len(args['latent_space_paths']) != len(args['label_types'])):
-            raise TypeError('Latent space path and label_types have to have the same size.')
-
-        print('plotting trainig history...')
-        ax_hist = history_df.plot(logy=True, title='History', grid=True)
-        fig_hist = ax_hist.get_figure()
-        fig_hist.savefig(args['history_plot_path'])
-    except Exception as e:
-        print('Exception while plotting training')
-        print(e)
-
-    # load data
-    print('Loading real dataset from {}...'.format(args['dataset_path']))
-    test_df = load_all_as_test_data(args)
-    train_data = test_df['filepath'].values
-    print(test_df.head())
-    df_labels = test_df.drop(columns='filepath')
-    generator_args ={
-        'dim': [rows, cols],
-        'dataset_path': dataset_path,
-        'channels': channels,
+    # store DataGenerator args
+    generator_args = {
+        # dataset cfg
+        'sr': sr,
+        'cache_path': None,
+        # noising/reverberation cfg
+        'noise_funcs': [None],
+        'noise_snrs': noise_snrs,
+        # stft cfg
+        'n_fft': n_fft,
+        'hop_length': hop_length,
+        'win_length': win_length,
+        # processing cfg
+        'proc_func': s_to_reim,
+        'proc_func_label': s_to_reim,
+        # fragmenting cfg
+        'frag_hop_length': frag_hop_length,
+        'frag_win_length': frag_win_length,
+        # general cfg
+        'shuffle': True,
+        'label_type': 'clean',
         'batch_size': batch_size,
-        # NOTE insert other DataGenerator args
     }
-    testing_generator = DataGenerator(train_data, **generator_args)
-    test_steps_per_epoch = int(len(train_data) / args['batch_size'])
+    print('[t] Data generator parameters: {}'.format(generator_args))
+
+    # create DataGenerator objects
+    training_generator = DataGenerator(filepath_list_train, **generator_args)
+    train_steps_per_epoch = len(training_generator)
+    print('[t] Train steps per epoch: ', train_steps_per_epoch)
 
     # load encoder
     print('loading encoder from {}...'.format(args['model_path']))
-    encoder, _, _ = load_autoencoder_model(
+    encoder, decoder, model = load_autoencoder_model(
         args['model_path'], {
             'LossLayer': LossLayer
         })

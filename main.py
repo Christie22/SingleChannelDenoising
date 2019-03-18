@@ -81,36 +81,39 @@ def train(ctx,
 @click.pass_context
 @click.argument('model_path', type=click.Path(exists=True, file_okay=True, dir_okay=False))
 @click.argument('dataset_path', type=click.Path(exists=True, file_okay=False, dir_okay=True))
-@click.option('--rows', type=int, default=None)
-@click.option('--cols', type=int, default=None)
-@click.option('--channels', type=int, default=None)
-@click.option('--epochs', type=int, default=defaults['epochs'])
+@click.option('--sr', type=int, default=defaults['sr'])
+@click.option('--n_fft', type=int, default=defaults['n_fft'])
+@click.option('--hop_length', type=int, default=defaults['hop_length'])
+@click.option('--win_length', type=int, default=defaults['win_length'])
+@click.option('--frag_hop_length', type=int, default=defaults['frag_hop_length'])
+@click.option('--frag_win_length', type=int, default=defaults['frag_win_length'])
 @click.option('--batch_size', type=int, default=defaults['batch_size'])
-@click.option('--history_path', type=click.Path(), default=defaults['history_path'])
 def results(ctx,
             model_path,
             dataset_path,
-            rows,
-            cols,
-            channels,
-            epochs,
-            batch_size,
-            history_path):
+            sr,
+            n_fft,
+            hop_length,
+            win_length,
+            frag_hop_length,
+            frag_win_length,
+            batch_size):
     script_results(model_path,
                    dataset_path,
-                   rows,
-                   cols,
-                   channels,
-                   epochs,
+                   sr,
+                   n_fft,
+                   hop_length,
+                   win_length,
+                   frag_hop_length,
+                   frag_win_length,
                    batch_size,
-                   history_path,
                    ctx.obj['cuda_device'])
 
 # DENOISE
 @cli.command()
 @click.pass_context
 @click.argument('model_path', type=click.Path(exists=True, file_okay=True, dir_okay=False))
-@click.argument('data_path', type=click.Path(exists=True))
+@click.argument('data_path', type=click.Path(exists=True, file_okay=True, dir_okay=False))
 @click.option('--sr', type=int, default=defaults['sr'])
 @click.option('--n_fft', type=int, default=defaults['n_fft'])
 @click.option('--hop_length', type=int, default=defaults['hop_length'])
