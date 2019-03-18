@@ -17,7 +17,7 @@ from tqdm import tqdm
 
 import libs.updated_utils
 import libs.processing as processing
-import libs.rir_simulator_python.roomsimove_single as room
+#import libs.rir_simulator_python.roomsimove_single as room
 
 
 class DataGenerator(keras.utils.Sequence):
@@ -191,8 +191,8 @@ class DataGenerator(keras.utils.Sequence):
 
     def apply_reverb(self, x, rir_filepath):
         rir = np.load(rir_filepath)
-        x = fftconvolve(rir, x)
-        return x
+        y = fftconvolve(rir, x)
+        return y
 
     # convert T-F data into fragments
     # frag_hop_len, frag_win_len provided in seconds?
