@@ -67,22 +67,19 @@ def results(model_path,
 
     # create DataGenerator objects
     testing_generator = DataGenerator(filepath_list, **generator_args)
-    train_steps_per_epoch = len(testing_generator)
-    print('[t] Test steps per epoch: ', train_steps_per_epoch)
+    test_steps_per_epoch = len(testing_generator)
+    print('[t] Test steps per epoch: ', test_steps_per_epoch)
 
     # load encoder
     print('loading encoder from {}...'.format(model_path))
-    encoder, decoder, model = load_autoencoder_model(
-        model_path, {
-            'LossLayer': LossLayer
-        })
+    encoder, decoder, model = load_autoencoder_model(model_path)
 
     # run predictions
-    encoded_train_data, _ = model.predict_generator(
+    encoded_test_data, _ = model.predict_generator(
         generator=testing_generator,
         steps=test_steps_per_epoch,
-        #use_multiprocessing=True,
-        #workers=8
+        use_multiprocessing=True,
+        workers=8
     )
 
     print('Done! Check content of {} and {}'.format(args['latent_space_paths'], args['history_plot_path']))

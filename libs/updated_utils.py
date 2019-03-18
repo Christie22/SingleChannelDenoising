@@ -61,7 +61,7 @@ def create_autoencoder_model(model_name, model_args):
     return (model, obj.get_lossfunc() if True else None)
 
 
-def load_autoencoder_model(model_path, custom_objects):
+def load_autoencoder_model(model_path, custom_objects=None):
     print('[u] Loading autoencoder model from {}'.format(model_path))
     model = load_model(model_path, custom_objects=custom_objects)
     # extract encoder from main model
