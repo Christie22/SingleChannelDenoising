@@ -75,17 +75,14 @@ def results(model_name, model_path,
     # load model
     print('[t] Loading model from {}...'.format(model_path))
     lossfunc = load_autoencoder_lossfunc(model_name)
-    encoder, decoder, model = load_autoencoder_model(model_path, {'lossfunc': lossfunc})
+    _, _, model = load_autoencoder_model(model_path, {'lossfunc': lossfunc})
 
     # predict data and calculate metrics, one batch at a time
     for i in range(len(testing_generator)):
         data_batch = testing_generator[i]
+        x = data_batch[0]
         y_true = data_batch[1]
-        y_est = model.predict(data_batch,
-            steps=test_steps_per_epoch,
-            use_multiprocessing=True,
-            workers=16
-        )
+        y_est = model.predict(x)
 
         print("batch ", i)
         print(y_true.shape)
