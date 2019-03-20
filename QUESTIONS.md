@@ -6,6 +6,8 @@
 - `results.py`
   - What should it actually do? Plot training history (could be done into train.py) and calculate metrics on test data? What are the metrics?
 
+- reconstruction
+- how do we deal with the phase? Do we take it from the clean signal or do we try to estimate it from the denoised signal?
   
 
 
