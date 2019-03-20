@@ -78,7 +78,7 @@ class DataGenerator(keras.utils.Sequence):
         except Exception as e:
             filelist = [None]
             print('[d] Loaded no files')
-        return filelist
+        return filelist or [None]
 
     # init cache
     def init_cache(self):
@@ -218,7 +218,7 @@ class DataGenerator(keras.utils.Sequence):
 
     # number of batches
     def __len__(self):
-        if not self.fragments_x:
+        if self.fragments_x is None:
             self.init_cache()
         return len(self.fragments_x) // self.batch_size
 
