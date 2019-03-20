@@ -19,7 +19,7 @@ from libs.utilities import load_dataset, load_autoencoder_lossfunc, load_autoenc
 from libs.model_utils import LossLayer
 from libs.data_generator import DataGenerator
 from libs.processing import white_noise, s_to_reim
-from libs.metrics import calc_metrics
+from libs.metrics import calc_metrics, sample_metric
 
 
 def results(model_name, model_path, 
@@ -77,19 +77,13 @@ def results(model_name, model_path,
     lossfunc = load_autoencoder_lossfunc(model_name)
     _, _, model = load_autoencoder_model(model_path, {'lossfunc': lossfunc})
 
-    # predict data and calculate metrics, one batch at a time
+    # loop through batches
     for i in range(len(testing_generator)):
         data_batch = testing_generator[i]
-        x = data_batch[0]
+        y_pred = model.predict(data_batch[0])
         y_true = data_batch[1]
-        y_est = model.predict(x)
-
-        print("batch ", i)
-        print(y_true.shape)
-        print(y_est.shape)
-        print()
-        print('')
-        
+        mse = sample_metric(y_pred, y_true)
+        print('[r]  Batch #{}: mse = {}'.format(i, mse))
     
     print('Done!')
 

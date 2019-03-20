@@ -1,6 +1,15 @@
 import numpy as np
 import librosa
+from sklearn.metrics import mean_squared_error
 # from pystoi.stoi import stoi
+
+
+# example evaluation metric; takes 2 complex spectrograms as input (true, pred) and outputs a scalar
+def sample_metric(y_pred, y_true):
+    return mean_squared_error(y_pred, y_true)
+
+
+# TODO refactor other metrics to follow interface from sample_metric()
 
 
 # TODO consider using this: https://github.com/craffel/mir_eval/blob/master/mir_eval/separation.py
@@ -29,7 +38,6 @@ def calc_metrics(y, yest, **kwargs):
         fBands = kwargs.pop('fBands', '')
     else:
         fBands=1
-
 
     # cqse: we want to calculate the metrics from the T-F representations of y and yest
     if fBands > 1:
