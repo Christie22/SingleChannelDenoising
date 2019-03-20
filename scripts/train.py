@@ -21,7 +21,7 @@ def train(model_name,
           rir_path, noise_snrs, 
           n_fft, hop_length, win_length, frag_hop_length, frag_win_length, 
           batch_size, epochs, model_path, history_path, cuda_device):
-    print('[t] Training model {} on dataset {}'.format(model_name, dataset_path))
+    print('[t] Training model {} at {} on dataset {}'.format(model_name, model_path, dataset_path))
     print('[t] Training parameters: {}'.format({
         'epochs': epochs,
         'model_path': model_path,

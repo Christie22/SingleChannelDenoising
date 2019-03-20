@@ -5,61 +5,35 @@ import numpy as np
 from keras.models import load_model
 
 from libs.data_generator import DataGenerator
-from libs.utilities import load_autoencoder_model, import_spectrogram, load_data
+from libs.utilities import load_dataset, load_autoencoder_lossfunc, load_autoencoder_model
 from libs.model_utils import LossLayer
-from libs.processing import white_noise
+from libs.processing import white_noise, s_to_reim
 
-def denoise(model_path, data_path,
-        sr, rir_path, n_fft, hop_length, win_length, frag_hop_length, frag_win_length,
-        loss_func, batch_size, cuda_device):
+def denoise(model_name, model_path, data_path,
+        sr, n_fft, hop_length, win_length, frag_hop_length, frag_win_length, 
+        batch_size, cuda_device):
 
-    print('[t] Applying model in {} on data in {}'.format(model_path, data_path))
+    print('[t] Applying model in {}  at {} on data in {}'.format(model_name, model_path, data_path))
     print('[t] Denoising parameters: {}'.format({
+        'model_name': model_name,
         'model_path': model_path,
-        'dataset_path': data_path,
+        'data_path': data_path,
         'cuda_device': cuda_device
     }))
 
     # set GPU devices
     os.environ["CUDA_VISIBLE_DEVICES"] = cuda_device
 
-    # load data filenames
-    filepath_list, _ = load_data(data_path)
+    # load data in file data_path
+    data = None # load_data(data_path)
 
-    # store DataGenerator args
-    generator_args = {
-        # dataset cfg
-        'sr': sr,
-        'cache_path': None,
-        # noising/reverberation cfg
-        'rir_path': rir_path,
-        'noise_funcs': [white_noise],
-        'noise_snrs': [0, 5],
-        # stft cfg
-        'n_fft': n_fft,
-        'hop_length': hop_length,
-        'win_length': win_length,
-        # # processing cfg
-        'proc_func': s_to_reim,
-        'proc_func_label': s_to_reim,
-        # fragmenting cfg
-        'frag_hop_length': frag_hop_length,
-        'frag_win_length': frag_win_length,
-        # general cfg
-        'shuffle': False,
-        'label_type': 'clean',
-        'batch_size': batch_size,
-        'loss_func': 'mean_squared_error',
-    }
-    print('[t] Data generator parameters: {}'.format(generator_args))
 
     # create DataGenerator object
-    test_data_gen = DataGenerator(filepath_list, **generator_args)
 
     # load trained model
-    trained_model = load_model(model_path, {
-        'LossLayer': LossLayer
-    })
+    print('[d] Loading model from {}...'.format(model_path))
+    lossfunc = load_autoencoder_lossfunc(model_name)
+    _, _, model = load_autoencoder_model(model_path, {'lossfunc': lossfunc})
 
     ## OR: create model
     # model_name =
@@ -72,14 +46,13 @@ def denoise(model_path, data_path,
     # trained_model, lossfunc = create_autoencoder_model(model_name, model_args)
 
     # compile model (loss function must be set in the model class
-    trained_model.compile(optimizer='adam', loss=loss_func, metrics=['mse'])
-
+    
     # print model summary
-    trained_model.summary()
+    model.summary()
 
     # prediction on test data
     print('[t] Begin testing process...')
-    cleaned_data_pred, _ = trained_model.predict(test_data_gen)
+    cleaned_data_pred, _ = model.predict(data)
 
     np.save('cleaned_data_pred', cleaned_data_pred)
     print('Done! Cleaned data stored at:' + data_path)

@@ -1,5 +1,5 @@
 # test and evaluate trained model
-# TODO calculate matrics on training and testing datasets and display/store them
+# TODO calculate metrics on training and testing datasets and display/store them
 # metrics: [165 from overview]
 #  - SDR (source-to-distortion ratio) START FROM THIS!!
 #  - STOI
@@ -83,7 +83,17 @@ def results(model_name, model_path,
         y_pred = model.predict(data_batch[0])
         y_true = data_batch[1]
         mse = sample_metric(y_pred, y_true)
-        print('[r]  Batch #{}: mse = {}'.format(i, mse))
+        print('[r] Batch # {}: '.format(i))
+        print('[r]   mse = {}'.format(mse))
+
+        metrics = calc_metrics(
+            y_true, y_pred, 
+            tBands=16,
+            fBands=16,
+            samplerate=sr,
+            n_fft=n_fft,
+            hop_length=hop_length)
+        print('[r]   metrics = {}'.format(metrics))
     
     print('Done!')
 

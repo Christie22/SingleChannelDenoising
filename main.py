@@ -125,6 +125,7 @@ def results(ctx,
 # DENOISE
 @cli.command()
 @click.pass_context
+@click.argument('model_name', type=str)
 @click.argument('model_path', type=click.Path(exists=True, file_okay=True, dir_okay=False))
 @click.argument('data_path', type=click.Path(exists=True, file_okay=True, dir_okay=False))
 @click.option('--sr', type=int, default=defaults['sr'])
@@ -135,6 +136,7 @@ def results(ctx,
 @click.option('--frag_win_length', type=int, default=defaults['frag_win_length'])
 @click.option('--batch_size', type=int, default=defaults['batch_size'])
 def denoise(ctx,
+            model_name,
             model_path,
             data_path,
             sr,
@@ -144,7 +146,8 @@ def denoise(ctx,
             frag_hop_length,
             frag_win_length,
             batch_size):
-    script_denoise(model_path,
+    script_denoise(model_name,
+                   model_path,
                    data_path,
                    sr,
                    n_fft,
