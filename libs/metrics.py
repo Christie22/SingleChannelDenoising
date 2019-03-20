@@ -103,7 +103,7 @@ def calc_metrics(y, yest, **kwargs):
 
 
             # SIgnal 2 Distorsion Ratio:
-            diffTrue2Est= [ a-b for a,b in zip(ySelec, yestSelec) ]
+            diffTrue2Est= np.array([ a-b for a,b in zip(ySelec, yestSelec) ])
 
             numSDR   = np.mean(diffTrue2Est @ diffTrue2Est.T)
             denomSDR = np.mean(yestSelec @ yestSelec.T)

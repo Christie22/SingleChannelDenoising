@@ -18,7 +18,7 @@ from keras.models import load_model
 from libs.utilities import load_dataset, load_autoencoder_lossfunc, load_autoencoder_model
 from libs.model_utils import LossLayer
 from libs.data_generator import DataGenerator
-from libs.processing import white_noise, s_to_reim
+from libs.processing import white_noise, s_to_reim, reim_to_s
 from libs.metrics import calc_metrics, sample_metric
 
 
@@ -78,22 +78,40 @@ def results(model_name, model_path,
     _, _, model = load_autoencoder_model(model_path, {'lossfunc': lossfunc})
 
     # loop through batches
-    for i in range(len(testing_generator)):
-        data_batch = testing_generator[i]
-        y_pred = model.predict(data_batch[0])
-        y_true = data_batch[1]
-        mse = sample_metric(y_pred, y_true)
-        print('[r] Batch # {}: '.format(i))
-        print('[r]   mse = {}'.format(mse))
+    max_iter = 10
+    iter_count = 0
+    for batch_index in range(len(testing_generator)):
+        data_batch = testing_generator[batch_index]
+        y_pred_batch = model.predict(data_batch[0])
+        y_true_batch = data_batch[1]
+        print('[r] Batch # {}: '.format(batch_index))
 
-        metrics = calc_metrics(
-            y_true, y_pred, 
-            tBands=16,
-            fBands=16,
-            samplerate=sr,
-            n_fft=n_fft,
-            hop_length=hop_length)
-        print('[r]   metrics = {}'.format(metrics))
+        # loop through steps per batch
+        for y_pred, y_true in zip(y_pred_batch, y_true_batch):
+            # convert to complex spectrogram
+            y_pred = reim_to_s(y_pred)
+            y_true = reim_to_s(y_true)
+
+            # get absolute spectrogram
+            y_pred = abs(y_pred) ** 2
+            y_true = abs(y_true) ** 2
+            
+            mse = sample_metric(y_pred, y_true)
+            print('[r]   mse = {}'.format(mse))
+
+            metrics = calc_metrics(
+                y_true, y_pred, 
+                tBands=16,
+                fBands=16,
+                samplerate=sr,
+                n_fft=n_fft,
+                hop_length=hop_length)
+            print('[r]   metrics = {}'.format(metrics))
+
+            iter_count += 1
+            if iter_count > max_iter:
+                print('Done!')
+                return
     
     print('Done!')
 
