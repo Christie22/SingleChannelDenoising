@@ -45,12 +45,18 @@ Create new model as in `models/` as `model_<model_name>.py`.
 
 
 ## Structure
+### Code
+- `main.py`: scripts entry point
 - `scripts/`: scripts for training a model, viewing results, and using encoder and decoder
 - `libs/`: code dependencies for scripts
 - `models/`: model architecture implementations
+- `notebooks/`: jupyter notebooks for experiments and tests
 - `tools/`: miscellaneous software tools
-- `spec-file.txt`: list of dependencies, used for setting up conda environment
-- `Pipfile`: list of dependencies, used for setting up pipenv environment (local)
+- `Pipfile`, `Pipfile.lock`, `spec-file.txt`: list of dependencies, used for setting up pipenv (local) and conda (remote) environments
+### Text
+- `notes/`: minutes from group meetings
+- `literature/`: relevant papers sorted by category
+- `ext/`: unsorted, mixed stuff
 
 
 ### Christie Laurent & Riccardo Miccini, 2019

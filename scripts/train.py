@@ -10,7 +10,7 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint, TerminateOnNaN
 from sklearn.model_selection import train_test_split
 
 # custom modules
-from libs.updated_utils import load_dataset, create_autoencoder_model
+from libs.utilities import load_dataset, create_autoencoder_model
 from libs.model_utils import LossLayer
 from libs.data_generator import DataGenerator
 from libs.processing import white_noise, s_to_reim

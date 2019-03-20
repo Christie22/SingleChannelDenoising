@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from keras.models import load_model
 
 # custom modules
-from libs.updated_utils import load_dataset, load_autoencoder_lossfunc, load_autoencoder_model
+from libs.utilities import load_dataset, load_autoencoder_lossfunc, load_autoencoder_model
 from libs.model_utils import LossLayer
 from libs.data_generator import DataGenerator
 from libs.processing import white_noise, s_to_reim
@@ -65,15 +65,15 @@ def results(model_name, model_path,
         'batch_size': batch_size,
         'disable_cacheinit': True
     }
-    print('[t] Data generator parameters: {}'.format(generator_args))
+    print('[r] Data generator parameters: {}'.format(generator_args))
 
     # create DataGenerator objects
     testing_generator = DataGenerator(filepath_list[:4], **generator_args)
     test_steps_per_epoch = len(testing_generator)
-    print('[t] Test steps per epoch: ', test_steps_per_epoch)
+    print('[r] Test steps per epoch: ', test_steps_per_epoch)
 
     # load model
-    print('[t] Loading model from {}...'.format(model_path))
+    print('[r] Loading model from {}...'.format(model_path))
     lossfunc = load_autoencoder_lossfunc(model_name)
     _, _, model = load_autoencoder_model(model_path, {'lossfunc': lossfunc})
 
@@ -87,6 +87,8 @@ def results(model_name, model_path,
         print("batch ", i)
         print(y_true.shape)
         print(y_est.shape)
+        print()
+        print('')
 
     
 

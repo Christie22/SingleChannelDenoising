@@ -15,7 +15,8 @@ import scipy
 rnd.seed(int(time.time()))
 
 
-### PRE-POST PROCESSING FUNCTIONS
+### PRE/POST PROCESSING FUNCTIONS
+# convert complex spectrograms to Re/Im representation
 def s_to_reim(s):
     # remove a bin if odd number
     if s.shape[0] % 2 != 0:
@@ -27,6 +28,17 @@ def s_to_reim(s):
     reim = np.dstack((re, im))
     return reim
 
+# convert Re/Im representation to complex spectrograms
+def reim_to_s(reim):
+    # extract real and imaginary components
+    re = reim[:, :, 0]
+    im = reim[:, :, 1]
+    # combine into complex values
+    s = re + 1j*im
+    # add previously removed bin
+    padding = np.zeros((1, *s.shape[1:]))
+    s = np.concatenate((s, padding))
+    return s
 
 
 ### NOISING FUNCTIONS

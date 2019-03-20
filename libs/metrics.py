@@ -1,6 +1,9 @@
 import numpy as np
 import librosa
 
+
+# TODO consider using this: https://github.com/craffel/mir_eval/blob/master/mir_eval/separation.py
+
 def calc_metrics(y, yest, **kwargs):
     # calc SDR and NRR
 

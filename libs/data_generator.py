@@ -15,7 +15,7 @@ from scipy.signal import fftconvolve
 from tqdm import tqdm
 #from scipy.io.wavfile import write
 
-import libs.updated_utils
+import libs.utilities
 import libs.processing as processing
 #import libs.rir_simulator_python.roomsimove_single as room
 
