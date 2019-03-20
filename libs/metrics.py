@@ -11,41 +11,24 @@ def calc_metrics(y, yest, **kwargs):
     sizY = y.shape
     sizYest = yest.shape
 
-    if min(sizY) > 2 and min(sizYest)>2: #spectrograms
-        inputType = 'F'
-    else:
-        inputType = 'T'
+    #spectrograms
+    inputType = 'F' if min(sizY) > 2 and min(sizYest)>2 else 'T'
 
     # retrieve params' values
     keys = kwargs.keys()
-
-    if 'tBands' in keys:
-        tBands = kwargs.pop('tBands', '')
-    else:
-        tBands = 1
-
-    if 'fBands' in keys:
-        fBands = kwargs.pop('fBands', '')
-    else:
-        fBands=1
+    
+    tBands = kwargs.pop('tBands', '')  if 'tBands' in keys else 1
+ 
+    fBands = kwargs.pop('fBands', '') if 'fBands' in keys else 1
 
 
     # cqse: we want to calculate the metrics from the T-F representations of y and yest
     if fBands > 1:
-        if 'samplerate' in keys:
-            samplerate = kwargs.pop('samplerate','')
-        else:
-            samplerate = 44100 # or 10k # or display an error
+            samplerate = kwargs.pop('samplerate','') if 'samplerate' in keys else 44100 # or 10k # or display an error
 
-        if 'n_fft' in keys:
-            n_fft = kwargs.pop('n_fft','')
-        else:
-            n_fft = 256 # 0-padded to 512
+            n_fft = kwargs.pop('n_fft','') if 'n_fft' in keys else 256 # 0-padded to 512
 
-        if 'hop_length' in keys:
-            hop_length = kwargs.pop('hop_length','')
-        else:
-            hop_length = n_fft/2
+        hop_length = kwargs.pop('hop_length','') if 'hop_length' in keys else np.int(n_fft*.5)
 
 
         if inputType == 'T': # need to perform the STFT first
@@ -77,10 +60,8 @@ def calc_metrics(y, yest, **kwargs):
         Yest = yest
         Y    = y
 
-        if tBands > 0: #grid to cut y and yest into pieces
-            stepsT = np.round(np.linspace(0, y.shape[0], tBands))
-        else:
-            stepsT = np.array([0,sizY[0]])
+        : #grid to cut y and yest into pieces
+        stepsT = np.round(np.linspace(0, y.shape[0], tBands)) if tBands > 0 else np.array([0,sizY[0]])
 
 
     SDR, NRR = np.zeros((fBands,tBands)), np.zeros((fBands,tBands))

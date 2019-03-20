@@ -12,6 +12,35 @@ import scipy
 # generate seed from the time at which this script is run
 rnd.seed(int(time.time()))
 
+### FRAGMENTING AND RECONSTRUCTING FROM FRAGMENTS
+def make_fragments(s, frag_hop_len, frag_win_len):
+    # convert T-F data into fragments. # frag_hop_len, frag_win_len provided in seconds?
+    n_frags = int((s.shape[1] - frag_win_len) / frag_hop_len + 1)
+    
+    def get_slice(i):
+        lower_bound = i*frag_hop_len
+        upper_bound = i*frag_hop_len+frag_win_len
+        return s[:, lower_bound:upper_bound]
+    frags = [get_slice(i) for i in range(n_frags)]
+    return frags
+
+def unmake_fragments(s_frag, frag_hop_len, frag_win_len):
+    # TODO check the dimensions
+    print('Shape of the Re/Im input signal: {}'.format(s_frag.shape))
+
+    s = np.sum(s_frag,3)#reim_to_s(s_frag)
+    print('Shape of signal s with re + j*im : {}'.format(s.shape))
+
+    n_frags = s.shape[0]
+
+    s_rec = np.array( [ s[i, -frag_hop_len: , :] for i in range(n_frags) ] ) #if i>0 else s[i,:,:] 
+    print('s_rec: {0}'.format(s_rec))
+    print('Shape of the reconstructed signal: {}'.format(s_rec.shape))
+    dim1 =  [s_rec.shape[jj]==1 for jj in  range(len(s_rec.shape))]
+    
+    y=s_rec.reshape(s_rec.shape[0], s_rec.shape[2]) #suppress the dimension that is 1
+    print('Re-Shape of the reconstructed signal: {}'.format(y.T.shape))
+    return y.T# s_rec 
 
 ### PRE/POST PROCESSING FUNCTIONS
 # convert complex spectrograms to Re/Im representation
@@ -100,7 +129,7 @@ def velvet_noise(x, SNR):
         #### Role: create a vector of velvet noise (containing exclusively {-1,0,1})
         # Input:
          rate_zero(optional): pourcentage (between 0 and 1) of "0" in the output vector. 
-        # ouput: velvet noise 
+        # output: velvet noise
          V: standard vector
          params(optional) (struct): parametres (nb of zeros, indices, values) TODO
         """
@@ -130,3 +159,5 @@ def take_file_as_noise(x, SNR):
 
 
         
+print('tu me fais chier')
+y=unmake_fragments(xx,1,0)
