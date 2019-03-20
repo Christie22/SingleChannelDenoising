@@ -72,9 +72,13 @@ class DataGenerator(keras.utils.Sequence):
     # load list of RIR files
     def load_rirs(self):
         print('[d] Loading all RIRs files from {}'.format(self.rir_path))
-        filelist = glob.glob(osp.join(self.rir_path, '*.npy'))
-        print('[d] Loaded {} files'.format(len(filelist)))
-        return filelist or [None]
+        try:
+            filelist = glob.glob(osp.join(self.rir_path, '*.npy'))
+            print('[d] Loaded {} files'.format(len(filelist)))
+        except Exception as e:
+            filelist = [None]
+            print('[d] Loaded no files')
+        return filelist
 
     # init cache
     def init_cache(self):
