@@ -3,6 +3,8 @@ from scripts.train import train as script_train
 from scripts.results import results as script_results
 from scripts.denoise import denoise as script_denoise
 
+# pass models as class, parse model_name here (just like we do it snrs)
+
 
 defaults = {
     'sr': 16000,

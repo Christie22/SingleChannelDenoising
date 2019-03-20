@@ -34,7 +34,7 @@ def reim_to_s(reim):
     re = reim[:, :, 0]
     im = reim[:, :, 1]
     # combine into complex values
-    s = re + 1j*im
+    s = re + 1j * im
     # add previously removed bin
     padding = np.zeros((1, *s.shape[1:]))
     s = np.concatenate((s, padding))
