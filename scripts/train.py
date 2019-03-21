@@ -6,7 +6,7 @@ import pickle
 import numpy as np
 import pandas as pd
 from keras import backend as K
-from keras.callbacks import EarlyStopping, ModelCheckpoint, TerminateOnNaN
+from keras.callbacks import EarlyStopping, ModelCheckpoint, TerminateOnNaN, TensorBoard
 from sklearn.model_selection import train_test_split
 
 # custom modules
@@ -99,10 +99,11 @@ def train(model_name,
                         monitor='val_loss',
                         save_best_only=True,
                         save_weights_only=False),
-        TerminateOnNaN()
+        TerminateOnNaN(),
         # save logs for tensorboard
         # TODO include tensorboard callbacks
         #TrainValTensorBoard(log_dir=logs_dir, write_graph=False)
+        TensorBoard()
     ]
 
     # train model
