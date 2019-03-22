@@ -113,5 +113,5 @@ def results(model_name, model_path,
                 print('Done!')
                 return
     
-    print('Done!')
+    print('[r] Done!')
 

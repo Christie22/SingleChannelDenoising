@@ -1,20 +1,21 @@
-# get a trained model, clean data that we noise and feed the latter into the former
+# get a trained model, clean one piece of data (or frag) that we noise and feed the latter into the former
 
 import os
 import numpy as np
 from keras.models import load_model
+import librosa
 
 from libs.data_generator import DataGenerator
 from libs.utilities import load_dataset, load_autoencoder_lossfunc, load_autoencoder_model
 from libs.model_utils import LossLayer
-from libs.processing import white_noise, s_to_reim
+from libs.processing import s_to_reim, reim_to_s, make_fragments, unmake_fragments
 
 def denoise(model_name, model_path, data_path,
         sr, n_fft, hop_length, win_length, frag_hop_length, frag_win_length, 
         batch_size, cuda_device):
 
-    print('[t] Applying model in {}  at {} on data in {}'.format(model_name, model_path, data_path))
-    print('[t] Denoising parameters: {}'.format({
+    print('[n] Applying model in {} at {} on data in {}'.format(model_name, model_path, data_path))
+    print('[n] Denoising parameters: {}'.format({
         'model_name': model_name,
         'model_path': model_path,
         'data_path': data_path,
@@ -24,36 +25,43 @@ def denoise(model_name, model_path, data_path,
     # set GPU devices
     os.environ["CUDA_VISIBLE_DEVICES"] = cuda_device
 
-    # load data in file data_path
-    data = None # load_data(data_path)
-
-
-    # create DataGenerator object
+    ## input data handling
+    print('[n] Loading data from {}...'.format(data_path))
+    # load data from file name
+    x = librosa.core.load(data_path, sr=sr)
+    # convert to TF-domain
+    s = librosa.core.stft(x, n_fft=n_fft, hop_length=hop_length, win_length=win_length)
+    # apply pre-processing (data representation)
+    s_proc = s_to_reim(s)
+    # split into fragments
+    s_frags = make_fragments(s_proc, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
+    print('[n] Generated {} fragments with shape {}'.format(len(s_frags), s_frags[0].shape))
 
     # load trained model
-    print('[d] Loading model from {}...'.format(model_path))
+    print('[n] Loading model from {}...'.format(model_path))
     lossfunc = load_autoencoder_lossfunc(model_name)
     _, _, model = load_autoencoder_model(model_path, {'lossfunc': lossfunc})
-
-    ## OR: create model
-    # model_name =
-    # model_args = {
-    #     'input_shape': test_data_gen.data_shape,
-    #     'kernel_size': 3,
-    #     'n_filters': 64,
-    # }
-    # print('[t] Model factory parameters: {}'.format(model_args))
-    # trained_model, lossfunc = create_autoencoder_model(model_name, model_args)
-
-    # compile model (loss function must be set in the model class
-    
     # print model summary
-    model.summary()
+    #model.summary()
 
-    # prediction on test data
-    print('[t] Begin testing process...')
-    cleaned_data_pred, _ = model.predict(data)
+    # prediction on data
+    print('[n] Predicting with trained model...')
+    s_frags_pred = model.predict(s_frags)
+    print('[n] Prediction finished!')
 
-    np.save('cleaned_data_pred', cleaned_data_pred)
-    print('Done! Cleaned data stored at:' + data_path)
-    print('cleaned_data_pred')
+    # TODO remove this part (debugging only)
+    print('shape of output: ', s_frags_pred.shape)
+
+    # perform inverse operations on data
+    # TODO
+
+    # store clean audio as wav file
+    output_path = None #
+    # TODO
+
+    # very slow at the beginning then very fast (real-time possible)
+    #np.save('cleaned_data_pred', cleaned_data_pred)
+    print('Cleaned data reconstructed and stored at {}'.format(output_path))
+
+
+    print('[n] Done!')

@@ -13,11 +13,8 @@ import pandas as pd
 import os.path as osp
 from scipy.signal import fftconvolve
 from tqdm import tqdm
-#from scipy.io.wavfile import write
 
-import libs.utilities
-import libs.processing as processing
-#import libs.rir_simulator_python.roomsimove_single as room
+from libs.processing import make_fragments
 
 
 class DataGenerator(keras.utils.Sequence):
@@ -116,7 +113,7 @@ class DataGenerator(keras.utils.Sequence):
                         s_noise, (*s_noise.shape, 1))
 
                 # fragment data
-                s_frags = self.make_fragments(
+                s_frags = make_fragments(
                     s_proc, self.frag_hop_length, self.frag_win_length)
                 # store shape!
                 if not self._data_shape:
@@ -198,17 +195,6 @@ class DataGenerator(keras.utils.Sequence):
         y = fftconvolve(rir, x)
         return y
 
-    # convert T-F data into fragments
-    # frag_hop_len, frag_win_len provided in seconds?
-    def make_fragments(self, s, frag_hop_len, frag_win_len):
-        n_frags = int((s.shape[1] - frag_win_len) / frag_hop_len + 1)
-
-        def get_slice(i):
-            lower_bound = i*frag_hop_len
-            upper_bound = i*frag_hop_len+frag_win_len
-            return s[:, lower_bound:upper_bound]
-        frags = [get_slice(i) for i in range(n_frags)]
-        return frags
 
     # callback at each epoch (shuffles batches)
     def on_epoch_end(self):
