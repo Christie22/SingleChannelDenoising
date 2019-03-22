@@ -1,7 +1,8 @@
 # ML-driven 1-channel denoising system
 > Semester project for *Sound and Music Computing* (AAU SMC 2018)
 
-**Link to report: https://www.overleaf.com/project/5c781f4804b72d43bf4ded71**
+**Link to report: https://www.overleaf.com/project/5c94e7edf54b1f21e4c1c066 ( https://www.overleaf.com/project/5c781f4804b72d43bf4ded71)**
+
 **Link to datasets: https://drive.google.com/drive/u/0/folders/1MmtiRQF-33Gkx1ZJZ7vSDCzy-vqjaUw6/**
 
 
