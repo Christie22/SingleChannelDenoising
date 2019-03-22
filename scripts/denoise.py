@@ -28,13 +28,14 @@ def denoise(model_name, model_path, data_path,
     ## input data handling
     print('[n] Loading data from {}...'.format(data_path))
     # load data from file name
-    x = librosa.core.load(data_path, sr=sr)
+    x, _ = librosa.core.load(data_path, sr=sr)
     # convert to TF-domain
     s = librosa.core.stft(x, n_fft=n_fft, hop_length=hop_length, win_length=win_length)
     # apply pre-processing (data representation)
     s_proc = s_to_reim(s)
     # split into fragments
     s_frags = make_fragments(s_proc, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
+    s_frags = np.array(s_frags)
     print('[n] Generated {} fragments with shape {}'.format(len(s_frags), s_frags[0].shape))
 
     # load trained model
@@ -56,7 +57,7 @@ def denoise(model_name, model_path, data_path,
     # TODO
 
     # store clean audio as wav file
-    output_path = None #
+    output_path = None # should be an extra parameter or just derived from the other filename
     # TODO
 
     # very slow at the beginning then very fast (real-time possible)
