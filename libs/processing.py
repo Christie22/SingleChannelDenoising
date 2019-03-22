@@ -29,19 +29,20 @@ def unmake_fragments(s_frag, frag_hop_len, frag_win_len):
     # TODO check the dimensions
     print('Shape of the Re/Im input signal: {}'.format(s_frag.shape))
 
-    s = np.sum(s_frag,3)#reim_to_s(s_frag)
-    print('Shape of signal s with re + j*im : {}'.format(s.shape))
+    ss = np.sum(s_frag,3)#reim_to_s(s_frag)
+    print('Shape of signal s with re + j*im : {}'.format(ss.shape))
 
-    n_frags = s.shape[0]
+    n_frags = ss.shape[0]
 
-    s_rec = np.array( [ s[i, -frag_hop_len: , :] for i in range(n_frags) ] ) #if i>0 else s[i,:,:] 
+    s_rec = np.array( [ ss[i, -frag_hop_len: , :] for i in range(n_frags) ] ) #if i>0 else s[i,:,:] 
     print('s_rec: {0}'.format(s_rec))
     print('Shape of the reconstructed signal: {}'.format(s_rec.shape))
-    dim1 =  [s_rec.shape[jj]==1 for jj in  range(len(s_rec.shape))]
     
-    y=s_rec.reshape(s_rec.shape[0], s_rec.shape[2]) #suppress the dimension that is 1
-    print('Re-Shape of the reconstructed signal: {}'.format(y.T.shape))
-    return y.T# s_rec 
+    dims =  [jj for jj in  range(len(s_rec.shape)) if s_rec.shape[jj]!=1 ] 
+    
+    y=s_rec.reshape([s_rec.shape[dims[d]] for d in range(len(dims))])#[s_rec.shape[0], s_rec.shape[2]]) #suppress the dimension that is 1
+    print('Re-Shape of the reconstructed signal: {}'.format(y.shape))
+    return y# s_rec 
 
 
 
@@ -163,3 +164,17 @@ def take_file_as_noise(x, SNR):
         return noise
     return noising_prototype
 
+#print('compiled')
+#
+#
+#aa = np.array([[[1,2,12,212],[3,4,34, 434],[0,1,10, 110]],[[5,6,56,656],[7,8,78,878] ,[9,0,90, 990]]])
+#bb=10*aa
+#xx = np.array([aa,bb])
+#xx = xx.reshape(3,2,4,2)
+#xxx=xx[:,:,:,1]+xx[:,:,:,0]  
+#xxx
+#y=unmake_fragments(xx,1,0)
+#
+#y
+#
+#print('done')
