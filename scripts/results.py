@@ -10,7 +10,7 @@ import os
 import pandas as pd
 import numpy as np
 import pickle
-import itertools
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 from keras.models import load_model
 
@@ -80,11 +80,11 @@ def results(model_name, model_path,
     # loop through batches
     max_iter = 10
     iter_count = 0
-    for batch_index in range(len(testing_generator)):
+    for batch_index in tqdm(range(len(testing_generator)), desc='Batch #'):
         data_batch = testing_generator[batch_index]
         y_pred_batch = model.predict(data_batch[0])
         y_true_batch = data_batch[1]
-        print('[r] Batch # {}: '.format(batch_index))
+        # print('[r] Batch # {}: '.format(batch_index))
 
         # loop through steps per batch
         for y_pred, y_true in zip(y_pred_batch, y_true_batch):
@@ -97,21 +97,16 @@ def results(model_name, model_path,
             y_true = abs(y_true) ** 2
             
             mse = sample_metric(y_pred, y_true)
-            print('[r]   mse = {}'.format(mse))
+            # print('[r]   mse = {}'.format(mse))
 
-            metrics = calc_metrics(
-                y_true, y_pred, 
-                tBands=16,
-                fBands=16,
-                samplerate=sr,
-                n_fft=n_fft,
-                hop_length=hop_length)
-            print('[r]   metrics = {}'.format(metrics))
-
-            iter_count += 1
-            if iter_count > max_iter:
-                print('Done!')
-                return
+            # metrics = calc_metrics(
+            #     y_true, y_pred, 
+            #     tBands=16,
+            #     fBands=16,
+            #     samplerate=sr,
+            #     n_fft=n_fft,
+            #     hop_length=hop_length)
+            # print('[r]   metrics = {}'.format(metrics))
     
     print('[r] Done!')
 
