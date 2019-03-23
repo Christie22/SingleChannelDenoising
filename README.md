@@ -53,7 +53,7 @@ Create new model as in `models/` as `model_<model_name>.py`.
 - `models/`: model architecture implementations
 - `notebooks/`: jupyter notebooks for experiments and tests
 - `tools/`: miscellaneous software tools
-- `Pipfile`, `Pipfile.lock`, `spec-file.txt`: list of dependencies, used for setting up pipenv (local) and conda (remote) environments
+- `Pipfile`, `Pipfile.lock`, `environment.yml`: list of dependencies, used for setting up pipenv (local) and conda (remote) environments
 ### Text
 - `notes/`: minutes from group meetings
 - `literature/`: relevant papers sorted by category

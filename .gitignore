@@ -2,6 +2,8 @@
 .DS_Store
 .vscode/settings.json
 
+logs/
+
 __pycache__/
 *.py[cod]
 *$py.class
