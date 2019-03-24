@@ -14,8 +14,7 @@ class AEModelFactory(object):
             kernel_size,
             n_filters,
             n_intermediate_dim=256,
-            n_latent_dim=32
-            ):
+            n_latent_dim=32):
         self.input_shape = input_shape
         self.kernel_size = kernel_size
         self.n_filters = n_filters
