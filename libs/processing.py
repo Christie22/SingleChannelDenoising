@@ -86,7 +86,7 @@ def white_noise(x, sr, snr):
     sigma = np.sqrt( (x @ x.T) / (N * 10**(snr/10)) )
     noise = [sigma * rnd.uniform(-1,1) for k in range( N) ]
     
-    return noise
+    return x+noise
 
 
 def pink_noise(x, sr, snr):

@@ -64,7 +64,7 @@ def results(model_name, model_path,
         'shuffle': False,
         'label_type': 'clean',
         'batch_size': batch_size,
-        'disable_cacheinit': False
+        'disable_cacheinit': True
     }
     print('[r] Data generator parameters: {}'.format(generator_args))
 
@@ -127,9 +127,9 @@ def results(model_name, model_path,
             # store metrics
             metrics_index = (batch_index * batch_size) + step_index
             metrics['mse'][metrics_index] = mse
-            metrics['sdr'][metrics_index] = sdr
-            metrics['sir'][metrics_index] = sir
-            metrics['sar'][metrics_index] = sar
+            metrics['sdr'][metrics_index] = sdr[0]
+            metrics['sir'][metrics_index] = sir[0]
+            metrics['sar'][metrics_index] = sar[0]
             
             # metrics = calc_metrics(
             #     y_true, y_pred, 
