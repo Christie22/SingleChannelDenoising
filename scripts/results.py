@@ -106,9 +106,9 @@ def results(model_name, model_path,
             s_true = np.abs(s_true) ** 2
 
             # get waveform
-            x_noisy = lr.istft(s_noisy, n_fft=n_fft, hop_length=hop_length, win_length=win_length)
-            x_pred = lr.istft(s_pred, n_fft=n_fft, hop_length=hop_length, win_length=win_length)
-            x_true = lr.istft(s_true, n_fft=n_fft, hop_length= hop_length, win_length=win_length)
+            x_noisy = lr.istft(s_noisy, hop_length=hop_length, win_length=win_length)
+            x_pred = lr.istft(s_pred, hop_length=hop_length, win_length=win_length)
+            x_true = lr.istft(s_true, hop_length= hop_length, win_length=win_length)
             
             # METRIC 1: mean squared error
             mse = sample_metric(y_pred, y_true)
@@ -122,7 +122,7 @@ def results(model_name, model_path,
                 x_pred,         # predicted clean
                 x_noisy-x_pred  # predicted noise (-ish)
             ])
-            sdr, sir, sar, perm = bss_eval_sources(src_true, src_pred)
+            sdr, sir, sar, _ = bss_eval_sources(src_true, src_pred)
 
             # store metrics
             metrics_index = (batch_index * batch_size) + step_index
