@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 import librosa as lr
 import matplotlib.pyplot as plt
-from tqdm import tqdm
+from tqdm import trange
 from keras.models import load_model
 from mir_eval.separation import bss_eval_sources
 
@@ -23,7 +23,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 from libs.utilities import load_dataset, load_autoencoder_lossfunc, load_autoencoder_model
 from libs.model_utils import LossLayer
 from libs.data_generator import DataGenerator
-from libs.processing import white_noise, s_to_reim, reim_to_s
+from libs.processing import white_noise, s_to_reim, reim_to_s, unmake_fragments
 from libs.metrics import calc_metrics, sample_metric
 
 
@@ -82,74 +82,64 @@ def results(model_name, model_path,
     lossfunc = load_autoencoder_lossfunc(model_name)
     _, _, model = load_autoencoder_model(model_path, {'lossfunc': lossfunc})
 
-    n_frags = testing_generator.n_fragments
+    # metrics data structure
+    n_batches = len(testing_generator)
     metrics = {
-        'mse': np.zeros(n_frags),
-        'sdr': np.zeros(n_frags),
-        'sar': np.zeros(n_frags),
-        'sir': np.zeros(n_frags),
+        'mse': np.zeros(n_batches),
+        'sdr': np.zeros(n_batches),
+        'sar': np.zeros(n_batches),
+        'sir': np.zeros(n_batches),
     }
 
-    # proper progress bar
-    with tqdm(total=n_frags) as pbar:
-        # loop through batches
-        for batch_index in range(len(testing_generator)):
-            data_batch = testing_generator[batch_index]
-            y_noisy_batch = data_batch[0]
-            y_pred_batch = model.predict(y_noisy_batch)
-            y_true_batch = data_batch[1]
-            
-            pbar.set_description('Calculating batch #{}'.format(batch_index+1))
+    # loop through batches
+    for batch_index in trange(len(testing_generator)):
+        data_batch = testing_generator[batch_index]
+        y_noisy_batch = data_batch[0]
+        y_true_batch = data_batch[1]
+        y_pred_batch = model.predict(y_noisy_batch)
 
-            # loop through steps per batch
-            for step_index, y_noisy, y_pred, y_true in zip(range(batch_size), y_noisy_batch, y_pred_batch, y_true_batch):
-                # convert to complex spectrogram
-                s_noisy = reim_to_s(y_noisy)
-                s_pred = reim_to_s(y_pred)
-                s_true = reim_to_s(y_true)
+        # merge batches
+        y_noisy = unmake_fragments(y_noisy_batch, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
+        y_true = unmake_fragments(y_true_batch, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
+        y_pred = unmake_fragments(y_pred_batch, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
 
-                # get absolute spectrogram
-                s_noisy = np.abs(s_noisy) ** 2
-                s_pred = np.abs(s_pred) ** 2
-                s_true = np.abs(s_true) ** 2
+        ## TODO remove?   loop through steps per batch
+        ##for step_index, y_noisy, y_pred, y_true in zip(range(batch_size), y_noisy_batch, y_pred_batch, y_true_batch):
+        
+        # convert to complex spectrogram
+        s_noisy = reim_to_s(y_noisy)
+        s_true = reim_to_s(y_true)
+        s_pred = reim_to_s(y_pred)
 
-                # get waveform
-                x_noisy = lr.istft(s_noisy, hop_length=hop_length, win_length=win_length)
-                x_pred = lr.istft(s_pred, hop_length=hop_length, win_length=win_length)
-                x_true = lr.istft(s_true, hop_length= hop_length, win_length=win_length)
-                
-                # METRIC 1: mean squared error
-                mse = sample_metric(s_pred, s_true)
+        # get absolute spectrogram
+        s_noisy = np.abs(s_noisy) ** 2
+        s_true = np.abs(s_true) ** 2
+        s_pred = np.abs(s_pred) ** 2
 
-                # METRIC 2: sdr, sir, sar
-                src_true = np.array([
-                    x_true,        # true clean
-                    x_noisy-x_true # true noise (-ish)
-                ])
-                src_pred = np.array([
-                    x_pred,         # predicted clean
-                    x_noisy-x_pred  # predicted noise (-ish)
-                ])
-                sdr, sir, sar, _ = bss_eval_sources(src_true, src_pred)
+        # get waveform
+        x_noisy = lr.istft(s_noisy, hop_length=hop_length, win_length=win_length)
+        x_true = lr.istft(s_true, hop_length= hop_length, win_length=win_length)
+        x_pred = lr.istft(s_pred, hop_length=hop_length, win_length=win_length)
+        
+        # METRIC 1: mean squared error
+        mse = sample_metric(s_pred, s_true)
 
-                # store metrics
-                metrics_index = (batch_index * batch_size) + step_index
-                metrics['mse'][metrics_index] = mse
-                metrics['sdr'][metrics_index] = sdr[0]
-                metrics['sir'][metrics_index] = sir[0]
-                metrics['sar'][metrics_index] = sar[0]
+        # METRIC 2: sdr, sir, sar
+        src_true = np.array([
+            x_true,        # true clean
+            x_noisy-x_true # true noise (-ish)
+        ])
+        src_pred = np.array([
+            x_pred,         # predicted clean
+            x_noisy-x_pred  # predicted noise (-ish)
+        ])
+        sdr, sir, sar, _ = bss_eval_sources(src_true, src_pred)
 
-                # update progress bar
-                pbar.update(1)
-                
-                # metrics = calc_metrics(
-                #     y_true, y_pred, 
-                #     tBands=16,
-                #     fBands=16,
-                #     samplerate=sr,
-                #     n_fft=n_fft,
-                #     hop_length=hop_length)
-                # print('[r]   metrics = {}'.format(metrics))
+        # store metrics
+        metrics['mse'][batch_index] = mse
+        metrics['sdr'][batch_index] = sdr[0]
+        metrics['sir'][batch_index] = sir[0]
+        metrics['sar'][batch_index] = sar[0]
 
     print('[r] Results:')
     print('[r]   Average MSE: {}'.format(metrics['mse'].mean()))
