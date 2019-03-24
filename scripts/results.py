@@ -9,10 +9,11 @@
 import os
 import pandas as pd
 import numpy as np
-import pickle
-from tqdm import tqdm
+import librosa as lr
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 from keras.models import load_model
+from mir_eval.separation import bss_eval_sources
 
 # custom modules
 from libs.utilities import load_dataset, load_autoencoder_lossfunc, load_autoencoder_model
@@ -77,28 +78,59 @@ def results(model_name, model_path,
     lossfunc = load_autoencoder_lossfunc(model_name)
     _, _, model = load_autoencoder_model(model_path, {'lossfunc': lossfunc})
 
+    metrics = {
+        'mse': np.zeros(testing_generator.n_fragments),
+        'sdr': np.zeros(testing_generator.n_fragments),
+        'sar': np.zeros(testing_generator.n_fragments),
+        'sir': np.zeros(testing_generator.n_fragments),
+    }
+
     # loop through batches
-    max_iter = 10
-    iter_count = 0
     for batch_index in tqdm(range(len(testing_generator)), desc='Batch #'):
         data_batch = testing_generator[batch_index]
-        y_pred_batch = model.predict(data_batch[0])
+        y_noisy_batch = data_batch[0]
+        y_pred_batch = model.predict(y_noisy_batch)
         y_true_batch = data_batch[1]
         # print('[r] Batch # {}: '.format(batch_index))
 
         # loop through steps per batch
-        for y_pred, y_true in zip(y_pred_batch, y_true_batch):
+        for step_index, y_noisy, y_pred, y_true in zip(range(batch_size), y_noisy_batch, y_pred_batch, y_true_batch):
             # convert to complex spectrogram
-            y_pred = reim_to_s(y_pred)
-            y_true = reim_to_s(y_true)
+            s_noisy = reim_to_s(y_noisy)
+            s_pred = reim_to_s(y_pred)
+            s_true = reim_to_s(y_true)
 
             # get absolute spectrogram
-            y_pred = abs(y_pred) ** 2
-            y_true = abs(y_true) ** 2
-            
-            mse = sample_metric(y_pred, y_true)
-            # print('[r]   mse = {}'.format(mse))
+            s_noisy = np.abs(s_noisy) ** 2
+            s_pred = np.abs(s_pred) ** 2
+            s_true = np.abs(s_true) ** 2
 
+            # get waveform
+            x_noisy = lr.istft(s_noisy, n_fft=n_fft, hop_length=hop_length, win_length=win_length)
+            x_pred = lr.istft(s_pred, n_fft=n_fft, hop_length=hop_length, win_length=win_length)
+            x_true = lr.istft(s_true, n_fft=n_fft, hop_length= hop_length, win_length=win_length)
+            
+            # METRIC 1: mean squared error
+            mse = sample_metric(y_pred, y_true)
+
+            # METRIC 2: sdr, sir, sar
+            src_true = np.array([
+                x_true,        # true clean
+                x_noisy-x_true # true noise (-ish)
+            ])
+            src_pred = np.array([
+                x_pred,         # predicted clean
+                x_noisy-x_pred  # predicted noise (-ish)
+            ])
+            sdr, sir, sar, perm = bss_eval_sources(src_true, src_pred)
+
+            # store metrics
+            metrics_index = (batch_index * batch_size) + step_index
+            metrics['mse'][metrics_index] = mse
+            metrics['sdr'][metrics_index] = sdr
+            metrics['sir'][metrics_index] = sir
+            metrics['sar'][metrics_index] = sar
+            
             # metrics = calc_metrics(
             #     y_true, y_pred, 
             #     tBands=16,
@@ -107,6 +139,12 @@ def results(model_name, model_path,
             #     n_fft=n_fft,
             #     hop_length=hop_length)
             # print('[r]   metrics = {}'.format(metrics))
-    
+
+    print('[r] Results:')
+    print('[r]   Average MSE: {}'.format(metrics['mse'].mean()))
+    print('[r]   Average SDR: {}'.format(metrics['sdr'].mean()))
+    print('[r]   Average SIR: {}'.format(metrics['sir'].mean()))
+    print('[r]   Average SAR: {}'.format(metrics['sar'].mean()))
     print('[r] Done!')
+
 

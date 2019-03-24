@@ -251,4 +251,4 @@ class DataGenerator(keras.utils.Sequence):
     # return number of individual audio fragments
     @property
     def n_fragments(self):
-        return len(self.fragments_x) + len(self.fragments_y)
+        return len(self.fragments_x)

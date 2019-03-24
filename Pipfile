@@ -19,6 +19,7 @@ scipy = "*"
 jupyterlab = "*"
 click = "*"
 tqdm = "*"
+mir-eval = "*"
 
 [requires]
 python_version = "3.6"
