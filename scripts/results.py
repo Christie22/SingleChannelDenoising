@@ -64,7 +64,7 @@ def results(model_name, model_path,
         'shuffle': False,
         'label_type': 'clean',
         'batch_size': batch_size,
-        'disable_cacheinit': True
+        'disable_cacheinit': False
     }
     print('[r] Data generator parameters: {}'.format(generator_args))
 
@@ -111,7 +111,7 @@ def results(model_name, model_path,
             x_true = lr.istft(s_true, hop_length= hop_length, win_length=win_length)
             
             # METRIC 1: mean squared error
-            mse = sample_metric(y_pred, y_true)
+            mse = sample_metric(s_pred, s_true)
 
             # METRIC 2: sdr, sir, sar
             src_true = np.array([

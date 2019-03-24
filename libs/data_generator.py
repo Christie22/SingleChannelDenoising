@@ -24,7 +24,7 @@ class DataGenerator(keras.utils.Sequence):
                  n_fft=512, hop_length=128, win_length=512,
                  proc_func=None, proc_func_label=None,
                  frag_hop_length=64, frag_win_length=32,
-                 shuffle=True, label_type='clean', batch_size=32, disable_cacheinit=True):
+                 shuffle=True, label_type='clean', batch_size=32, disable_cacheinit=False):
 
         # dataset cfg
         self.filepaths = filepaths

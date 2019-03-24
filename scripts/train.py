@@ -61,6 +61,7 @@ def train(model_name,
         'shuffle': True,
         'label_type': 'clean',
         'batch_size': batch_size,
+        'disable_cacheinit': True
     }
     print('[t] Data generator parameters: {}'.format(generator_args))
 

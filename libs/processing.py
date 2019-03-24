@@ -78,18 +78,18 @@ def reim_to_s(reim):
 
 
 ### NOISING FUNCTIONS  
-def white_noise(x, SNR):
+def white_noise(x, sr, snr):
     print('Using white noise')
     
     N = max(x.shape)
     # N = len(x) alternatively
-    sigma = np.sqrt( (x @ x.T) / (N * 10**(SNR/10)) )
+    sigma = np.sqrt( (x @ x.T) / (N * 10**(snr/10)) )
     noise = [sigma * rnd.uniform(-1,1) for k in range( N) ]
     
     return noise
 
 
-def pink_noise(x, SNR):
+def pink_noise(x, sr, snr):
     """Generates pink noise using the Voss-McCartney algorithm.
         
     nrows: number of values to generate
@@ -118,7 +118,7 @@ def pink_noise(x, SNR):
     df.fillna(method='ffill', axis=0, inplace=True)
     total = df.sum(axis=1)
 
-    sigma = np.sqrt( (x @ x.T) / (nrows * 10**(SNR/10)) )
+    sigma = np.sqrt( (x @ x.T) / (nrows * 10**(snr/10)) )
     noise= sigma*(total.values-np.mean(total.values)) / (max(total.values) - np.mean(total.values))
     
     return noise
