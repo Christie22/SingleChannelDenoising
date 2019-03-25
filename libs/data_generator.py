@@ -29,14 +29,9 @@ class DataGenerator(keras.utils.Sequence):
         # arguments for chache folder hash
         proc_args = tuple([
             sr,
-            rir_path,
-            noise_funcs,
-            noise_snrs,
             n_fft,
             hop_length,
             win_length,
-            proc_func,
-            proc_func_label,
             frag_hop_length,
             frag_win_length,
             label_type])

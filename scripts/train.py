@@ -20,7 +20,7 @@ def train(model_name,
           dataset_path, sr, 
           rir_path, noise_snrs, 
           n_fft, hop_length, win_length, frag_hop_length, frag_win_length, 
-          batch_size, epochs, model_path, history_path, cuda_device):
+          batch_size, epochs, model_path, history_path, force_cacheinit, cuda_device):
     print('[t] Training model {} at {} on dataset {}'.format(model_name, model_path, dataset_path))
     print('[t] Training parameters: {}'.format({
         'epochs': epochs,
@@ -60,7 +60,8 @@ def train(model_name,
         # general cfg
         'shuffle': True,
         'label_type': 'clean',
-        'batch_size': batch_size
+        'batch_size': batch_size,
+        'force_cacheinit': force_cacheinit,
     }
     print('[t] Data generator parameters: {}'.format(generator_args))
 
