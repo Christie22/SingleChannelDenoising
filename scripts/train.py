@@ -60,8 +60,7 @@ def train(model_name,
         # general cfg
         'shuffle': True,
         'label_type': 'clean',
-        'batch_size': batch_size,
-        'disable_cacheinit': True
+        'batch_size': batch_size
     }
     print('[t] Data generator parameters: {}'.format(generator_args))
 
@@ -102,9 +101,8 @@ def train(model_name,
                         save_weights_only=False),
         TerminateOnNaN(),
         # save logs for tensorboard
-        # TODO include tensorboard callbacks
-        #TrainValTensorBoard(log_dir=logs_dir, write_graph=False)
         TensorBoard()
+        #TrainValTensorBoard(log_dir=logs_dir, write_graph=False)
     ]
 
     # train model

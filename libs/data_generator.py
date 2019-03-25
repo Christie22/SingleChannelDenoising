@@ -5,6 +5,7 @@
 
 import os
 import glob
+import hashlib
 import itertools
 import keras
 import librosa as lr
@@ -24,12 +25,25 @@ class DataGenerator(keras.utils.Sequence):
                  n_fft=512, hop_length=128, win_length=512,
                  proc_func=None, proc_func_label=None,
                  frag_hop_length=64, frag_win_length=32,
-                 shuffle=True, label_type='clean', batch_size=32, disable_cacheinit=False):
-
+                 shuffle=True, label_type='clean', batch_size=32, force_cacheinit=False):
+        # arguments for chache folder hash
+        proc_args = tuple([
+            sr,
+            rir_path,
+            noise_funcs,
+            noise_snrs,
+            n_fft,
+            hop_length,
+            win_length,
+            proc_func,
+            proc_func_label,
+            frag_hop_length,
+            frag_win_length,
+            label_type])
         # dataset cfg
         self.filepaths = filepaths
         self.cache_path = osp.expanduser(cache_path) if cache_path else osp.join(
-            osp.dirname(filepaths[0]), 'cache')
+            osp.dirname(filepaths[0]), 'cache_{}'.format(self.hash_args(proc_args)))
         self.sr = sr
         # reverberation cfg
         self.rir_path = osp.expanduser(rir_path) if rir_path else None
@@ -60,11 +74,18 @@ class DataGenerator(keras.utils.Sequence):
         self.fragments_y = None
         self.indexes = []
         # init stuff up
-        if disable_cacheinit:
-            self.load_cache()
-        else:
+        if force_cacheinit or not osp.exists(self.cache_path):
             self.init_cache()
+        else:
+            self.load_cache()
         self.on_epoch_end()
+
+    # calcualate md5 hash of input arguments
+    def hash_args(self, args):
+        m = hashlib.md5()
+        for x in args:
+            m.update(x)
+        return m.hexdigest()[0]
 
     # load list of RIR files
     def load_rirs(self):

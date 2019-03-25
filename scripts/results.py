@@ -67,8 +67,7 @@ def results(model_name, model_path,
         # general cfg
         'shuffle': False,
         'label_type': 'clean',
-        'batch_size': batch_size,
-        'disable_cacheinit': True
+        'batch_size': batch_size
     }
     print('[r] Data generator parameters: {}'.format(generator_args))
 

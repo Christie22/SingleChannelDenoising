@@ -7,3 +7,5 @@ logs/
 __pycache__/
 *.py[cod]
 *$py.class
+
+notes/03_27.md
