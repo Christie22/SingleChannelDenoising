@@ -79,7 +79,7 @@ class DataGenerator(keras.utils.Sequence):
     def hash_args(self, args):
         m = hashlib.md5()
         for x in args:
-            m.update(x)
+            m.update(str(x).encode())
         return m.hexdigest()[0]
 
     # load list of RIR files
@@ -95,7 +95,7 @@ class DataGenerator(keras.utils.Sequence):
 
     # init cache
     def init_cache(self):
-        print('[d] Initializing cache...')
+        print('[d] Initializing cache in {}...'.format(self.cache_path))
         self.fragments_x = []
         self.fragments_y = []
         for i, filepath in enumerate(tqdm(self.filepaths)):
@@ -155,7 +155,7 @@ class DataGenerator(keras.utils.Sequence):
 
     # load a pre-initialized cache (use with caution)
     def load_cache(self):
-        print('[d] Cache generation disabled. Indexing cache...')
+        print('[d] Some cache exists! Indexing cache in {}...'.format(self.cache_path))
         self.fragments_x = []
         self.fragments_y = []
         for i, filepath in enumerate(tqdm(self.filepaths)):
