@@ -26,23 +26,13 @@ def make_fragments(s, frag_hop_len, frag_win_len):
 
 
 def unmake_fragments(s_frag, frag_hop_len, frag_win_len):
-    # TODO check the dimensions
-    print('Shape of the Re/Im input signal: {}'.format(s_frag.shape))
-
-    ss = np.sum(s_frag,3)#reim_to_s(s_frag)
-    print('Shape of signal s with re + j*im : {}'.format(ss.shape))
-
-    n_frags = ss.shape[0]
-
-    s_rec = np.array( [ ss[i, -frag_hop_len: , :] for i in range(n_frags) ] ) #if i>0 else s[i,:,:] 
-    print('s_rec: {0}'.format(s_rec))
-    print('Shape of the reconstructed signal: {}'.format(s_rec.shape))
-    
-    dims =  [jj for jj in  range(len(s_rec.shape)) if s_rec.shape[jj]!=1 ] 
-    
-    y=s_rec.reshape([s_rec.shape[dims[d]] for d in range(len(dims))])#[s_rec.shape[0], s_rec.shape[2]]) #suppress the dimension that is 1
-    print('Re-Shape of the reconstructed signal: {}'.format(y.shape))
-    return y# s_rec 
+    s = np.zeros(s_frag.shape[1], s_frag.shape[0]*frag_hop_len)
+    for i, frag in enumerate(s_frag):
+        # TOSO does this use the oldest or newest part?
+        lower_bound = i*frag_hop_len
+        upper_bound = i*frag_hop_len+frag_win_len
+        s[:, lower_bound:upper_bound] = frag
+    return s
 
 
 
