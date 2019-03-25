@@ -98,18 +98,21 @@ def results(model_name, model_path,
         y_true_batch = data_batch[1]
         y_pred_batch = model.predict(y_noisy_batch)
 
+        # convert to complex spectrogram
+        s_noisy_batch = reim_to_s(y_noisy_batch)
+        s_true_batch = reim_to_s(y_true_batch)
+        s_pred_batch = reim_to_s(y_pred_batch)
+
         # merge batches
-        y_noisy = unmake_fragments(y_noisy_batch, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
-        y_true = unmake_fragments(y_true_batch, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
-        y_pred = unmake_fragments(y_pred_batch, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
+        s_noisy = unmake_fragments(s_noisy_batch, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
+        s_true = unmake_fragments(s_true_batch, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
+        s_pred = unmake_fragments(s_pred_batch, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
+
+        print(s_noisy.shape, s_true.shape, s_pred.shape)
 
         ## TODO remove?   loop through steps per batch
         ##for step_index, y_noisy, y_pred, y_true in zip(range(batch_size), y_noisy_batch, y_pred_batch, y_true_batch):
         
-        # convert to complex spectrogram
-        s_noisy = reim_to_s(y_noisy)
-        s_true = reim_to_s(y_true)
-        s_pred = reim_to_s(y_pred)
 
         # get absolute spectrogram
         s_noisy = np.abs(s_noisy) ** 2
