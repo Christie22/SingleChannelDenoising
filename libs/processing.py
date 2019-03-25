@@ -27,9 +27,10 @@ def make_fragments(s, frag_hop_len, frag_win_len):
 
 def unmake_fragments(s_frag, frag_hop_len, frag_win_len):
     # TODO get to work with arbitrary input shape?
-    s = np.zeros(s_frag.shape[1], s_frag.shape[0]*frag_hop_len)
+    spec_length = (s_frag.shape[0]-1) * frag_hop_len + frag_win_len
+    s = np.zeros((s_frag.shape[1], spec_length), dtype=s_frag.dtype)
     for i, frag in enumerate(s_frag):
-        # TOSO does this use the oldest or newest part?
+        # TODO does this use the oldest or newest part?
         lower_bound = i*frag_hop_len
         upper_bound = i*frag_hop_len+frag_win_len
         s[:, lower_bound:upper_bound] = frag
