@@ -8,7 +8,7 @@ from scripts.denoise import denoise as script_denoise
 
 defaults = {
     'sr': 16000,
-    'rir_path': '/data/riccardo_datasets/rirs/',
+    'rir_path': '/data/riccardo_datasets/rirs/train/',
     'noise_snrs': '0 5',
     'n_fft': 512,
     'hop_length': 128,
@@ -130,7 +130,8 @@ def results(ctx,
 @click.pass_context
 @click.argument('model_name', type=str)
 @click.argument('model_path', type=click.Path(exists=True, file_okay=True, dir_okay=False))
-@click.argument('data_path', type=click.Path(exists=True, file_okay=True, dir_okay=False))
+@click.argument('input_path', type=click.Path(exists=True, file_okay=True, dir_okay=False))
+@click.argument('output_path', type=click.Path())
 @click.option('--sr', type=int, default=defaults['sr'])
 @click.option('--n_fft', type=int, default=defaults['n_fft'])
 @click.option('--hop_length', type=int, default=defaults['hop_length'])
@@ -141,7 +142,8 @@ def results(ctx,
 def denoise(ctx,
             model_name,
             model_path,
-            data_path,
+            input_path,
+            output_path,
             sr,
             n_fft,
             hop_length,
@@ -151,7 +153,8 @@ def denoise(ctx,
             batch_size):
     script_denoise(model_name,
                    model_path,
-                   data_path,
+                   input_path,
+                   output_path,
                    sr,
                    n_fft,
                    hop_length,

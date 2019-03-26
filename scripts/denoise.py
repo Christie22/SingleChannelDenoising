@@ -10,15 +10,16 @@ from libs.utilities import load_dataset, load_autoencoder_lossfunc, load_autoenc
 from libs.model_utils import LossLayer
 from libs.processing import s_to_reim, reim_to_s, make_fragments, unmake_fragments
 
-def denoise(model_name, model_path, data_path,
+def denoise(model_name, model_path, input_path, output_path,
         sr, n_fft, hop_length, win_length, frag_hop_length, frag_win_length, 
         batch_size, cuda_device):
 
-    print('[n] Applying model in {} at {} on data in {}'.format(model_name, model_path, data_path))
+    print('[n] Applying model in {} at {} on data in {}'.format(model_name, model_path, input_path))
     print('[n] Denoising parameters: {}'.format({
         'model_name': model_name,
         'model_path': model_path,
-        'data_path': data_path,
+        'input_path': input_path,
+        'output_path': output_path,
         'cuda_device': cuda_device
     }))
 
@@ -26,9 +27,9 @@ def denoise(model_name, model_path, data_path,
     os.environ["CUDA_VISIBLE_DEVICES"] = cuda_device
 
     ## input data handling
-    print('[n] Loading data from {}...'.format(data_path))
+    print('[n] Loading data from {}...'.format(input_path))
     # load data from file name
-    x, _ = librosa.core.load(data_path, sr=sr)
+    x, _ = librosa.core.load(input_path, sr=sr)
     # convert to TF-domain
     s = librosa.core.stft(x, n_fft=n_fft, hop_length=hop_length, win_length=win_length)
     # apply pre-processing (data representation)
@@ -57,7 +58,6 @@ def denoise(model_name, model_path, data_path,
     # TODO
 
     # store clean audio as wav file
-    output_path = None # should be an extra parameter or just derived from the other filename
     # TODO
 
     # very slow at the beginning then very fast (real-time possible)

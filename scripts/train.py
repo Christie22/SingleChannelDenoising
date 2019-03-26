@@ -76,10 +76,11 @@ def train(model_name,
     # create model
     # TODO parametrical model creation
     model_args = {
-        'input_shape': training_generator.data_shape,
         'kernel_size': 3,
         'n_filters': 64,
     }
+    model_args['input_shape'] = training_generator.data_shape,
+
     print('[t] Model factory parameters: {}'.format(model_args))
     model, lossfunc = create_autoencoder_model(model_name, model_args)
 
@@ -116,8 +117,7 @@ def train(model_name,
         epochs=epochs,
         callbacks=Callbacks,
         use_multiprocessing=True,
-        workers=8
-        )
+        workers=8)
 
     # save training history
     # TODO directly plot training history
