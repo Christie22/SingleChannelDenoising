@@ -72,7 +72,11 @@ class DataGenerator(keras.utils.Sequence):
         if force_cacheinit or not osp.exists(self.cache_path):
             self.init_cache()
         else:
-            self.load_cache()
+            try:
+                self.load_cache()
+            except Exception as e:
+                print('[d] Cache indexing caused an exception. Attempting to initialize it...')
+                self.init_cache()
         self.on_epoch_end()
 
     # calcualate md5 hash of input arguments
@@ -80,7 +84,7 @@ class DataGenerator(keras.utils.Sequence):
         m = hashlib.md5()
         for x in args:
             m.update(str(x).encode())
-        return m.hexdigest()[0]
+        return m.hexdigest()[:6]
 
     # load list of RIR files
     def load_rirs(self):
