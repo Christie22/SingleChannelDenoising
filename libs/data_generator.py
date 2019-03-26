@@ -74,6 +74,9 @@ class DataGenerator(keras.utils.Sequence):
         else:
             try:
                 self.load_cache()
+                if not self.test_cache():
+                    print( '[d] Cache indexing test failed. Attempting to initialize it...')
+                    self.init_cache()
             except Exception as e:
                 print('[d] Cache indexing caused an exception. Attempting to initialize it...')
                 self.init_cache()
@@ -154,8 +157,8 @@ class DataGenerator(keras.utils.Sequence):
                     else:
                         self.fragments_x.append(frag_path)
         # done
-        print('[d] Cache ready, generated {} noisy and {} clean fragments'.format(
-            len(self.fragments_x), len(self.fragments_y)))
+        print('[d] Cache ready, generated {} noisy and {} clean fragments of shape {}'.format(
+            len(self.fragments_x), len(self.fragments_y), self.data_shape))
 
     # load a pre-initialized cache (use with caution)
     def load_cache(self):
@@ -186,11 +189,10 @@ class DataGenerator(keras.utils.Sequence):
         # load last one to get shape
         self._data_shape = np.load(frag_path).shape
         # done
-        print('[d] Cache ready, indexed {} noisy and {} clean fragments'.format(
-            len(self.fragments_x), len(self.fragments_y)))
+        print('[d] Cache ready, indexed {} noisy and {} clean fragments of shape {}'.format(
+            len(self.fragments_x), len(self.fragments_y), self.data_shape))
 
     # generate filepath for individual fragments
-
     def gen_cache_path(self, cache_path, filepath, noise_variation, proc_func, frag_index):
         filepath_dir = osp.splitext(osp.basename(filepath))[
             0].replace(' ', '_')
@@ -209,6 +211,14 @@ class DataGenerator(keras.utils.Sequence):
         path = osp.join(path, proc_func.__name__ if proc_func else 'none')
         path = osp.join(path, 'frag_{}.npy'.format(frag_index))
         return path
+
+    # test few cache fragments to make sure they exist
+    def test_cache(self):
+        try:
+            [np.load(f) for f in np.random.choice(self.fragments_x, 5)]
+        except Exception as e:
+            return False
+        return True
 
     def apply_reverb(self, x, rir_filepath):
         rir = np.load(rir_filepath)
