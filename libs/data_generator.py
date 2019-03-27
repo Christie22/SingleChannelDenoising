@@ -68,7 +68,7 @@ class DataGenerator(keras.utils.Sequence):
         self.fragments_x = None
         self.fragments_y = None
         self.indexes = []
-        # init stuff up
+        # setup cache
         if force_cacheinit or not osp.exists(self.cache_path):
             self.init_cache()
         else:
@@ -80,7 +80,17 @@ class DataGenerator(keras.utils.Sequence):
             except Exception as e:
                 print('[d] Cache indexing caused an exception. Attempting to initialize it...')
                 self.init_cache()
+        # shuffle batches if needed
         self.on_epoch_end()
+        # print some debugging info
+        print('[d] Frame hop    (hop_length) (ms): {:.0f}'.format(
+            lr.samples_to_time(hop_length, sr=sr)))
+        print('[d] Frame length (win_length) (ms): {:.0f}'.format(
+            lr.samples_to_time(win_length, sr=sr)))
+        print('[d] Fragment hop    (frag_hop_length) (ms): {:.0f}'.format(
+            lr.frames_to_time(frag_hop_length, sr=sr, n_fft=win_length, hop_length=hop_length)))
+        print('[d] Fragment length (frag_win_length) (ms): {:.0f}'.format(
+            lr.frames_to_time(frag_win_length, sr=sr, n_fft=win_length, hop_length=hop_length)))
 
     # calcualate md5 hash of input arguments
     def hash_args(self, args):
@@ -126,14 +136,14 @@ class DataGenerator(keras.utils.Sequence):
                     x_rev = self.apply_reverb(
                         x, rir_filepath) if rir_filepath else x
                     # apply noise function
-                    x_noise = noise_func(
+                    x_noised = noise_func(
                         x_rev, sr=self.sr, snr=snr) if noise_func else x_rev
                     # convert to TF-domain
-                    s_noise = lr.core.stft(
-                        x_noise, n_fft=self.n_fft, hop_length=self.hop_length, win_length=self.win_length)
+                    s_noised = lr.core.stft(
+                        x_noised, n_fft=self.n_fft, hop_length=self.hop_length, win_length=self.win_length)
                     # apply data repr processing
-                    s_proc = self.proc_func(s_noise) if self.proc_func else np.reshape(
-                        s_noise, (*s_noise.shape, 1))
+                    s_proc = self.proc_func(s_noised) if self.proc_func else np.reshape(
+                        s_noised, (*s_noised.shape, 1))
 
                 # fragment data
                 s_frags = make_fragments(

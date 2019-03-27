@@ -45,15 +45,15 @@ def train(model_name,
         'cache_path': None,
         # noising/reverberation cfg
         'rir_path': rir_path,
-        'noise_funcs': [None],
+        'noise_funcs': [white_noise],  # TODO un-hardcode
         'noise_snrs': noise_snrs,
         # stft cfg
         'n_fft': n_fft,
         'hop_length': hop_length,
         'win_length': win_length,
         # processing cfg
-        'proc_func': s_to_reim,
-        'proc_func_label': s_to_reim,
+        'proc_func': s_to_reim,    # TODO un-hardcode
+        'proc_func_label': s_to_reim,    # TODO un-hardcode
         # fragmenting cfg
         'frag_hop_length': frag_hop_length,
         'frag_win_length': frag_win_length,

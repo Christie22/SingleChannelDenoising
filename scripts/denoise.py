@@ -36,7 +36,6 @@ def denoise(model_name, model_path, input_path, output_path,
     s_proc = s_to_reim(s)
     # split into fragments
     s_frags = make_fragments(s_proc, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
-    s_frags = np.array(s_frags)
     print('[n] Generated {} fragments with shape {}'.format(len(s_frags), s_frags[0].shape))
 
     # load trained model

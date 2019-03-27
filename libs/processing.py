@@ -22,15 +22,16 @@ def make_fragments(s, frag_hop_len, frag_win_len):
         upper_bound = i*frag_hop_len+frag_win_len
         return s[:, lower_bound:upper_bound]
     frags = [get_slice(i) for i in range(n_frags)]
-    return frags
+    return np.array(frags)
 
 
 def unmake_fragments(s_frag, frag_hop_len, frag_win_len):
     # TODO get to work with arbitrary input shape?
     spec_length = (s_frag.shape[0]-1) * frag_hop_len + frag_win_len
-    s = np.zeros((s_frag.shape[1], spec_length), dtype=s_frag.dtype)
+    output_shape = (s_frag.shape[1], spec_length, s_frag.shape[2])
+    s = np.zeros(output_shape, dtype=s_frag.dtype)
     for i, frag in enumerate(s_frag):
-        # TODO does this use the oldest or newest part?
+        # NOTE this uses the initial portion of each fragment
         lower_bound = i*frag_hop_len
         upper_bound = i*frag_hop_len+frag_win_len
         s[:, lower_bound:upper_bound] = frag
@@ -70,28 +71,30 @@ def reim_to_s(reim):
 
 
 ### NOISING FUNCTIONS  
+# sum s(ignal) and n(oise) at a given SNR (in dB)
+def sum_with_snr(s, n, snr):
+    # calculate SNR as linear ratio
+    snr_lin = 10.0 ** (snr / 10.0)
+    # calculate signals RMS (standard deviation in AC signals)
+    s_rms = s.std()
+    n_rms = n.std()
+    # calculate scaling factor for noise
+    scaling = s_rms / (snr_lin * n_rms)
+    # sum scaled signals
+    out = s + (n * scaling)
+    # TODO normalize?
+    return out
+
+# add white gaussian noise
 def white_noise(x, sr, snr):
-    print('Using white noise')
-    
-    N = max(x.shape)
-    # N = len(x) alternatively
-    sigma = np.sqrt( (x @ x.T) / (N * 10**(snr/10)) )
-    noise = [sigma * rnd.uniform(-1,1) for k in range( N) ]
-    
-    return x+noise
+    n = np.random.randn(x.shape)
+    return sum_with_snr(x, n, snr)
 
-
+# add pink (1/f) noise using Voss-McCartney algorithm
 def pink_noise(x, sr, snr):
-    """Generates pink noise using the Voss-McCartney algorithm.
-        
-    nrows: number of values to generate
-    rcols: number of random sources to add
-    
-    returns: NumPy array
-    """
-    print('Using pink noise')
-    
+    # number of values to generate
     nrows = len(x) #x.shape
+    # number of random sources to add
     ncols=16
     
     array = np.empty((nrows, ncols))
