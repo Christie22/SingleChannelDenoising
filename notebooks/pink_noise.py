@@ -1,4 +1,5 @@
 """Generate colored noise."""
+# taken from https://github.com/felixpatzelt/colorednoise/blob/master/colorednoise.py
 
 from numpy import sqrt, newaxis
 from numpy.fft import irfft, rfftfreq

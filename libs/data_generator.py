@@ -84,13 +84,13 @@ class DataGenerator(keras.utils.Sequence):
         self.on_epoch_end()
         # print some debugging info
         print('[d] Frame hop    (hop_length) (ms): {:.0f}'.format(
-            lr.samples_to_time(hop_length, sr=sr)))
+            lr.samples_to_time(hop_length, sr=sr)*1e3))
         print('[d] Frame length (win_length) (ms): {:.0f}'.format(
-            lr.samples_to_time(win_length, sr=sr)))
+            lr.samples_to_time(win_length, sr=sr)*1e3))
         print('[d] Fragment hop    (frag_hop_length) (ms): {:.0f}'.format(
-            lr.frames_to_time(frag_hop_length, sr=sr, n_fft=win_length, hop_length=hop_length)))
+            lr.frames_to_time(frag_hop_length, sr=sr, n_fft=win_length, hop_length=hop_length)*1e3))
         print('[d] Fragment length (frag_win_length) (ms): {:.0f}'.format(
-            lr.frames_to_time(frag_win_length, sr=sr, n_fft=win_length, hop_length=hop_length)))
+            lr.frames_to_time(frag_win_length, sr=sr, n_fft=win_length, hop_length=hop_length)*1e3))
 
     # calcualate md5 hash of input arguments
     def hash_args(self, args):

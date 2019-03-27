@@ -87,7 +87,7 @@ def sum_with_snr(s, n, snr):
 
 # add white gaussian noise
 def white_noise(x, sr, snr):
-    n = np.random.randn(x.shape)
+    n = np.random.randn(*x.shape)
     return sum_with_snr(x, n, snr)
 
 # add pink (1/f) noise using Voss-McCartney algorithm
