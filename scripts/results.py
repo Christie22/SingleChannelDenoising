@@ -23,7 +23,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 from libs.utilities import load_dataset, load_autoencoder_lossfunc, load_autoencoder_model
 from libs.model_utils import LossLayer
 from libs.data_generator import DataGenerator
-from libs.processing import white_noise, s_to_reim, reim_to_s, unmake_fragments
+from libs.processing import white_noise, s_to_power, power_to_s, unmake_fragments
 from libs.metrics import calc_metrics, sample_metric
 
 
@@ -59,8 +59,8 @@ def results(model_name, model_path,
         'hop_length': hop_length,
         'win_length': win_length,
         # processing cfg
-        'proc_func': s_to_reim,  # TODO un-hardcode
-        'proc_func_label': s_to_reim,  # TODO un-hardcode
+        'proc_func': s_to_power,  # TODO un-hardcode
+        'proc_func_label': s_to_power,  # TODO un-hardcode
         # fragmenting cfg
         'frag_hop_length': frag_hop_length,
         'frag_win_length': frag_win_length,
@@ -98,9 +98,9 @@ def results(model_name, model_path,
         y_pred_batch = model.predict(y_noisy_batch)
 
         # convert to complex spectrogram
-        s_noisy_batch = reim_to_s(y_noisy_batch)
-        s_true_batch = reim_to_s(y_true_batch)
-        s_pred_batch = reim_to_s(y_pred_batch)
+        s_noisy_batch = power_to_s(y_noisy_batch)
+        s_true_batch = power_to_s(y_true_batch)
+        s_pred_batch = power_to_s(y_pred_batch)
 
         # merge batches
         s_noisy = unmake_fragments(s_noisy_batch, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)

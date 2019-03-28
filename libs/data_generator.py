@@ -151,7 +151,6 @@ class DataGenerator(keras.utils.Sequence):
                 # store shape!
                 if not self._data_shape:
                     self._data_shape = s_frags[0].shape
-                    print('##### SHAPE', self._data_shape)
 
                 # store fragments as numpy arrays
                 for i, frag in enumerate(s_frags):
@@ -199,7 +198,6 @@ class DataGenerator(keras.utils.Sequence):
                         self.fragments_x.append(frag_path)
         # load last one to get shape
         self._data_shape = np.load(frag_path).shape
-        print('##### SHAPE', self._data_shape)
         # done
         print('[d] Cache ready, indexed {} noisy and {} clean fragments of shape {}'.format(
             len(self.fragments_x), len(self.fragments_y), self.data_shape))
@@ -288,7 +286,6 @@ class DataGenerator(keras.utils.Sequence):
     # return shape of data
     @property
     def data_shape(self):
-        print('#########', self._data_shape)
         return self._data_shape
 
     # return number of individual audio fragments

@@ -3,6 +3,7 @@
 import numpy as np
 import pandas as pd
 import random as rnd
+import librosa as lr
 import time
 import os
 from os import path
@@ -40,6 +41,15 @@ def unmake_fragments(s_frag, frag_hop_len, frag_win_len):
 
 
 ### PRE/POST PROCESSING FUNCTIONS
+# convert complex spectrograms to absolute power spectrum
+def s_to_power(s):
+    s_power = np.abs(s) ** 2
+    return s_power
+
+def power_to_s(s, s_phase=None):
+    # TODO might require noisy signal as input for phase
+    return np.sqrt(s)
+
 # convert complex spectrograms to Re/Im representation
 def s_to_reim(s):
     # remove a bin if odd number

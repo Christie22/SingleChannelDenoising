@@ -8,14 +8,14 @@ from scripts.denoise import denoise as script_denoise
 
 defaults = {
     'sr': 16000,
-    'rir_path': '/data/riccardo_datasets/rirs/train/',
-    'noise_snrs': '5 25',
+    'rir_path': None,  # '/data/riccardo_datasets/rirs/train/',
+    'noise_snrs': '20',
     'n_fft': 512,
     'hop_length': 128,
     'win_length': 512,
-    'frag_hop_length': 128,
-    'frag_win_length': 256,
-    'batch_size': 32,
+    'frag_hop_length': 128,  # TODO adjust to be ~125ms
+    'frag_win_length': 256,  # TODO adjust to be ~250ms
+    'batch_size': 128,
     'epochs': 20,
     'model_path': '/data/riccardo_models/denoising/model_e{epoch}.h5',
     'history_path': None
