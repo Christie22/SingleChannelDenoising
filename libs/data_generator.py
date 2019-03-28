@@ -288,6 +288,7 @@ class DataGenerator(keras.utils.Sequence):
     # return shape of data
     @property
     def data_shape(self):
+        print('#########', self._data_shape)
         return self._data_shape
 
     # return number of individual audio fragments

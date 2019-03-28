@@ -80,13 +80,14 @@ def train(model_name,
         'n_filters': 64,
     }
     model_args['input_shape'] = training_generator.data_shape,
+    print('###### ', model_args['input_shape'])
 
     print('[t] Model factory parameters: {}'.format(model_args))
     model, lossfunc = create_autoencoder_model(model_name, model_args)
 
     # compile model (loss function must be set in the model class)
     # TODO add metrics https://keras.io/metrics/
-    model.compile(optimizer='adam', loss=lossfunc, metrics=['mse'])
+    model.compile(optimizer='adam', loss=lossfunc)
     # print model summaries
     model.get_layer('encoder').summary()
     model.get_layer('decoder').summary()
