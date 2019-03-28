@@ -127,7 +127,7 @@ class DataGenerator(keras.utils.Sequence):
                         x, rir_filepath) if rir_filepath else x
                     # apply noise function
                     x_noise = noise_func(
-                        x_rev, sr=self.sr, snr=snr) if noise_func else x_rev
+                        x_rev, snr=snr) if noise_func else x_rev
                     # convert to TF-domain
                     s_noise = lr.core.stft(
                         x_noise, n_fft=self.n_fft, hop_length=self.hop_length, win_length=self.win_length)
@@ -238,7 +238,7 @@ class DataGenerator(keras.utils.Sequence):
             self.init_cache()
         return len(self.fragments_x) // self.batch_size
 
-    # return one batch of data
+    # returns one batch of data
     def __getitem__(self, index):
         # generate indexes
         lower_bound = index * self.batch_size
@@ -248,10 +248,13 @@ class DataGenerator(keras.utils.Sequence):
         filepaths = [self.fragments_x[i] for i in indexes]
         # initializing arrays
         x = np.empty((self.batch_size, *self.data_shape))
+        std_files = np.empty(self.batch_size)
         # load data
         for i, filepath in enumerate(filepaths):
+            loaded_file = np.load(filepath)
             #print('[d] loading file {}'.format(filepath))
-            x[i, ] = np.load(filepath)
+            std_files[i] = np.std(loaded_file)
+            x[i, ] = (loaded_file - np.mean(loaded_file)) / std_files[i]
 
         # handle labels
         if self.label_type == 'clean':
@@ -265,13 +268,15 @@ class DataGenerator(keras.utils.Sequence):
                 # laad data
                 #print('[d] loading file {}'.format(filepath_y))
                 y[i, ] = np.load(filepath_y)
+                # loaded_file_y = np.load(filepath_y)
+                # y[i, ] = (loaded_file_y-np.mean(loaded_file_y)) / std_files[i] # not sure
         elif self.label_type == 'x':
             y = x
         else:
             print('[d] Label type unsupported, y = empty!')
             y = np.empty((self.batch_size))
 
-        return x, y
+        return x, y, std_files
 
     # return shape of data
     @property

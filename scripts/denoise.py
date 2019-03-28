@@ -1,13 +1,13 @@
-# get a trained model, clean one piece of data (or frag) that we noise and feed the latter into the former
+# get a trained model, a noisy piece of data, and feed the latter into the former
 
 import os
 import numpy as np
-from keras.models import load_model
+#from keras.models import load_model
 import librosa
 
-from libs.data_generator import DataGenerator
-from libs.utilities import load_dataset, load_autoencoder_lossfunc, load_autoencoder_model
-from libs.model_utils import LossLayer
+#from libs.data_generator import DataGenerator
+from libs.utilities import load_autoencoder_lossfunc, load_autoencoder_model
+#from libs.model_utils import LossLayer
 from libs.processing import s_to_reim, reim_to_s, make_fragments, unmake_fragments
 
 def denoise(model_name, model_path, input_path, output_path,
@@ -26,18 +26,23 @@ def denoise(model_name, model_path, input_path, output_path,
     # set GPU devices
     os.environ["CUDA_VISIBLE_DEVICES"] = cuda_device
 
-    ## input data handling
+    ## Input data handling
     print('[n] Loading data from {}...'.format(input_path))
     # load data from file name
-    x, _ = librosa.core.load(input_path, sr=sr)
+    x_noisy, _ = librosa.core.load(input_path, sr=sr)
     # convert to TF-domain
-    s = librosa.core.stft(x, n_fft=n_fft, hop_length=hop_length, win_length=win_length)
+    s = librosa.core.stft(x_noisy, n_fft=n_fft, hop_length=hop_length, win_length=win_length)
     # apply pre-processing (data representation)
-    s_proc = s_to_reim(s)
+    y_proc = s_to_reim(s)
     # split into fragments
-    s_frags = make_fragments(s_proc, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
-    s_frags = np.array(s_frags)
-    print('[n] Generated {} fragments with shape {}'.format(len(s_frags), s_frags[0].shape))
+    y_frags_noisy = make_fragments(y_proc, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
+    y_frags_noisy = np.array(y_frags_noisy)
+    print('[n] Generated {} fragments with shape {}'.format(len(y_frags_noisy), y_frags_noisy[0].shape))
+    # Normalization per fragment
+    std_frag = np.empty(len(y_frags_noisy))
+    for i, yy in enumerate(y_frags_noisy):
+        std_frag[i] = np.std(yy)
+        yy = (yy - np.mean(yy))/std_frag[i]
 
     # load trained model
     print('[n] Loading model from {}...'.format(model_path))
@@ -48,21 +53,28 @@ def denoise(model_name, model_path, input_path, output_path,
 
     # prediction on data
     print('[n] Predicting with trained model...')
-    s_frags_pred = model.predict(s_frags)
+    y_frags_pred = model.predict(y_frags_noisy)
     print('[n] Prediction finished!')
 
-    # TODO remove this part (debugging only)
-    print('shape of output: ', s_frags_pred.shape)
-
-    # perform inverse operations on data
-    # TODO
-
-    # store clean audio as wav file
-    # TODO
+    ## Perform inverse operations on data
+    # Inverse normalization
+    for i, yy in enumerate(y_frags_pred):
+        yy = yy *std_frag[i] # + np.mean(ss)
+    # convert to complex spectrogram
+    s_pred = reim_to_s(y_frags_pred)
+    # undo batches
+    s_pred = unmake_fragments(s_pred, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
+    # get absolute spectrogram
+    s_pred = np.abs(s_pred) ** 2
+    # get waveform
+    x_pred = librosa.istft(s_pred, hop_length=hop_length, win_length=win_length)
+    
+    # store cleaned audio as wav file
+    librosa.output.write_wav(output_path, x_pred, sr=sr)
 
     # very slow at the beginning then very fast (real-time possible)
     #np.save('cleaned_data_pred', cleaned_data_pred)
-    print('Cleaned data reconstructed and stored at {}'.format(output_path))
+    print('Cleaned data is reconstructed and stored at {}'.format(output_path))
 
 
     print('[n] Done!')
