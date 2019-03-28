@@ -44,11 +44,11 @@ def unmake_fragments(s_frag, frag_hop_len, frag_win_len):
 # convert complex spectrograms to absolute power spectrum
 def s_to_power(s):
     s_power = np.abs(s) ** 2
-    return s_power
+    return np.array[s_power]
 
-def power_to_s(s, s_phase=None):
+def power_to_s(power, s_noisy=None):
     # TODO might require noisy signal as input for phase
-    return np.sqrt(s)
+    return np.sqrt(power[0])
 
 # convert complex spectrograms to Re/Im representation
 def s_to_reim(s):
