@@ -50,7 +50,7 @@ def s_to_power(s):
     return np.expand_dims(s_power, axis=2)
 
 def power_to_s(power, s_noisy=None):
-    s = np.sqrt(power[:, :, 0])
+    s = np.sqrt(power[..., 0])
     # TODO might require noisy signal as input for phase
     # add previously removed bin
     pad_shape = list(s.shape)

@@ -75,9 +75,11 @@ class AEModelFactory(object):
         flat = Flatten()(x)
         dense = Dense(
             self.n_inter_dim,
-            activation='tanh')(flat)
+            activation='relu')(flat)
         dense = Dropout(0.4)(dense)
-        z = Dense(self.n_latent_dim)(dense)
+        z = Dense(
+            self.n_latent_dim,
+            activation='relu')(dense)
         self._encoder = Model(inputs, z)
         #self._encoder.summary()
         self._encoder.name = 'encoder'
