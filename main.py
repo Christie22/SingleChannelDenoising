@@ -13,10 +13,10 @@ defaults = {
     'n_fft': 512,
     'hop_length': 128,
     'win_length': 512,
-    'frag_hop_length': 32,
-    'frag_win_length': 64,
+    'frag_hop_length': 16,
+    'frag_win_length': 32,
     'batch_size': 128,
-    'epochs': 20,
+    'epochs': 100,
     'model_path': '/data/riccardo_models/denoising/model_e{epoch}.h5',
     'history_path': None
 }
