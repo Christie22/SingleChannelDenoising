@@ -47,11 +47,18 @@ def s_to_power(s):
     if s.shape[0] % 2 != 0:
         s = s[:-1]
     s_power = np.abs(s) ** 2
-    return p.expand_dims(s_power, axis=2)
+    return np.expand_dims(s_power, axis=2)
 
 def power_to_s(power, s_noisy=None):
+    s = np.sqrt(power[:, :, 0])
     # TODO might require noisy signal as input for phase
-    return np.sqrt(power[:,:,0])
+    # add previously removed bin
+    pad_shape = list(s.shape)
+    pad_shape[-2] = 1
+    pad_shape = tuple(pad_shape)
+    padding = np.zeros(pad_shape)
+    s = np.concatenate((s, padding), axis=-2)
+    return s
 
 # convert complex spectrograms to Re/Im representation
 def s_to_reim(s):
@@ -64,7 +71,6 @@ def s_to_reim(s):
     # stack
     reim = np.dstack((re, im))
     return reim
-
 
 # convert Re/Im representation to complex spectrograms
 def reim_to_s(reim):
