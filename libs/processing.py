@@ -27,9 +27,12 @@ def make_fragments(s, frag_hop_len, frag_win_len):
 
 
 def unmake_fragments(s_frag, frag_hop_len, frag_win_len):
-    # TODO get to work with arbitrary input shape?
-    spec_length = (s_frag.shape[0]-1) * frag_hop_len + frag_win_len
-    output_shape = (s_frag.shape[1], spec_length, s_frag.shape[2])
+    # store input shape
+    in_shape = s_frag.shape
+    # calculate output spectrogram length in frames
+    spec_length = (in_shape[0]-1) * frag_hop_len + frag_win_len
+    # calculate output shape based on number of dims
+    output_shape = (in_shape[1], spec_length, in_shape[-1]) if len(in_shape) == 4 else (in_shape[1], spec_length)
     s = np.zeros(output_shape, dtype=s_frag.dtype)
     for i, frag in enumerate(s_frag):
         # NOTE this uses the initial portion of each fragment

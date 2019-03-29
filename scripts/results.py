@@ -23,7 +23,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 from libs.utilities import load_dataset, load_autoencoder_lossfunc, load_autoencoder_model
 from libs.model_utils import LossLayer
 from libs.data_generator import DataGenerator
-from libs.processing import white_noise, s_to_power, power_to_s, unmake_fragments
+from libs.processing import pink_noise, s_to_power, power_to_s, unmake_fragments
 from libs.metrics import calc_metrics, sample_metric
 
 
@@ -52,7 +52,7 @@ def results(model_name, model_path,
         'cache_path': None,
         # noising/reverberation cfg
         'rir_path': rir_path,
-        'noise_funcs': [white_noise],  # TODO un-hardcode
+        'noise_funcs': [pink_noise],  # TODO un-hardcode
         'noise_snrs': noise_snrs,
         # stft cfg
         'n_fft': n_fft,
