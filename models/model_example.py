@@ -129,6 +129,7 @@ class AEModelFactory(object):
             self.input_shape[2],
             kernel_size=1,
             padding='same',
+            activation='relu',
             strides=1)(x)
         self._decoder = Model(inputs, x)
         #self._decoder.summary()

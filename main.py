@@ -13,8 +13,8 @@ defaults = {
     'n_fft': 512,
     'hop_length': 128,
     'win_length': 512,
-    'frag_hop_length': 128,  # TODO adjust to be ~125ms
-    'frag_win_length': 256,  # TODO adjust to be ~250ms
+    'frag_hop_length': 32,
+    'frag_win_length': 64,
     'batch_size': 128,
     'epochs': 20,
     'model_path': '/data/riccardo_models/denoising/model_e{epoch}.h5',
