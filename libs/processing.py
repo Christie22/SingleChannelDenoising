@@ -8,6 +8,7 @@ import time
 import os
 from os import path
 import scipy
+from libs.colored_noise import powerlaw_psd_gaussian
 
 # generate seed from the time at which this script is run
 rnd.seed(int(time.time()))
@@ -113,7 +114,7 @@ def white_noise(x, sr, snr):
     return sum_with_snr(x, n, snr)
 
 # add pink (1/f) noise using Voss-McCartney algorithm
-def pink_noise(x, sr, snr):
+def pink_noise2(x, sr, snr):
     # number of values to generate
     nrows = len(x) #x.shape
     # number of random sources to add
@@ -137,8 +138,14 @@ def pink_noise(x, sr, snr):
 
     sigma = np.sqrt( (x @ x.T) / (nrows * 10**(snr/10)) )
     noise= sigma*(total.values-np.mean(total.values)) / (max(total.values) - np.mean(total.values))
-    
+    # TODO return signal + noise at given SNR
     return noise
+
+
+
+def pink_noise(x, sr, snr):
+    n = powerlaw_psd_gaussian(1, len(x))
+    return sum_with_snr(x, n, snr)
 
 
 def velvet_noise(x, SNR):
