@@ -79,7 +79,7 @@ def train(model_name,
         'kernel_size': 3,
         'n_filters': 64,
     }
-    model_args['input_shape'] = training_generator.data_shape,
+    model_args['input_shape'] = training_generator.data_shape
 
     print('[t] Model factory parameters: {}'.format(model_args))
     model, lossfunc = create_autoencoder_model(model_name, model_args)
