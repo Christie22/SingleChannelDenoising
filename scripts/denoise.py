@@ -42,7 +42,7 @@ def denoise(model_name, model_path, input_path, output_path,
     std_frag = np.empty(len(y_frags_noisy))
     for i, yy in enumerate(y_frags_noisy):
         std_frag[i] = np.std(yy)
-        yy = (yy - np.mean(yy))/std_frag[i]
+        yy = (yy - np.mean(yy)) / std_frag[i]
 
     # load trained model
     print('[dn] Loading model from {}...'.format(model_path))
@@ -51,6 +51,7 @@ def denoise(model_name, model_path, input_path, output_path,
     # print model summary
     #model.summary()
 
+    """
     # prediction on data
     print('[dn] Predicting with trained model...')
     y_frags_pred = model.predict(y_frags_noisy)
@@ -75,6 +76,6 @@ def denoise(model_name, model_path, input_path, output_path,
     # very slow at the beginning then very fast (real-time possible)
     #np.save('cleaned_data_pred', cleaned_data_pred)
     print('[dn] Cleaned data is reconstructed and stored at {}'.format(output_path))
-
+    """
 
     print('[dn] Done!')
