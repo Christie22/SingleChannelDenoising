@@ -27,7 +27,7 @@ def denoise(model_name, model_path, input_path, output_path,
     os.environ["CUDA_VISIBLE_DEVICES"] = cuda_device
 
     ## Input data handling
-    print('[n] Loading data from {}...'.format(input_path))
+    print('[dn] Loading data from {}...'.format(input_path))
     # load data from file name
     x_noisy, _ = librosa.core.load(input_path, sr=sr)
     # convert to TF-domain
@@ -37,7 +37,7 @@ def denoise(model_name, model_path, input_path, output_path,
     # split into fragments
     y_frags_noisy = make_fragments(y_proc, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
     y_frags_noisy = np.array(y_frags_noisy)
-    print('[n] Generated {} fragments with shape {}'.format(len(y_frags_noisy), y_frags_noisy[0].shape))
+    print('[dn] Generated {} fragments with shape {}'.format(len(y_frags_noisy), y_frags_noisy[0].shape))
     # Normalization per fragment
     std_frag = np.empty(len(y_frags_noisy))
     for i, yy in enumerate(y_frags_noisy):
@@ -45,16 +45,16 @@ def denoise(model_name, model_path, input_path, output_path,
         yy = (yy - np.mean(yy))/std_frag[i]
 
     # load trained model
-    print('[n] Loading model from {}...'.format(model_path))
+    print('[dn] Loading model from {}...'.format(model_path))
     lossfunc = load_autoencoder_lossfunc(model_name)
     _, _, model = load_autoencoder_model(model_path, {'lossfunc': lossfunc})
     # print model summary
     #model.summary()
 
     # prediction on data
-    print('[n] Predicting with trained model...')
+    print('[dn] Predicting with trained model...')
     y_frags_pred = model.predict(y_frags_noisy)
-    print('[n] Prediction finished!')
+    print('[dn] Prediction finished!')
 
     ## Perform inverse operations on data
     # Inverse normalization
@@ -65,7 +65,7 @@ def denoise(model_name, model_path, input_path, output_path,
     # undo batches
     s_pred = unmake_fragments(s_pred, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
     # get absolute spectrogram
-    s_pred = np.abs(s_pred) ** 2
+    # s_pred = np.abs(s_pred) ** 2
     # get waveform
     x_pred = librosa.istft(s_pred, hop_length=hop_length, win_length=win_length)
     
@@ -74,7 +74,7 @@ def denoise(model_name, model_path, input_path, output_path,
 
     # very slow at the beginning then very fast (real-time possible)
     #np.save('cleaned_data_pred', cleaned_data_pred)
-    print('Cleaned data is reconstructed and stored at {}'.format(output_path))
+    print('[dn] Cleaned data is reconstructed and stored at {}'.format(output_path))
 
 
-    print('[n] Done!')
+    print('[dn] Done!')
