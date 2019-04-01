@@ -156,49 +156,32 @@ def velvet_noise(x, SNR):
     sigma = np.sqrt( (x @ x.T) / (N * 10**(SNR/10)) )
     print('sigma = {0}'.format(sigma))
     
-    def createVelvetNoise(rate_zero = .95):
-        """
-        #### Role: create a vector of velvet noise (containing exclusively {-1,0,1})
-        # Input:
-         rate_zero(optional): pourcentage (between 0 and 1) of "0" in the output vector. 
-        # output: velvet noise
-         V: standard vector
-         params(optional) (struct): parametres (nb of zeros, indices, values) TODO
-        """
-        myVelvetNoise = [rnd.uniform(-1, 1) for k in range( N) ] #random numbers between -1 and 1
-        noise = [sigma * ((vv> rate_zero) - (vv < -rate_zero)) for vv in myVelvetNoise]
-        
-        #        params.NonZeros = np.sum(np.abs(noise))
-        #        params.realZeroRate = 1-params.NonZeros/noise.shape[0];
-        #        [params.indNonZeros, ~,params.valNonZeros] = find(SV);
-        #        params.sizeVN = N;
-        return noise#, params
-  
+    myVelvetNoise = [rnd.uniform(-1, 1) for k in range( N) ] #random numbers between -1 and 1
+    rate_zero=.95 # could be parametrized
+    noise = [sigma * ((vv> rate_zero) - (vv < -rate_zero)) for vv in myVelvetNoise]
+    return x+noise
 
+# def take_file_as_noise(x, SNR):
+#     N = len(x)
+#     sigma = np.sqrt( (x @ x.T) / (N * 10**(SNR/10)) )
+#     def noising_prototype( filepath):
+#         print('Using the following file as noise: {0}'.format(filepath))
+# #        path = os.path.join(filepath + '.wav')
+#         load_noise = np.load(filepath)
+#         noise =  sigma * (load_noise - np.mean(load_noise)) + np.mean(load_noise) 
+#         return noise
+#     return noising_prototype
 
-def take_file_as_noise(x, SNR):
+def take_file_as_noise(filepath):
     # checking TODO
-    N = len(x)
-    sigma = np.sqrt( (x @ x.T) / (N * 10**(SNR/10)) )
-    def noising_prototype( filepath):
-        print('Using the following file as noise: {0}'.format(filepath))
-#        path = os.path.join(filepath + '.wav')
-        load_noise = np.load(filepath)
+    print('Using the following file as noise: {0}'.format(filepath))
+    # path = os.path.join(filepath + '.wav')
+    load_noise = np.load(filepath)
+    
+    def noising_prototype(x, SNR):
+        N = len(x)
+        sigma = np.sqrt( (x @ x.T) / (N * 10**(SNR/10)) )
         noise =  sigma * (load_noise - np.mean(load_noise)) + np.mean(load_noise) 
         return noise
     return noising_prototype
 
-#print('compiled')
-#
-#
-#aa = np.array([[[1,2,12,212],[3,4,34, 434],[0,1,10, 110]],[[5,6,56,656],[7,8,78,878] ,[9,0,90, 990]]])
-#bb=10*aa
-#xx = np.array([aa,bb])
-#xx = xx.reshape(3,2,4,2)
-#xxx=xx[:,:,:,1]+xx[:,:,:,0]  
-#xxx
-#y=unmake_fragments(xx,1,0)
-#
-#y
-#
-#print('done')
