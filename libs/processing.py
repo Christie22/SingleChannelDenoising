@@ -92,6 +92,19 @@ def reim_to_s(reim):
     return s
 
 
+## normalization
+def normalize_spectrum(s):
+    s_std = np.std(s)
+    s_avg = np.mean(s)
+    return (s - s_avg) / s_std, s_std
+
+
+def normalize_spectrum_clean(s, norm_factor):
+    return s / norm_factor
+
+def unnormalize_spectrum(s, norm_factor):
+    return s * norm_factor
+
 
 ### NOISING FUNCTIONS  
 # sum s(ignal) and n(oise) at a given SNR (in dB)

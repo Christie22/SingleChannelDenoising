@@ -15,7 +15,7 @@ import os.path as osp
 from scipy.signal import fftconvolve
 from tqdm import tqdm
 
-from libs.processing import make_fragments
+from libs.processing import make_fragments, normalize_spectrum, normalize_spectrum_clean
 
 
 class DataGenerator(keras.utils.Sequence):
@@ -67,6 +67,7 @@ class DataGenerator(keras.utils.Sequence):
         # cached vars
         self.fragments_x = None
         self.fragments_y = None
+        self.fragments_std = None
         self.indexes = []
         # setup cache
         if force_cacheinit or not osp.exists(self.cache_path):
@@ -167,6 +168,8 @@ class DataGenerator(keras.utils.Sequence):
                     else:
                         self.fragments_x.append(frag_path)
         # done
+        self.fragments_std = np.empty(
+            (len(self.fragments_x) // self.batch_size, self.batch_size))
         print('[d] Cache ready, generated {} noisy and {} clean fragments of shape {}'.format(
             len(self.fragments_x), len(self.fragments_y), self.data_shape))
 
@@ -199,6 +202,8 @@ class DataGenerator(keras.utils.Sequence):
         # load last one to get shape
         self._data_shape = np.load(frag_path).shape
         # done
+        self.fragments_std = np.empty(
+            (len(self.fragments_x) // self.batch_size, self.batch_size))
         print('[d] Cache ready, indexed {} noisy and {} clean fragments of shape {}'.format(
             len(self.fragments_x), len(self.fragments_y), self.data_shape))
 
@@ -258,40 +263,50 @@ class DataGenerator(keras.utils.Sequence):
         filepaths = [self.fragments_x[i] for i in indexes]
         # initializing arrays
         x = np.empty((self.batch_size, *self.data_shape))
-        std_files = np.empty(self.batch_size)
-        # load data
+        # for each fragment filepath
         for i, filepath in enumerate(filepaths):
-            loaded_file = np.load(filepath)
+            # load data
+            frag = np.load(filepath)
             #print('[d] loading file {}'.format(filepath))
-            std_files[i] = np.std(loaded_file)
-            x[i, ] = (loaded_file - np.mean(loaded_file)) / std_files[i]
+            # apply normalization
+            frag_normalized, frag_std = normalize_spectrum(frag)
+            # store data
+            x[i, ] = frag_normalized
+            # store normalization factor [batch_index, element_index]
+            self.fragments_std[index, i] = frag_std
 
         # handle labels
         if self.label_type == 'clean':
             y = np.empty((self.batch_size, *self.data_shape))
+            # for each fragment filepath
             for i, filepath in enumerate(filepaths):
                 # TODO find a way and use gen_cache_path?
                 filename = osp.basename(filepath)
                 basedir = osp.dirname(osp.dirname(osp.dirname(filepath)))
                 proc_str = self.proc_func_label.__name__ if self.proc_func_label else 'none'
                 filepath_y = osp.join(basedir, 'clean', proc_str, filename)
-                # laad data
-                #print('[d] loading file {}'.format(filepath_y))
-                y[i, ] = np.load(filepath_y)
-                # loaded_file_y = np.load(filepath_y)
-                # y[i, ] = (loaded_file_y-np.mean(loaded_file_y)) / std_files[i] # not sure
+                # load data
+                clean_frag = np.load(filepath_y)
+                norm_factor = self.fragments_std[index, i]
+                y[i, ] = normalize_spectrum_clean(clean_frag, norm_factor) 
+                
         elif self.label_type == 'x':
             y = x
         else:
             print('[d] Label type unsupported, y = empty!')
             y = np.empty((self.batch_size))
 
-        return x, y, std_files
+        return x, y
 
     # return shape of data
     @property
     def data_shape(self):
         return self._data_shape
+
+    # return normalization factors
+    @property 
+    def norm_factors(self):
+        return self.fragments_std
 
     # return number of individual audio fragments
     @property

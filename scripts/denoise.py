@@ -6,7 +6,7 @@ import numpy as np
 import librosa
 
 from libs.utilities import load_autoencoder_lossfunc, load_autoencoder_model
-from libs.processing import s_to_power, power_to_s, make_fragments, unmake_fragments
+from libs.processing import s_to_power, power_to_s, make_fragments, unmake_fragments, normalize_spectrum, unnormalize_spectrum
 
 def denoise(model_name, model_path, input_path, output_path,
         sr, n_fft, hop_length, win_length, frag_hop_length, frag_win_length, 
@@ -36,11 +36,11 @@ def denoise(model_name, model_path, input_path, output_path,
     y_frags_noisy = make_fragments(y_proc, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
     print('[dn] Generated {} fragments with shape {}'.format(len(y_frags_noisy), y_frags_noisy[0].shape))
     # normalize fragments
-    # TODO should be in a function?
     std_frags_noisy = np.empty(len(y_frags_noisy))
-    for i, frag in enumerate(y_frags_noisy):
-        std_frags_noisy[i] = np.std(frag)
-        frag = (frag - np.mean(frag)) / std_frags_noisy[i]
+    for i in range(len(y_frags_noisy)):
+        frag_normalized, frag_std = normalize_spectrum(y_frags_noisy[i])
+        y_frags_noisy[i] = frag_normalized
+        std_frags_noisy[i] = frag_std
 
     # load trained model
     print('[dn] Loading model from {}...'.format(model_path))
@@ -52,24 +52,22 @@ def denoise(model_name, model_path, input_path, output_path,
     # prediction on data
     print('[dn] Predicting with trained model...')
     y_frags_pred = model.predict(y_frags_noisy)
-    print('[dn] Prediction finished!')
+    print('[dn] Prediction finished! Generated {} fragments'.format(len(y_frags_pred)))
 
     ## Perform inverse operations on data
     # inverse normalization
-    for i, frag in enumerate(y_frags_pred):
-        frag *= std_frags_noisy[i]  # + np.mean(ss)
+    for i in range(len(y_frags_pred)):
+        y_frags_pred[i] = unnormalize_spectrum(
+            y_frags_pred[i], std_frags_noisy[i])
     # convert to complex spectrogram
     s_pred = power_to_s(y_frags_pred)
     # undo batches
     s_pred = unmake_fragments(s_pred, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
-    # get absolute spectrogram
-    # s_pred = np.abs(s_pred) ** 2
     # get waveform
     x_pred = librosa.istft(s_pred, hop_length=hop_length, win_length=win_length)
     
     # store cleaned audio as wav file
     librosa.output.write_wav(output_path, x_pred, sr=sr)
 
-    # very slow at the beginning then very fast (real-time possible)
-    #np.save('cleaned_data_pred', cleaned_data_pred)
+    # done
     print('[dn] Done! Cleaned data is reconstructed and stored at {}'.format(output_path))
