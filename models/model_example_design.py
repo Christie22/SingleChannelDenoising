@@ -11,16 +11,11 @@ class AEModelFactory(object):
     def __init__(
             self,
             input_shape,
-            kernel_size,
-            n_filters,
-            n_intermediate_dim=1024,
-            n_latent_dim=128):
+            archi_encoder,
+            archi_decoder:
         self.input_shape = input_shape
-        self.kernel_size = kernel_size
-        self.n_filters = n_filters
-        self.n_tot_dim = np.prod(input_shape)
-        self.n_inter_dim = n_intermediate_dim
-        self.n_latent_dim = n_latent_dim
+        self.archi_encoder = architecture['encoder']
+        self.archi_decoder = architecture['decoder']
         self._encoder = None
         self._decoder = None
         self._model = None
@@ -42,95 +37,81 @@ class AEModelFactory(object):
             self.gen_model()
         return self._model
 
-    def gen_encoder(self):
+    # def gen_encoder(self): 
+    #     # blind processing: 
+    #     inputs = Input(shape=self.input_shape)
+    #     type_layers = np.array([typ for typ in self.archi_encoder]) #ex: conv, flat, dense
+    #     nb_types = type_layers.shape
+
+    #     for i in range(nb_types):
+    #         layers = type_layers[i]
+    #         print('1. layers'.format(layers))
+    #         all_attr = self.archi_encoder[layers]
+    #         for ia, attr in enumerate(all_attr):
+    #             print('2. attr: '.format(attr))
+    #             layer_attr = np.array([attr for attr in type_layers])
+    #             if i+ia==0: # init
+    #                 x = eval(type_layers[0]+'(**attr)(inputs)' )
+    #                 print('3. x: '.format(x))
+    #             else:
+    #                 x = eval(type_layers[ia]+'(**layer_attr)(x)' )
+    #             if layers == 'Conv2D':
+    #                 x = BatchNormalization()(x) 
+    #             elif layers == 'Dense' and ia < all_attr.shape[0]-1 :
+    #                 x = Dropout(0.4)(x)
+    #         if i==0:
+    #             flat = Flatten()(x)
+    #             self.conv_shape = K.int_shape(x)
+    #     self._encoder = Model(inputs, x)
+    #     #self._encoder.summary()
+    #     self._encoder.name = 'encoder'
+
+    def gen_encoder(self): 
+        # ordered processing: every step is considered as a layer; the layers are ordered; 
+        # the type of layer is now at the lowest level of the structure, along with the other params.
+        print('[m] Just entered gen_ENcoder')
         inputs = Input(shape=self.input_shape)
-        x = Conv2D(
-            self.n_filters // 4,
-            kernel_size=self.kernel_size,
-            padding='same',
-            strides=(2, 2),
-            activation='relu')(inputs)
-        x = BatchNormalization()(x)
-        x = Conv2D(
-            self.n_filters // 2,
-            kernel_size=self.kernel_size,
-            padding='same',
-            strides=(2, 2),
-            activation='relu')(x)
-        x = BatchNormalization()(x)
-        x = Conv2D(
-            self.n_filters,
-            kernel_size=self.kernel_size,
-            padding='same',
-            strides=(2, 2),
-            activation='relu')(x)
-        x = BatchNormalization()(x)
-        x = Conv2D(
-            self.n_filters,
-            kernel_size=self.kernel_size,
-            padding='same',
-            strides=(2,2))(x)
-        x = BatchNormalization()(x)
-        self.conv_shape = K.int_shape(x)
-        flat = Flatten()(x)
-        dense = Dense(
-            self.n_inter_dim,
-            activation='relu')(flat)
-        dense = Dropout(0.4)(dense)
-        z = Dense(
-            self.n_latent_dim,
-            activation='relu')(dense)
-        self._encoder = Model(inputs, z)
+        all_layers = np.array([typ for typ in self.archi_encoder]) #ex: Layer1, Layer2, Layer3
+        # nb_layers = all_layers.shape
+
+        for i, layer in enumerate(all_layers):
+            attr = self.archi_encoder[layer]
+            # print('2. attr: '.format(attr))
+            type_layer = attr['type_layer']
+            # print('1. layers'.format(type_layer))
+            del attr['type_layer']
+            if i==0: # init
+                x = eval(type_layer + '(**attr)(inputs)' )
+                print('3. x: '.format(x))
+            else:
+                x = eval(type_layer + '(**layer_attr)(x)' )
+            if type_layer == 'Conv2D': 
+                #calculated each time we compute this special type of layer even though we need only the last occurrence
+                self.conv_shape = K.int_shape(x)
+        self._encoder = Model(inputs, x)
         #self._encoder.summary()
         self._encoder.name = 'encoder'
 
     def gen_decoder(self):
+        # ordered processing: every step is considered as a layer; the layers are ordered; 
+        # the type of layer is now at the lowest level of the structure, along with the other params.
+        print('[m] Just entered gen_DEcoder')
         inputs = Input(shape=(self.n_latent_dim,))
-        dense = Dense(
-            self.n_inter_dim,
-            activation='relu')(inputs)
-        dense = BatchNormalization()(dense)
-        dense = Dense(
-            np.prod(self.conv_shape[1:]),
-            activation='relu')(inputs)
-        dense = Dropout(0.4)(dense)
-        dense = BatchNormalization()(dense)
-        x = Reshape(self.conv_shape[1:])(dense)
-        x = BatchNormalization()(x)
-        x = Conv2DTranspose(
-            self.n_filters,
-            kernel_size=self.kernel_size,
-            padding='same',
-            activation='relu',
-            strides=(2,2))(x)
-        x = BatchNormalization()(x)
-        x = Conv2DTranspose(
-            self.n_filters,
-            kernel_size=self.kernel_size,
-            padding='same',
-            activation='relu',
-            strides=(2,2))(x)
-        x = BatchNormalization()(x)
-        x = Conv2DTranspose(
-            self.n_filters // 2,
-            kernel_size=self.kernel_size,
-            padding='same',
-            activation='relu',
-            strides=(2,2))(x)
-        x = BatchNormalization()(x)
-        x = Conv2DTranspose(
-            self.n_filters // 4,
-            kernel_size=1,
-            padding='same',
-            activation='relu',
-            strides=(2,2))(x)
-        x = BatchNormalization()(x)
-        x = Conv2DTranspose(
-            self.input_shape[2],
-            kernel_size=1,
-            padding='same',
-            activation='relu',
-            strides=1)(x)
+        all_layers = np.array([typ for typ in self.archi_decoder]) #ex: Layer1, Layer2, Layer3
+        # nb_layers = all_layers.shape
+
+        for i, layer in enumerate(all_layers):
+            attr = self.archi_encoder[layer]
+            # print('2. attr: '.format(attr))
+            type_layer = attr['type_layer']
+            # print('1. layers'.format(type_layer))
+            del attr['type_layer']
+            if i==0: # init
+                x = eval(type_layer + '(**attr)(inputs)' )
+                print('3. x: '.format(x))
+            else:
+                x = eval(type_layer + '(**layer_attr)(x)' )
+
         self._decoder = Model(inputs, x)
         #self._decoder.summary()
         self._decoder.name = 'decoder'
