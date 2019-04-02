@@ -28,7 +28,7 @@ def load_dataset(dataset_path):
     return filelist
 
 
-def create_autoencoder_model(model_name, model_args):
+def create_autoencoder_model(model_name, model_args, **kwargs):
     print('[u] Creating autoencoder model {}'.format(model_name))
     # import model factory
     if model_name == 'lstm':
@@ -45,7 +45,7 @@ def create_autoencoder_model(model_name, model_args):
     obj = AEModelFactory(**model_args)
     model = obj.get_model()
     # return model and loss
-    return model, AEModelFactory.get_lossfunc(model_args['time_slice'])
+    return model, AEModelFactory.get_lossfunc(**kwargs)
 
 
 def load_autoencoder_model(model_path, custom_objects=None):
