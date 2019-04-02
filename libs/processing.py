@@ -77,10 +77,10 @@ def s_to_power(s):
     return np.expand_dims(s_power, axis=2)
 
 def power_to_s(power, s_noisy=None):
-    radii = np.sqrt(np.abs(power[...,0]))
+    s = np.sqrt(np.abs(power[...,0]))
     if s_noisy is not None:
         angles = np.angle(s_noisy)
-        s = radii * np.exp(1j * angles)
+        s = s * np.exp(1j * angles)
     # TODO might require noisy signal as input for phase
     # add previously removed bin
     pad_shape = list(s.shape)
