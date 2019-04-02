@@ -42,9 +42,12 @@ def denoise(model_name, model_path, input_path, output_path,
         y_frags_noisy[i] = frag_normalized
         std_frags_noisy[i] = frag_std
 
+    # loss function: data slice under consideration
+    time_slice = frag_win_length // 2
+
     # load trained model
     print('[dn] Loading model from {}...'.format(model_path))
-    lossfunc = load_autoencoder_lossfunc(model_name)
+    lossfunc = load_autoencoder_lossfunc(model_name, time_slice)
     _, _, model = load_autoencoder_model(model_path, {'lossfunc': lossfunc})
     # print model summary
     model.summary()

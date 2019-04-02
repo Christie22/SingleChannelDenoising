@@ -1,6 +1,7 @@
 # train an ANN autoencoder model
 
 import os
+import os.path as osp
 import time
 import pickle
 import numpy as np
@@ -10,7 +11,7 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint, TerminateOnNaN, Tens
 from sklearn.model_selection import train_test_split
 
 # custom modules
-from libs.utilities import load_dataset, create_autoencoder_model
+from libs.utilities import load_dataset, create_autoencoder_model, load_autoencoder_model, load_autoencoder_lossfunc
 from libs.model_utils import LossLayer
 from libs.data_generator import DataGenerator
 from libs.processing import pink_noise, s_to_power
@@ -20,12 +21,11 @@ def train(model_name,
           dataset_path, sr, 
           rir_path, noise_snrs, 
           n_fft, hop_length, win_length, frag_hop_length, frag_win_length, 
-          batch_size, epochs, model_path, history_path, force_cacheinit, cuda_device):
+          batch_size, epochs, model_path, force_cacheinit, cuda_device):
     print('[t] Training model {} at {} on dataset {}'.format(model_name, model_path, dataset_path))
     print('[t] Training parameters: {}'.format({
         'epochs': epochs,
         'model_path': model_path,
-        'history_path': history_path,
         'cuda_device': cuda_device
     }))
 
@@ -72,20 +72,28 @@ def train(model_name,
     valid_steps_per_epoch = len(validation_generator)
     print('[t] Train steps per epoch: ', train_steps_per_epoch)
     print('[t] Valid steps per epoch: ', valid_steps_per_epoch)
+    # loss function: data slice under consideration
+    time_slice = frag_win_length // 2
 
-    # create model
-    # TODO parametrical model creation
-    model_args = {
-        'kernel_size': 3,
-        'n_filters': 64,
-    }
-    model_args['input_shape'] = training_generator.data_shape
-
-    print('[t] Model factory parameters: {}'.format(model_args))
-    model, lossfunc = create_autoencoder_model(model_name, model_args)
+    # if model path exists, laod and resume
+    if osp.exists(model_path):
+        print('[t] Loading model {} from {}...'.format(model_name, model_path))
+        lossfunc = load_autoencoder_lossfunc(model_name, time_slice)
+        _, _, model = load_autoencoder_model(model_path, {'lossfunc': lossfunc})
+    else:
+        print('[t] Creating model {}...'.format(model_name))
+        # create model
+        # TODO parametrical model creation
+        model_args = {
+            'kernel_size': 3,
+            'n_filters': 64,
+        }
+        model_args['input_shape'] = training_generator.data_shape
+        model_args['time_slice'] = time_slice
+        print('[t] Model factory parameters: {}'.format(model_args))
+        model, lossfunc = create_autoencoder_model(model_name, model_args)
 
     # compile model (loss function must be set in the model class)
-    # TODO add metrics https://keras.io/metrics/
     model.compile(optimizer='adam', loss=lossfunc)
     # print model summaries
     model.get_layer('encoder').summary()
@@ -95,10 +103,10 @@ def train(model_name,
     # training callback functions
     Callbacks = [
         # conclude training if no improvement after N epochs
-        EarlyStopping(monitor='val_loss', patience=8),
+        EarlyStopping(monitor='loss', patience=8),
         # save model after each epoch if improved
         ModelCheckpoint(filepath=model_path,
-                        monitor='val_loss',
+                        monitor='loss',
                         save_best_only=True,
                         save_weights_only=False),
         TerminateOnNaN(),
@@ -118,13 +126,6 @@ def train(model_name,
         callbacks=Callbacks,
         use_multiprocessing=True,
         workers=8)
-
-    # save training history
-    # TODO directly plot training history
-    if history_path is not None:
-        print('[t] Storing training history to {}...'.format(history_path))
-        df = pd.DataFrame(history.history)
-        df.to_pickle(history_path)
 
     # end
     print('[t] Done!')

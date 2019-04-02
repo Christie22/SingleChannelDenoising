@@ -44,8 +44,8 @@ def create_autoencoder_model(model_name, model_args):
     # generate model
     obj = AEModelFactory(**model_args)
     model = obj.get_model()
-    # return loss function too (TODO: only if there)
-    return (model, AEModelFactory.get_lossfunc() if True else None)
+    # return model and loss
+    return model, AEModelFactory.get_lossfunc(model_args['time_slice'])
 
 
 def load_autoencoder_model(model_path, custom_objects=None):
@@ -56,7 +56,8 @@ def load_autoencoder_model(model_path, custom_objects=None):
     decoder = model.get_layer('decoder')
     return encoder, decoder, model
 
-def load_autoencoder_lossfunc(model_name):
+
+def load_autoencoder_lossfunc(model_name, time_slice):
     print('[u] Loading loss function for  autoencoder model {}'.format(model_name))
     # import model factory
     if model_name == 'lstm':
@@ -66,6 +67,5 @@ def load_autoencoder_lossfunc(model_name):
     else:
         print('[u] Importing example model :D')
         from models.model_example import AEModelFactory
-
-    # return loss function too (TODO: only if there)
-    return AEModelFactory.get_lossfunc()
+    # return loss function
+    return AEModelFactory.get_lossfunc(time_slice)

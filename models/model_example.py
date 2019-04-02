@@ -26,9 +26,10 @@ class AEModelFactory(object):
         self._model = None
 
     @staticmethod
-    def get_lossfunc():
+    def get_lossfunc(time_slice=slice(None)):
+        # actual loss function
         def lossfunc(x_true, x_pred):
-            return K.mean(K.square(x_true - x_pred))
+            return K.mean(K.square(x_true[..., time_slice, :] - x_pred[..., time_slice, :]))
         return lossfunc
 
     def get_encoder(self):

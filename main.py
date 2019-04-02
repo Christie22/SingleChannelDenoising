@@ -45,7 +45,6 @@ def cli(ctx, cuda_device):
 @click.option('--batch_size', type=int, default=defaults['batch_size'])
 @click.option('--epochs', type=int, default=defaults['epochs'])
 @click.option('--model_path', type=click.Path(), default=defaults['model_path'])
-@click.option('--history_path', type=click.Path(), default=defaults['history_path'])
 @click.option('--force_cacheinit', is_flag=True, default=False)
 def train(ctx,
           model_name, 
@@ -61,7 +60,6 @@ def train(ctx,
           batch_size,
           epochs,
           model_path,
-          history_path,
           force_cacheinit):
     noise_snrs_list = [int(n) for n in noise_snrs.split(' ')]
     script_train(model_name,
@@ -77,7 +75,6 @@ def train(ctx,
                  batch_size,
                  epochs,
                  model_path,
-                 history_path,
                  force_cacheinit,
                  ctx.obj['cuda_device'])
 

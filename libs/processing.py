@@ -43,6 +43,29 @@ def unmake_fragments(s_frag, frag_hop_len, frag_win_len):
     return s
 
 
+def unmake_fragments_slice(s_frag, frag_hop_len, frag_win_len, time_slice):
+    # store input shape
+    in_shape = s_frag.shape
+    # multiple input shape support
+    spec_length = (in_shape[0]-1) * frag_hop_len + frag_win_len
+    output_shape = (in_shape[1], spec_length, in_shape[-1]
+                    ) if len(in_shape) == 4 else (in_shape[1], spec_length)
+    # if slice is integer, use it as single slice
+    # NOTE: indexing [i] instead of slicing [x:y] cause dimension to collapse
+    if isinstance(time_slice, int) or isinstance(time_slice, np.generic):
+        time_slice = slice(time_slice, time_slice+frag_hop_len)
+        print(time_slice)
+    # initialize recipient
+    s = np.zeros(output_shape, dtype=s_frag.dtype)
+    for i, frag in enumerate(s_frag):
+        frag = frag[..., time_slice, :] if len(
+            frag.shape) == 3 else frag[..., time_slice]
+        lower_bound = i*frag_hop_len
+        upper_bound = (i+1)*frag_hop_len
+        #upper_bound = i*frag_hop_len+frag_win_len
+        s[:, lower_bound:upper_bound] = frag
+    return s
+
 
 ### PRE/POST PROCESSING FUNCTIONS
 # convert complex spectrograms to absolute power spectrum
@@ -54,7 +77,10 @@ def s_to_power(s):
     return np.expand_dims(s_power, axis=2)
 
 def power_to_s(power, s_noisy=None):
-    s = np.sqrt(np.abs(power[...,0]))
+    radii = np.sqrt(np.abs(power[...,0]))
+    if s_noisy is not None:
+        angles = np.angle(s_noisy)
+        s = radii * np.exp(1j * angles)
     # TODO might require noisy signal as input for phase
     # add previously removed bin
     pad_shape = list(s.shape)
