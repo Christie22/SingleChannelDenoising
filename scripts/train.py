@@ -1,6 +1,7 @@
 # train an ANN autoencoder model
 
 import os
+import configparser as cp
 import time
 import pickle
 import numpy as np
@@ -16,7 +17,7 @@ from libs.data_generator import DataGenerator
 from libs.processing import pink_noise, s_to_power
 
 
-def train(model_name, 
+def train(model_name, model_configfile,
           dataset_path, sr, 
           rir_path, noise_snrs, 
           n_fft, hop_length, win_length, frag_hop_length, frag_win_length, 
@@ -74,11 +75,9 @@ def train(model_name,
     print('[t] Valid steps per epoch: ', valid_steps_per_epoch)
 
     # create model
-    # TODO parametrical model creation
-    model_args = {
-        'kernel_size': 3,
-        'n_filters': 64,
-    }
+    model_args = cp.ConfigParser()
+    model_args.read(model_configfile)
+    
     model_args['input_shape'] = training_generator.data_shape
 
     print('[t] Model factory parameters: {}'.format(model_args))
