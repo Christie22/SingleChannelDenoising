@@ -83,7 +83,8 @@ class AEModelFactory(object):
         # n_layers = encoder['n_layers']
         all_layers = np.array([typ for typ in self.archi_encoder]) #ex: Layer1, Layer2, Layer3
         # nb_layers = all_layers.shape
-
+        print(type(all_layers))
+        
         for i, layer in enumerate(all_layers):
             # print(type(all_layers))
             print(i)
