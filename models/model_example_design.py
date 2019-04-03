@@ -14,14 +14,15 @@ class AEModelFactory(object):
     def __init__(
             self,
             input_shape,
-            architecture,
-            n_intermediate_dim,
+            encoder,
+            decoder
+            n_inter_dim,
             n_latent_dim:
         self.input_shape = input_shape
-        self.architecture = architecture
-        # self.archi_encoder = architecture['encoder']
-        # self.archi_decoder = architecture['decoder']
-        self.n_inter_dim = n_intermediate_dim #?
+        # self.architecture = architecture
+        self.archi_encoder = encoder
+        self.archi_decoder = decoder
+        self.n_inter_dim = n_inter_dim #?
         self.n_latent_dim = n_latent_dim #?
         self._encoder = None
         self._decoder = None
