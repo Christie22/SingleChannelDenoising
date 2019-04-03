@@ -20,8 +20,8 @@ class AEModelFactory(object):
             n_latent_dim):
         self.input_shape = input_shape
         # self.architecture = architecture
-        self.archi_encoder = encoder
-        self.archi_decoder = decoder
+        self.archi_encoder = ast.literal_eval(encoder)
+        self.archi_decoder = ast.literal_eval(decoder)
         self.n_inter_dim = n_inter_dim #?
         self.n_latent_dim = n_latent_dim #?
         self._encoder = None
@@ -84,7 +84,7 @@ class AEModelFactory(object):
         all_layers = np.array([typ for typ in self.archi_encoder]) #ex: Layer1, Layer2, Layer3
         # nb_layers = all_layers.shape
         print(type(all_layers))
-        
+
         for i, layer in enumerate(all_layers):
             # print(type(all_layers))
             print(i)
