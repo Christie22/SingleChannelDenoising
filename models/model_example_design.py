@@ -90,14 +90,15 @@ class AEModelFactory(object):
             # print(i)
             print(layer) # layer = 'Layer'+str(i)
             attr = self.archi_encoder[layer]
-            # print('2. attr: '.format(attr))
+            # print('2. attr: {}'.format(attr))
             type_layer = attr['type_layer']
             print(type_layer)
-            # print('1. layers'.format(type_layer))
+            print(type(type_layer))
+            # print('1. layers: {}'.format(type_layer))
             #del attr['type_layer']
             if i==0: # init 
                 x = eval(type_layer + '(**attr)(inputs)' )
-                print('3. x: '.format(x))
+                print('3. x: {}'.format(x))
             else:
                 x = eval(type_layer + '(**layer_attr)(x)' )
             if type_layer == 'Conv2D': 
