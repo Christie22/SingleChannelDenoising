@@ -85,7 +85,9 @@ class AEModelFactory(object):
         # nb_layers = all_layers.shape
 
         for i, layer in enumerate(all_layers):
-            print(type(self.archi_encoder))
+            # print(type(all_layers))
+            print(i)
+            print(layer)
             attr = self.archi_encoder[layer]
             # print('2. attr: '.format(attr))
             type_layer = attr['type_layer']
