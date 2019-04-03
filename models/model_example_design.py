@@ -80,7 +80,7 @@ class AEModelFactory(object):
         print('[m] Just entered gen_ENcoder')
         inputs = Input(shape=self.input_shape)
 
-        n_layers = encoder['n_layers']
+        # n_layers = encoder['n_layers']
         all_layers = np.array([typ for typ in self.archi_encoder]) #ex: Layer1, Layer2, Layer3
         # nb_layers = all_layers.shape
 
