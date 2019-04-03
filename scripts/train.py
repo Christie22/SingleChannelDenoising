@@ -77,7 +77,7 @@ def train(model_name, model_configfile,
     # create model
     model_args = cp.ConfigParser()
     model_args.read(model_configfile)
-    
+    model_args = model_args['model_args']
     model_args['input_shape'] = training_generator.data_shape
 
     print('[t] Model factory parameters: {}'.format(model_args))
