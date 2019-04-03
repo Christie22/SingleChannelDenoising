@@ -18,8 +18,9 @@ class AEModelFactory(object):
             n_intermediate_dim,
             n_latent_dim:
         self.input_shape = input_shape
-        self.archi_encoder = architecture['encoder']
-        self.archi_decoder = architecture['decoder']
+        self.architecture = architecture
+        # self.archi_encoder = architecture['encoder']
+        # self.archi_decoder = architecture['decoder']
         self.n_inter_dim = n_intermediate_dim #?
         self.n_latent_dim = n_latent_dim #?
         self._encoder = None
