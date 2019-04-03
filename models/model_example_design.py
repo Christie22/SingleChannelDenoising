@@ -17,7 +17,7 @@ class AEModelFactory(object):
             encoder,
             decoder,
             n_inter_dim,
-            n_latent_dim:
+            n_latent_dim):
         self.input_shape = input_shape
         # self.architecture = architecture
         self.archi_encoder = encoder
