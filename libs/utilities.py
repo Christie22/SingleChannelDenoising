@@ -34,16 +34,16 @@ def create_autoencoder_model(model_source, input_shape, **kwargs):
     # import model factory
     from models.model_example_design import AEModelFactory
     # load model architecture configuration as dictionary
-    model_architecture = json.load(open(model_source))['architecture']
+    model_architecture = json.load(open(model_source))
     print('[u] Model factory parameters: {}'.format({
-        **model_architecture,
+        'model_architecture': model_architecture,
         'input_shape': input_shape,
         **kwargs
     }))
     # calc input shape and enforce it
     K.set_image_data_format('channels_last')
     # generate model
-    obj = AEModelFactory(input_shape, model_architecture)
+    obj = AEModelFactory(input_shape, model_architecture['architecture'])
     model = obj.get_model()
     # return model and loss
     return model, AEModelFactory.get_lossfunc(**kwargs)
