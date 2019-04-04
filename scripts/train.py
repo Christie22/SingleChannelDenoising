@@ -17,12 +17,12 @@ from libs.data_generator import DataGenerator
 from libs.processing import pink_noise, s_to_power
 
 
-def train(model_name,
+def train(model_source,
           dataset_path, sr, 
           rir_path, noise_snrs, 
           n_fft, hop_length, win_length, frag_hop_length, frag_win_length, 
           batch_size, epochs, model_path, history_path, force_cacheinit, cuda_device):
-    print('[t] Training model {} at {} on dataset {}'.format(model_name, model_path, dataset_path))
+    print('[t] Training model {} at {} on dataset {}'.format(model_source, model_path, dataset_path))
     print('[t] Training parameters: {}'.format({
         'epochs': epochs,
         'model_path': model_path,
@@ -75,13 +75,7 @@ def train(model_name,
     print('[t] Valid steps per epoch: ', valid_steps_per_epoch)
 
     # create model
-    model_args = cp.ConfigParser()
-    model_args.read(model_configfile)
-    model_args = model_args['model_args']
-    model_args['input_shape'] = training_generator.data_shape
-
-    print('[t] Model factory parameters: {}'.format(model_args))
-    model, lossfunc = create_autoencoder_model(model_name, model_args)
+    model, lossfunc = create_autoencoder_model(model_source, input_shape, time_slice)
 
     # compile model (loss function must be set in the model class)
     # TODO add metrics https://keras.io/metrics/
