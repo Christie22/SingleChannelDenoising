@@ -41,7 +41,7 @@ def create_autoencoder_model(model_source, input_shape, time_slice):
     # calc input shape and enforce it
     K.set_image_data_format('channels_last')
     # generate model
-    obj = AEModelFactory(**model_args)
+    obj = AEModelFactory(**model_args, input_shape)
     model = obj.get_model()
     # return loss function too (TODO: only if there)
     return (model, AEModelFactory.get_lossfunc() if True else None)
