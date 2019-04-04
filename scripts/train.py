@@ -17,7 +17,7 @@ from libs.data_generator import DataGenerator
 from libs.processing import pink_noise, s_to_power
 
 
-def train(model_name, model_configfile,
+def train(model_name,
           dataset_path, sr, 
           rir_path, noise_snrs, 
           n_fft, hop_length, win_length, frag_hop_length, frag_win_length, 

@@ -5,6 +5,7 @@ import os
 import pandas as pd
 from keras.models import load_model
 from keras import backend as K
+import json
 
 import numpy as np
 from numpy import linalg as LA
@@ -18,7 +19,6 @@ import librosa.feature as ftr
 import librosa.onset as onst
 import sys
 import glob
-# import configparser as cp
 
 def load_dataset(dataset_path):
     # TODO implement actual data handling
@@ -29,16 +29,14 @@ def load_dataset(dataset_path):
     return filelist
 
 
-def create_autoencoder_model(model_name, model_args):
-    print('[u] Creating autoencoder model {}'.format(model_name))
+def create_autoencoder_model(model_source, input_shape, time_slice):
+    print('[u] Creating autoencoder model {}'.format(model_source))
     # import model factory
-    if model_name == 'lstm':
-        return None
-    elif model_name == 'conv':
-        return None
-    else:
-        print('[u] Importing example model :D')
-        from models.model_example import AEModelFactory
+    print('[u] Importing example model :D')
+    from models.model_example_design import AEModelFactory
+
+    model_args = json.load(open(model_source))
+    print('[u] Model factory parameters: {}'.format(model_args))
 
     # calc input shape and enforce it
     K.set_image_data_format('channels_last')
@@ -57,12 +55,12 @@ def load_autoencoder_model(model_path, custom_objects=None):
     decoder = model.get_layer('decoder')
     return encoder, decoder, model
 
-def load_autoencoder_lossfunc(model_name):
-    print('[u] Loading loss function for  autoencoder model {}'.format(model_name))
+def load_autoencoder_lossfunc(model_source):
+    print('[u] Loading loss function for  autoencoder model {}'.format(model_source))
     # import model factory
-    if model_name == 'lstm':
+    if model_source == 'lstm':
         return None
-    elif model_name == 'conv':
+    elif model_source == 'conv':
         return None
     else:
         print('[u] Importing example model :D')
