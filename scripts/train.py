@@ -73,7 +73,8 @@ def train(model_name,
     print('[t] Train steps per epoch: ', train_steps_per_epoch)
     print('[t] Valid steps per epoch: ', valid_steps_per_epoch)
     # loss function: data slice under consideration
-    time_slice = frag_win_length // 2
+    #time_slice = frag_win_length // 2
+    time_slice = slice(None)
 
     # if model path exists, laod and resume
     if osp.exists(model_path):
@@ -86,7 +87,7 @@ def train(model_name,
         # TODO parametrical model creation
         model_args = {
             'kernel_size': 3,
-            'n_filters': 64,
+            'n_filters': 256,
         }
         model_args['input_shape'] = training_generator.data_shape
         print('[t] Model factory parameters: {}'.format({**model_args, 'time_slice': time_slice}))
@@ -108,10 +109,17 @@ def train(model_name,
         ModelCheckpoint(filepath=model_path,
                         monitor='loss',
                         save_best_only=True,
-                        save_weights_only=False),
+                        save_weights_only=False,
+                        verbose=1),
         TerminateOnNaN(),
         # save logs for tensorboard
-        TensorBoard()
+        TensorBoard(
+            histogram_freq=5,
+            batch_size=batch_size,
+            write_graph=True,
+            write_grads=True,
+            write_images=True
+        )
         #TrainValTensorBoard(log_dir=logs_dir, write_graph=False)
     ]
 
