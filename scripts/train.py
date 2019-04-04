@@ -17,15 +17,15 @@ from libs.data_generator import DataGenerator
 from libs.processing import pink_noise, s_to_power
 
 
-def train(model_name, 
-          dataset_path, sr, 
-          rir_path, noise_snrs, 
+def train(model_source, dataset_path, 
+          sr, rir_path, noise_snrs, 
           n_fft, hop_length, win_length, frag_hop_length, frag_win_length, 
-          batch_size, epochs, model_path, force_cacheinit, cuda_device):
-    print('[t] Training model {} at {} on dataset {}'.format(model_name, model_path, dataset_path))
+          batch_size, epochs, model_destination, force_cacheinit, cuda_device):
+    print('[t] Training model on dataset {}'.format(dataset_path))
     print('[t] Training parameters: {}'.format({
         'epochs': epochs,
-        'model_path': model_path,
+        'model_source': model_source,
+        'model_destination': model_destination,
         'cuda_device': cuda_device
     }))
 
@@ -76,23 +76,39 @@ def train(model_name,
     #time_slice = frag_win_length // 2
     time_slice = slice(None)
 
-    # if model path exists, laod and resume
-    if osp.exists(model_path):
-        print('[t] Loading model {} from {}...'.format(model_name, model_path))
-        lossfunc = load_autoencoder_lossfunc(model_name, time_slice)
-        _, _, model = load_autoencoder_model(model_path, {'lossfunc': lossfunc})
-    else:
-        print('[t] Creating model {}...'.format(model_name))
+    initial_epoch = 0
+
+    # extract extension from model source file (.h5 or .json)
+    model_source_ext = osp.splitext(model_source)[1]
+
+    # if model source is a pre-trained model, load and resume training
+    print('[t] Loading model source from {}...'.format(model_source))
+    if model_source_ext == '.h5':
+        print('[t] Model source is a pre-trained model!')
+        lossfunc = load_autoencoder_lossfunc(time_slice)
+        _, _, model = load_autoencoder_model(model_source, {'lossfunc': lossfunc})
+        # figure out number of already-trained epochs
+        initial_epoch = int(osp.splitext(
+            osp.basename(model_source))[0].split('_e')[-1])
+
+    # if model source is a config file, create model
+    elif model_source_ext == '.json':
+        print('[t] Model source is a configuration file!')
         # create model
-        # TODO parametrical model creation
-        model_args = {
-            'kernel_size': 3,
-            'n_filters': 256,
-        }
+        # NOTE won't work, needs merging
+        model_args = {}
         model_args['input_shape'] = training_generator.data_shape
         print('[t] Model factory parameters: {}'.format({**model_args, 'time_slice': time_slice}))
-        model, lossfunc = create_autoencoder_model(
-            model_name, model_args, time_slice=time_slice)
+        model, lossfunc = create_autoencoder_model(model_args, time_slice=time_slice)
+    
+    # if model source isn't either, well, *shrugs*
+    else:
+        print('[t] Model source can\'t be recognized: {}'.format(model_source))
+        return
+
+    # use separate training epochs index to get correct trained model filename 
+    # and tensorboard (see keras docs on fit_generator)
+    max_epochs = initial_epoch + epochs
 
     # compile model (loss function must be set in the model class)
     model.compile(optimizer='adam', loss=lossfunc)
@@ -106,7 +122,7 @@ def train(model_name,
         # conclude training if no improvement after N epochs
         EarlyStopping(monitor='loss', patience=8),
         # save model after each epoch if improved
-        ModelCheckpoint(filepath=model_path,
+        ModelCheckpoint(filepath=model_destination,
                         monitor='loss',
                         save_best_only=True,
                         save_weights_only=False,
@@ -120,20 +136,20 @@ def train(model_name,
             write_grads=True,
             write_images=True
         )
-        #TrainValTensorBoard(log_dir=logs_dir, write_graph=False)
     ]
 
     # train model
     print('[t] Begin training process...')
-    history = model.fit_generator(
+    model.fit_generator(
         generator=training_generator,
         validation_data=validation_generator,
         steps_per_epoch=train_steps_per_epoch,
         validation_steps=valid_steps_per_epoch,
-        epochs=epochs,
+        initial_epoch=initial_epoch,
+        epochs=max_epochs,
         callbacks=Callbacks,
         use_multiprocessing=True,
         workers=8)
 
     # end
-    print('[t] Done!')
+    print('[t] Done! Trained models are stored somewheres in {}'.format(model_destination))

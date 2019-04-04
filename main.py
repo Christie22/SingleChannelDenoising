@@ -17,13 +17,13 @@ defaults = {
     'frag_win_length': 32,
     'batch_size': 128,
     'epochs': 100,
-    'model_path': '/data/riccardo_models/denoising/model_e{epoch}.h5',
-    'history_path': None
+    'model_destination': '/data/riccardo_models/denoising/model_e{epoch}.h5',
+    'cuda_device': '2'
 }
 
 
 @click.group()
-@click.option('--cuda_device', type=str, default='2')
+@click.option('--cuda_device', type=str, default=defaults['cuda_device'])
 @click.pass_context
 def cli(ctx, cuda_device):
     ctx.obj['cuda_device'] = cuda_device
@@ -32,7 +32,7 @@ def cli(ctx, cuda_device):
 # TRAIN 
 @cli.command()
 @click.pass_context
-@click.argument('model_name', type=str)
+@click.argument('model_source', type=click.Path(exists=True, file_okay=True, dir_okay=False))
 @click.argument('dataset_path', type=click.Path(exists=True, file_okay=False, dir_okay=True))
 @click.option('--sr', type=int, default=defaults['sr'])
 @click.option('--rir_path', type=click.Path(exists=True, file_okay=False, dir_okay=True), default=defaults['rir_path'])
@@ -44,10 +44,10 @@ def cli(ctx, cuda_device):
 @click.option('--frag_win_length', type=int, default=defaults['frag_win_length'])
 @click.option('--batch_size', type=int, default=defaults['batch_size'])
 @click.option('--epochs', type=int, default=defaults['epochs'])
-@click.option('--model_path', type=click.Path(), default=defaults['model_path'])
+@click.option('--model_destination', type=click.Path(), default=defaults['model_destination'])
 @click.option('--force_cacheinit', is_flag=True, default=False)
 def train(ctx,
-          model_name, 
+          model_source, 
           dataset_path, 
           sr,
           rir_path, 
@@ -62,7 +62,7 @@ def train(ctx,
           model_path,
           force_cacheinit):
     noise_snrs_list = [int(n) for n in noise_snrs.split(' ')]
-    script_train(model_name,
+    script_train(model_source,
                  dataset_path,
                  sr,
                  rir_path,

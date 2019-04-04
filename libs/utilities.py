@@ -28,18 +28,10 @@ def load_dataset(dataset_path):
     return filelist
 
 
-def create_autoencoder_model(model_name, model_args, **kwargs):
-    print('[u] Creating autoencoder model {}'.format(model_name))
-    # import model factory
-    if model_name == 'lstm':
-        return None
-    elif model_name == 'conv':
-        return None
-    else:
-        print('[u] Importing example model :D')
-        from models.model_example import AEModelFactory
-
-    # calc input shape and enforce it
+def create_autoencoder_model(model_args, **kwargs):
+    print('[u] Creating autoencoder model')
+    from models.model_example import AEModelFactory
+    # enforce input shape convention
     K.set_image_data_format('channels_last')
     # generate model
     obj = AEModelFactory(**model_args)
@@ -57,15 +49,8 @@ def load_autoencoder_model(model_path, custom_objects=None):
     return encoder, decoder, model
 
 
-def load_autoencoder_lossfunc(model_name, time_slice):
-    print('[u] Loading loss function for  autoencoder model {}'.format(model_name))
-    # import model factory
-    if model_name == 'lstm':
-        return None
-    elif model_name == 'conv':
-        return None
-    else:
-        print('[u] Importing example model :D')
-        from models.model_example import AEModelFactory
+def load_autoencoder_lossfunc(time_slice):
+    print('[u] Loading loss function for model')
+    from models.model_example import AEModelFactory
     # return loss function
     return AEModelFactory.get_lossfunc(time_slice)
