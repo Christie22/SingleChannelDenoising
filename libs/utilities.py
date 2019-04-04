@@ -5,6 +5,7 @@ import os
 import pandas as pd
 from keras.models import load_model
 from keras import backend as K
+import json
 
 import numpy as np
 from numpy import linalg as LA
@@ -28,13 +29,21 @@ def load_dataset(dataset_path):
     return filelist
 
 
-def create_autoencoder_model(model_args, **kwargs):
-    print('[u] Creating autoencoder model')
-    from models.model_example import AEModelFactory
-    # enforce input shape convention
+def create_autoencoder_model(model_source, input_shape, **kwargs):
+    print('[u] Creating autoencoder model from {}'.format(model_source))
+    # import model factory
+    from models.model_example_design import AEModelFactory
+    # load model architecture configuration as dictionary
+    model_architecture = json.load(open(model_source))['architecture']
+    print('[u] Model factory parameters: {}'.format({
+        **model_architecture,
+        'input_shape': input_shape,
+        **kwargs
+    }))
+    # calc input shape and enforce it
     K.set_image_data_format('channels_last')
     # generate model
-    obj = AEModelFactory(**model_args)
+    obj = AEModelFactory(input_shape, model_architecture)
     model = obj.get_model()
     # return model and loss
     return model, AEModelFactory.get_lossfunc(**kwargs)

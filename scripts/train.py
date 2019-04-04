@@ -72,10 +72,12 @@ def train(model_source, dataset_path,
     valid_steps_per_epoch = len(validation_generator)
     print('[t] Train steps per epoch: ', train_steps_per_epoch)
     print('[t] Valid steps per epoch: ', valid_steps_per_epoch)
+    
     # loss function: data slice under consideration
     #time_slice = frag_win_length // 2
     time_slice = slice(None)
 
+    # set initial epoch to its most obvious value
     initial_epoch = 0
 
     # extract extension from model source file (.h5 or .json)
@@ -85,6 +87,7 @@ def train(model_source, dataset_path,
     print('[t] Loading model source from {}...'.format(model_source))
     if model_source_ext == '.h5':
         print('[t] Model source is a pre-trained model!')
+        # load stuff
         lossfunc = load_autoencoder_lossfunc(time_slice)
         _, _, model = load_autoencoder_model(model_source, {'lossfunc': lossfunc})
         # figure out number of already-trained epochs
@@ -94,12 +97,10 @@ def train(model_source, dataset_path,
     # if model source is a config file, create model
     elif model_source_ext == '.json':
         print('[t] Model source is a configuration file!')
-        # create model
-        # NOTE won't work, needs merging
-        model_args = {}
-        model_args['input_shape'] = training_generator.data_shape
-        print('[t] Model factory parameters: {}'.format({**model_args, 'time_slice': time_slice}))
-        model, lossfunc = create_autoencoder_model(model_args, time_slice=time_slice)
+        # create stuff
+        input_shape = training_generator.data_shape
+        model, lossfunc = create_autoencoder_model(
+            model_source, input_shape, time_slice=time_slice)
     
     # if model source isn't either, well, *shrugs*
     else:
