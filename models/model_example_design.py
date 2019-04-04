@@ -43,6 +43,8 @@ class AEModelFactory(object):
         # ordered processing: every step is considered as a layer; the layers are ordered; 
         # the type of layer is now at the lowest level of the structure, along with the other params.
         print('[m] Just entered gen_ENcoder')
+        print(self.architecture)
+
         inputs = Input(shape=self.input_shape)
 
         encoder = self.architecture['encoder']
