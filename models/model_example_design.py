@@ -14,9 +14,9 @@ class AEModelFactory(object):
     def __init__(
             self,
             input_shape,
-            architecture):
+            model_args):
         self.input_shape = input_shape
-        self.architecture = architecture
+        self.architecture = model_args['architecture']
         self._encoder = None
         self._decoder = None
         self._model = None
