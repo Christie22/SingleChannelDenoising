@@ -4,6 +4,7 @@ from keras.layers import Input, Dense, Conv2D, Conv2DTranspose, MaxPool2D, Batch
 from keras.models import Model
 from keras import backend as K
 import numpy as np
+import ast
 
 # TODO: change strings of the parsefile into int/floats/whatever is needed.
 # TODO; see how to inject the good constant into Dense layers
