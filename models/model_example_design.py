@@ -41,28 +41,27 @@ class AEModelFactory(object):
 
         dict_layers = {'conv': Conv2D, 'dense': Dense, 'batch': BatchNormalization, 'dropout': Dropout, 'flat': Flatten}
 
-        # n_layers = encoder['n_layers']
         all_layers = np.array([layer for layer in self.architecture]) #ex: Layer1, Layer2, Layer3
         # nb_layers = all_layers.shape
-        print(type(all_layers))
+        print('[m] '+type(all_layers))
 
         for i, layer in enumerate(all_layers):
-            # print(type(all_layers))
             # print(i)
             print(layer) # layer = 'Layer'+str(i)
-            attr = self.architecture[layer]
-            # print('2. attr: {}'.format(attr))
-            type_layer = attr['type_layer']
-            print(type_layer)
-            print(type(type_layer))
-            # print('1. layers: {}'.format(type_layer))
+            layer_type = layer['layer_type']
+            attr = layer['layer_args']
+            print('[m] 20. layer_type: {}'.format(layer_type))
+            print('[m] 21. attr: {}'.format(attr))
+            print('[m] '+layer_type)
+            print('[m] '+type(layer_type))
+            # print('1. layers: {}'.format(layer_type))
             #del attr['type_layer']
             if i==0: # init 
-                x = eval(type_layer + '(**attr)(inputs)' )
-                print('3. x: {}'.format(x))
+                x = eval(layer_type + '(**attr)(inputs)' )
+                print('[m] +3. x: {}'.format(x))
             else:
-                x = eval(type_layer + '(**layer_attr)(x)' )
-            if type_layer == 'Conv2D': 
+                x = eval(layer_type + '(**layer_attr)(x)' )
+            if layer_type == 'Conv2D': 
                 #calculate 'conv_shape'each time we compute this special type of layer even though we need only the last occurrence:
                 self.conv_shape = K.int_shape(x)
         self._encoder = Model(inputs, x)
