@@ -55,6 +55,8 @@ class AEModelFactory(object):
             # print('[m] '+layer_type)
             # print('[m] '+type(layer_type))
             x = inputs if i==0 else x # init 
+            print(dict_layers[layer_type])
+            print(type(dict_layers[layer_type]))
             x = dict_layers[layer_type](**attr)
             print('[m], '+str(i) +', x: {}'.format(x))
 
