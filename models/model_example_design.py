@@ -13,12 +13,9 @@ class AEModelFactory(object):
     def __init__(
             self,
             input_shape,
-            architecture,
-            # time_slice
-            ):
+            architecture):
         self.input_shape = input_shape
         self.architecture = architecture
-        # self.time_slice = time_slice
         self._arch= None
         self._model= None
 
@@ -44,7 +41,7 @@ class AEModelFactory(object):
 
         dict_layers = {'conv': Conv2D, 'dense': Dense, 'batch': BatchNormalization, 'dropout': Dropout, 'flat': Flatten}
 
-        all_layers = np.array([layer for layer in self.architecture]) #ex: Layer1, Layer2, Layer3
+        all_layers = np.array([layer for layer in self.architecture]) 
         # nb_layers = all_layers.shape
         print(type(all_layers))
 
@@ -54,14 +51,12 @@ class AEModelFactory(object):
             print(layer) # layer = 'Layer'+str(i)
             layer_type = layer['layer_type']
             attr = layer['layer_args']
-            print('[m] 20. layer_type: {}'.format(layer_type))
-            print('[m] 21. attr: {}'.format(attr))
+            # print('[m] 20. layer_type: {}'.format(layer_type))
+            # print('[m] 21. attr: {}'.format(attr))
 
             x = inputs if i==0 else x # init 
             # print(dict_layers[layer_type])
-            # print(type(dict_layers[layer_type]))
             x = dict_layers[layer_type](**attr)(x)
-            print('[m], '+str(i) +', x: {}'.format(x))
 
             #calculate 'conv_shape'each time we compute this special type of layer even though we need only the last occurrence:
             conv_shape = K.int_shape(x) if layer_type == 'Conv2D' else conv_shape
