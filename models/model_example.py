@@ -5,7 +5,7 @@ from keras.models import Model
 from keras import backend as K
 import numpy as np
 
-
+# TODO: spelling in json file + type for strides etc.
 # model
 class AEModelFactory(object):
     def __init__(
