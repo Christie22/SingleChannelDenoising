@@ -4,7 +4,7 @@
             "layer_type": "conv",
             "layer_args": {
                 "strides": [4, 5], 
-                "n_filters": 46, 
+                "filters": 46, 
                 "kernel_size": 3, 
                 "activation": "relu" 
             }
@@ -13,7 +13,7 @@
             "layer_type": "conv",
             "layer_args": {
                 "strides": [4, 5], 
-                "n_filters": 46, 
+                "filters": 46, 
                 "kernel_size": [15, 1], 
                 "activation": "relu"
             }
