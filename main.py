@@ -59,7 +59,7 @@ def train(ctx,
           frag_win_length,
           batch_size,
           epochs,
-          model_path,
+          model_destination,
           force_cacheinit):
     noise_snrs_list = [int(n) for n in noise_snrs.split(' ')]
     script_train(model_source,
@@ -74,7 +74,7 @@ def train(ctx,
                  frag_win_length,
                  batch_size,
                  epochs,
-                 model_path,
+                 model_destination,
                  force_cacheinit,
                  ctx.obj['cuda_device'])
 
