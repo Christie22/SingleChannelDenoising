@@ -34,13 +34,15 @@ class AEModelFactory(object):
     def gen_arch(self): 
         # ordered processing: every step is considered as a layer; the layers are ordered; 
         # the type of layer is now at the lowest level of the structure, along with the other params.
-        print('[m] Just entered gen_ENcoder')
+        print('[m] Just entered gen_arch')
         # print('architecture: {}'.format(self.architecture))
 
         inputs = Input(shape=self.input_shape)
 
+        dict_layers = {'conv': Conv2D, 'dense': Dense, 'batch': BatchNormalization, 'dropout': Dropout, 'flat': Flatten}
+
         # n_layers = encoder['n_layers']
-        all_layers = np.array([typ for typ in encoder]) #ex: Layer1, Layer2, Layer3
+        all_layers = np.array([layer for layer in self.architecture]) #ex: Layer1, Layer2, Layer3
         # nb_layers = all_layers.shape
         print(type(all_layers))
 
@@ -48,7 +50,7 @@ class AEModelFactory(object):
             # print(type(all_layers))
             # print(i)
             print(layer) # layer = 'Layer'+str(i)
-            attr = encoder[layer]
+            attr = self.architecture[layer]
             # print('2. attr: {}'.format(attr))
             type_layer = attr['type_layer']
             print(type_layer)
