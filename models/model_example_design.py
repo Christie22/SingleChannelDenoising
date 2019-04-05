@@ -45,6 +45,7 @@ class AEModelFactory(object):
         # nb_layers = all_layers.shape
         print(type(all_layers))
 
+        conv_shape = 0
         for i, layer in enumerate(all_layers):
             # print(i)
             print(layer) # layer = 'Layer'+str(i)
