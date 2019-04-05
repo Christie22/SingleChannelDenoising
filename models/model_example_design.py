@@ -57,7 +57,7 @@ class AEModelFactory(object):
             x = inputs if i==0 else x # init 
             # print(dict_layers[layer_type])
             # print(type(dict_layers[layer_type]))
-            x = dict_layers[layer_type](**attr)
+            x = dict_layers[layer_type](**attr)(x)
             print('[m], '+str(i) +', x: {}'.format(x))
 
             #calculate 'conv_shape'each time we compute this special type of layer even though we need only the last occurrence:
