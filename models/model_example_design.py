@@ -13,7 +13,7 @@ class AEModelFactory(object):
     def __init__(
             self,
             input_shape,
-            architecturem
+            architecture,
             time_slice):
         self.input_shape = input_shape
         self.architecture = architecture
