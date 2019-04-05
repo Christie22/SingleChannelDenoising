@@ -13,14 +13,16 @@ class AEModelFactory(object):
     def __init__(
             self,
             input_shape,
-            architecture):
+            architecturem
+            time_slice):
         self.input_shape = input_shape
         self.architecture = architecture
+        self.time_slice = time_slice
         self._arch= None
         self._model= None
 
     @staticmethod
-    def get_lossfunc():
+    def get_lossfunc(self):
         def lossfunc(x_true, x_pred):
             return K.mean(K.square(x_true - x_pred))
         return lossfunc
