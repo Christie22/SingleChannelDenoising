@@ -43,7 +43,7 @@ class AEModelFactory(object):
 
         all_layers = np.array([layer for layer in self.architecture]) #ex: Layer1, Layer2, Layer3
         # nb_layers = all_layers.shape
-        print('[m] '+type(all_layers))
+        print(type(all_layers))
 
         for i, layer in enumerate(all_layers):
             # print(i)
@@ -52,10 +52,8 @@ class AEModelFactory(object):
             attr = layer['layer_args']
             print('[m] 20. layer_type: {}'.format(layer_type))
             print('[m] 21. attr: {}'.format(attr))
-            print('[m] '+layer_type)
-            print('[m] '+type(layer_type))
-            # print('1. layers: {}'.format(layer_type))
-            #del attr['type_layer']
+            # print('[m] '+layer_type)
+            # print('[m] '+type(layer_type))
             if i==0: # init 
                 x = eval(layer_type + '(**attr)(inputs)' )
                 print('[m] +3. x: {}'.format(x))
