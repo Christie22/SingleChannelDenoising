@@ -52,16 +52,15 @@ class AEModelFactory(object):
             attr = layer['layer_args']
             print('[m] 20. layer_type: {}'.format(layer_type))
             print('[m] 21. attr: {}'.format(attr))
-            # print('[m] '+layer_type)
-            # print('[m] '+type(layer_type))
+
             x = inputs if i==0 else x # init 
-            print(dict_layers[layer_type])
-            print(type(dict_layers[layer_type]))
+            # print(dict_layers[layer_type])
+            # print(type(dict_layers[layer_type]))
             x = dict_layers[layer_type](**attr)
             print('[m], '+str(i) +', x: {}'.format(x))
 
             #calculate 'conv_shape'each time we compute this special type of layer even though we need only the last occurrence:
-            self.conv_shape = K.int_shape(x) if layer_type == 'Conv2D' else self.conv_shape
+            conv_shape = K.int_shape(x) if layer_type == 'Conv2D' else conv_shape
         self._arch = Model(inputs, x)
         #self._encoder.summary()
         self._arch.name = 'arch'
