@@ -131,7 +131,7 @@ def train(model_source, dataset_path,
         TerminateOnNaN(),
         # save logs for tensorboard
         TensorBoard(
-            histogram_freq=5,
+            #histogram_freq=5,
             batch_size=batch_size,
             write_graph=True,
             write_grads=True,
