@@ -53,9 +53,10 @@ def load_autoencoder_model(model_path, custom_objects=None):
     print('[u] Loading autoencoder model from {}'.format(model_path))
     model = load_model(model_path, custom_objects=custom_objects)
     # extract encoder from main model
-    encoder = model.get_layer('encoder')
-    decoder = model.get_layer('decoder')
-    return encoder, decoder, model
+    #encoder = model.get_layer('encoder')
+    #decoder = model.get_layer('decoder')
+    # NOTE compatibility sake
+    return None, None, model
 
 
 def load_autoencoder_lossfunc(time_slice):

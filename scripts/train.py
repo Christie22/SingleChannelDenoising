@@ -114,8 +114,8 @@ def train(model_source, dataset_path,
     # compile model (loss function must be set in the model class)
     model.compile(optimizer='adam', loss=lossfunc)
     # print model summaries
-    model.get_layer('encoder').summary()
-    model.get_layer('decoder').summary()
+    #model.get_layer('encoder').summary()
+    #model.get_layer('decoder').summary()
     model.summary()
 
     # training callback functions
