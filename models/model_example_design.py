@@ -1,6 +1,6 @@
 # Example of convolutional autoencoder model
 
-from keras.layers import Input, Dense, Conv2D, Conv2DTranspose, MaxPool2D, BatchNormalization, Flatten, Reshape, Dropout
+from keras.layers import Input, Dense, Conv2D, Conv2DTranspose, MaxPool2D, BatchNormalization, Flatten, Reshape, Dropout, Activation
 from keras.models import Model
 from keras import backend as K
 import numpy as np
@@ -10,6 +10,16 @@ import numpy as np
 # TODO; see how to integrate n_intermediate_dim & n_latent_dim
 # model
 class AEModelFactory(object):
+    dict_layers = {
+        'conv': Conv2D,
+        'convt': Conv2DTranspose,
+        'dense': Dense,
+        'activation': Activation,
+        'batchnorm': BatchNormalization,
+        'dropout': Dropout,
+        'flatten': Flatten,
+        'reshape': Reshape
+    }
     def __init__(
             self,
             input_shape,
@@ -18,6 +28,7 @@ class AEModelFactory(object):
         self.architecture = architecture
         self._arch= None
         self._model= None
+
 
     @staticmethod
     def get_lossfunc(time_slice):
@@ -34,32 +45,38 @@ class AEModelFactory(object):
     def gen_arch(self): 
         # ordered processing: every step is considered as a layer; the layers are ordered; 
         # the type of layer is now at the lowest level of the structure, along with the other params.
-        print('[m] Just entered gen_arch')
-        # print('architecture: {}'.format(self.architecture))
 
+        x = None
         inputs = Input(shape=self.input_shape)
+        print(inputs)
+        print(K.int_shape(inputs))
+        conv_shape = np.zeros(K.int_shape(inputs)[1:])
 
-        dict_layers = {'conv': Conv2D, 'dense': Dense, 'batch': BatchNormalization, 'dropout': Dropout, 'flat': Flatten}
-
-        all_layers = np.array([layer for layer in self.architecture]) 
-        # nb_layers = all_layers.shape
-        print(type(all_layers))
-
-        conv_shape = 0
-        for i, layer in enumerate(all_layers):
-            # print(i)
-            print(layer) # layer = 'Layer'+str(i)
+        for layer in self.architecture:
+            # get layer data
             layer_type = layer['layer_type']
-            attr = layer['layer_args']
-            # print('[m] 20. layer_type: {}'.format(layer_type))
-            # print('[m] 21. attr: {}'.format(attr))
+            layer_args = layer['layer_args']
 
-            x = inputs if i==0 else x # init 
-            # print(dict_layers[layer_type])
-            x = dict_layers[layer_type](**attr)(x)
+            # use conv_shape if needed
+            if layer_type == 'dense' and layer_args['units'] == - 1:
+                layer_args['units'] = np.prod(conv_shape)
+            if layer_type == 'reshape' and layer_args['target_shape'] == - 1:
+                layer_args['target_shape'] = conv_shape
 
-            #calculate 'conv_shape'each time we compute this special type of layer even though we need only the last occurrence:
-            conv_shape = K.int_shape(x) if layer_type == 'Conv2D' else conv_shape
+            # debug info
+            print('[] adding layer: {}  -  {}'.format(layer_type, layer_args))
+
+            # if first layer, use input
+            if x is None:
+                x = inputs
+
+            # declare layer with functional API
+            x = AEModelFactory.dict_layers[layer_type](**layer_args)(x)
+
+            # calculate shape each time we compute this special type of layer even though we need only the last occurrence:
+            if layer_type == 'conv':
+                conv_shape = K.int_shape(x)[1:]
+
         self._arch = Model(inputs, x)
         #self._encoder.summary()
         self._arch.name = 'arch'
@@ -67,8 +84,9 @@ class AEModelFactory(object):
 
     def gen_model(self):
         self.gen_arch()
-        # TODO can we do something like here?
-        # https://github.com/keras-team/keras/blob/master/examples/variational_autoencoder.py#L159
-        x_true = Input(shape=self.input_shape, name='input')
-        x_pred = self._arch(x_true)
-        self._model = Model(inputs=[x_true], outputs=[x_pred])
+        # NOTE no need to wrap model into another model
+        #x_true = Input(shape=self.input_shape, name='input')
+        #x_pred = self._arch(x_true)
+        #self._model = Model(inputs=[x_true], outputs=[x_pred])
+        # NOTE this is for compatibility sake
+        self._model = self._arch
