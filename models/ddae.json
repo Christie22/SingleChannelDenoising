@@ -1,0 +1,93 @@
+{
+    "architecture": [{
+            "layer_type": "dense",
+            "layer_args": {
+                "units": 2048
+            }
+        },
+        {
+            "layer_type": "elu",
+            "layer_args": {}
+        },
+        {
+            "layer_type": "dropout",
+            "layer_args": {
+                "rate": 0.05
+            }
+        },
+        {
+            "layer_type": "dense",
+            "layer_args": {
+                "units": 2048
+            }
+        },
+        {
+        "layer_type": "elu",
+        "layer_args": {}
+        },
+        {
+            "layer_type": "dropout",
+            "layer_args": {
+                "rate": 0.05
+            }
+        },
+        {
+            "layer_type": "dense",
+            "layer_args": {
+                "units": 2048
+            }
+        },
+        {
+            "layer_type": "elu",
+            "layer_args": {}
+        },
+        {
+            "layer_type": "dropout",
+            "layer_args": {
+                "rate": 0.05
+            }
+        },
+        {
+            "layer_type": "dense",
+            "layer_args": {
+                "units": 2048
+            }
+        },
+        {
+            "layer_type": "elu",
+            "layer_args": {}
+        },
+        {
+            "layer_type": "dropout",
+            "layer_args": {
+                "rate": 0.05
+            }
+        },
+        {
+            "layer_type": "dense",
+            "layer_args": {
+                "units": 2048
+            }
+        },
+        {
+            "layer_type": "elu",
+            "layer_args": {}
+        },
+        {
+            "layer_type": "dropout",
+            "layer_args": {
+                "rate": 0.05
+            }
+        },
+        {
+            "layer_type": "dense",
+            "layer_args": {
+                "units": 257
+            }
+        }
+    ],
+    "_meta": {
+        "source": "https://github.com/jerrygood0703/DDAE",
+        "descr": "A test model from the internet"
+    }
+}
