@@ -1,9 +1,10 @@
 # Example of convolutional autoencoder model
 
 from keras.layers import Input, Dense, \
-    Conv2D, Conv2DTranspose, \
+        Conv1D, Conv2D, Conv2DTranspose, \
         MaxPool2D, BatchNormalization, \
-        Flatten, Reshape, Dropout, Activation, ELU, \
+        Flatten, Reshape, Permute, \
+        Dropout, Activation, ELU, \
         LSTM, ConvLSTM2D, GRU
 from keras.models import Model
 from keras import backend as K
@@ -15,16 +16,18 @@ import numpy as np
 # model
 class AEModelFactory(object):
     dict_layers = {
-        'conv': Conv2D,
-        'convt': Conv2DTranspose,
+        'conv1d': Conv1D,
+        'conv2d': Conv2D,
+        'conv2dt': Conv2DTranspose,
         'dense': Dense,
         'activation': Activation,
         'batchnorm': BatchNormalization,
         'dropout': Dropout,
         'flatten': Flatten,
         'reshape': Reshape,
+        'permute': Permute,
         'lstm': LSTM,
-        'lstmconv': ConvLSTM2D,
+        'lstmconv2d': ConvLSTM2D,
         'gru': GRU,
         'elu': ELU
     }
@@ -56,8 +59,6 @@ class AEModelFactory(object):
 
         x = None
         inputs = Input(shape=self.input_shape)
-        print(inputs)
-        print(K.int_shape(inputs))
         conv_shape = np.zeros(K.int_shape(inputs)[1:])
 
         for layer in self.architecture:
