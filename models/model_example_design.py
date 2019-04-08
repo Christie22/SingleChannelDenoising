@@ -4,7 +4,7 @@ from keras.layers import Input, Dense, \
     Conv2D, Conv2DTranspose, \
         MaxPool2D, BatchNormalization, \
         Flatten, Reshape, Dropout, Activation, ELU, \
-        LSTM, ConvLSTM2D
+        LSTM, ConvLSTM2D, GRU
 from keras.models import Model
 from keras import backend as K
 import numpy as np
@@ -25,6 +25,7 @@ class AEModelFactory(object):
         'reshape': Reshape,
         'lstm': LSTM,
         'lstmconv': ConvLSTM2D,
+        'gru': GRU,
         'elu': ELU
     }
     def __init__(
@@ -40,7 +41,7 @@ class AEModelFactory(object):
     @staticmethod
     def get_lossfunc(time_slice):
         def lossfunc(x_true, x_pred):
-            return K.mean(K.square(x_true - x_pred))
+            return K.mean(K.square(x_true[..., time_slice, :] - x_pred[..., time_slice, :]))
         return lossfunc
 
     def get_model(self):
