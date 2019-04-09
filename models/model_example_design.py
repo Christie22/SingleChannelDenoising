@@ -1,7 +1,6 @@
 # Example of convolutional autoencoder model
 
 from keras.layers import Input, Dense, \
-    #Conv1D, Conv1DTranspose, \
     Conv2D, Conv2DTranspose, \
     MaxPool2D, BatchNormalization, \
     Flatten, Permute, Reshape, Dropout, \
@@ -18,7 +17,6 @@ import numpy as np
 class AEModelFactory(object):
     dict_layers = {
         'conv2d': Conv2D,'conv2dt': Conv2DTranspose,
-        #'conv1d': Conv1D, 'conv1dt': Conv1DTranspose,
         'dense': Dense, 
         'activation': Activation,'batchnorm': BatchNormalization,
         'dropout': Dropout,'flatten': Flatten, 
