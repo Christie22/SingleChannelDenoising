@@ -15,18 +15,15 @@ import numpy as np
 # model
 class AEModelFactory(object):
     dict_layers = {
-        'conv': Conv2D,
-        'convt': Conv2DTranspose,
-        'dense': Dense,
-        'activation': Activation,
-        'batchnorm': BatchNormalization,
-        'dropout': Dropout,
-        'flatten': Flatten,
-        'reshape': Reshape,
-        'lstm': LSTM,
-        'lstmconv': ConvLSTM2D,
+        'conv2d': Conv2D,'conv2dt': Conv2DTranspose,
+        'conv1d': Conv1D, 'conv1dt': Conv1DTranspose
+        'dense': Dense, 
+        'activation': Activation,'batchnorm': BatchNormalization,
+        'dropout': Dropout,'flatten': Flatten, 
+        'reshape': Reshape,'permute':Permute,
+        'lstm': LSTM, 'lstmconv': ConvLSTM2D,
         'gru': GRU,
-        'elu': ELU
+        'elu': ELU, 'relu':ReLU
     }
     def __init__(
             self,
@@ -82,7 +79,7 @@ class AEModelFactory(object):
             x = AEModelFactory.dict_layers[layer_type](**layer_args)(x)
 
             # calculate shape each time we compute this special type of layer even though we need only the last occurrence:
-            if layer_type == 'conv':
+            if layer_type == 'conv2d' or layer_type == 'conv1d':
                 conv_shape = K.int_shape(x)[1:]
 
         self._arch = Model(inputs, x)
