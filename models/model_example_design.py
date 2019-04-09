@@ -4,7 +4,7 @@ from keras.layers import Input, Dense, \
     Conv2D, Conv2DTranspose, \
     MaxPool2D, BatchNormalization, \
     Flatten, Permute, Reshape, Dropout, \
-    Activation, ELU, ReLU, \
+    Activation, ELU, \
     LSTM, ConvLSTM2D, GRU
 from keras.models import Model
 from keras import backend as K
@@ -23,7 +23,7 @@ class AEModelFactory(object):
         'reshape': Reshape,'permute':Permute,
         'lstm': LSTM, 'lstmconv': ConvLSTM2D,
         'gru': GRU,
-        'elu': ELU, 'relu':ReLU
+        'elu': ELU,
     }
     def __init__(
             self,
