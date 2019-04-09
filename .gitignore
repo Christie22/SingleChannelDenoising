@@ -8,4 +8,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+notebooks/.ipynb_checkpoints
+
 notes/03_27.md

@@ -1,0 +1,53 @@
+{
+    "architecture": [{
+            "layer_type": "permute",
+            "layer_args": {
+                "dims": [2, 1, 3]
+            }
+        }, {
+            "layer_type": "reshape",
+            "layer_args": {
+                "target_shape": [16, -1]
+            }
+        }, {
+            "layer_type": "lstm",
+            "layer_args": {
+                "units": 256,
+                "return_sequences": true
+            }
+        }, {
+            "layer_type": "lstm",
+            "layer_args": {
+                "units": 32,
+                "return_sequences": true
+            }
+        },
+
+        {
+            "layer_type": "lstm",
+            "layer_args": {
+                "units": 32,
+                "return_sequences": true
+            }
+        }, {
+            "layer_type": "lstm",
+            "layer_args": {
+                "units": 256,
+                "return_sequences": true
+            }
+        }, {
+            "layer_type": "reshape",
+            "layer_args": {
+                "target_shape": [16, -1, 1]
+            }
+        }, {
+            "layer_type": "permute",
+            "layer_args": {
+                "dims": [2, 1, 3]
+            }
+        }
+    ],
+    "_meta": {
+        "descr": "home-breqed lstm network"
+    }
+}
