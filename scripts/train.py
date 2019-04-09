@@ -7,7 +7,7 @@ import pickle
 import numpy as np
 import pandas as pd
 from keras import backend as K
-from keras.callbacks import EarlyStopping, ModelCheckpoint, TerminateOnNaN, TensorBoard
+from keras.callbacks import EarlyStopping, ModelCheckpoint, TerminateOnNaN, TensorBoard, ReduceLROnPlateau
 from sklearn.model_selection import train_test_split
 
 # custom modules
@@ -136,7 +136,13 @@ def train(model_source, dataset_path,
             write_graph=True,
             write_grads=True,
             write_images=True
-        )
+        ),
+        ReduceLROnPlateau(
+            monitor='val_loss',
+            factor=0.2,
+            patience=5,
+            min_lr=0,
+            verbose=1)
     ]
 
     # train model

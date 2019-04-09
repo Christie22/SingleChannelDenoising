@@ -126,7 +126,8 @@ def normalize_spectrum(s):
 
 
 def normalize_spectrum_clean(s, norm_factor):
-    return s / norm_factor
+    s_avg = np.mean(s)
+    return (s - s_avg) / norm_factor
 
 def unnormalize_spectrum(s, norm_factor):
     return s * norm_factor

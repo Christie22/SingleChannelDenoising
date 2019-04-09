@@ -23,3 +23,6 @@
 ## Tensorflow
 - computing spectrograms with TF https://carlthome.github.io/posts/reading-audio-files-and-computing-spectrograms-with-tf.data%20/
 - phase estimation algo https://carlthome.github.io/posts/signal-reconstruction-from-spectrograms%20/
+
+## Audio on jupyter
+- audio input and playback http://www.eas.uccs.edu/~mwickert/ece5650/notes/IPython/Audio_Record_Playback.pdf
