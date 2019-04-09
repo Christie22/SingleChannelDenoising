@@ -2,7 +2,7 @@
     "architecture": [{
             "layer_type": "permute",
             "layer_args": {
-             	"dims": (2,1)
+             	"dims": [2,1]
             }
         },
         {
@@ -22,8 +22,7 @@
              "layer_type": "dense",
              "layer_args": {
                  "units": 2048
-            }
-                
+            }                
          }
     ],
     "_meta": {
