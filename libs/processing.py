@@ -122,15 +122,15 @@ def reim_to_s(reim):
 def normalize_spectrum(s):
     s_std = np.std(s)
     s_avg = np.mean(s)
-    return (s - s_avg) / s_std, s_std
+    return (s - s_avg) / s_std, (s_avg, s_std)
 
+def normalize_spectrum_clean(s, norm_factors):
+    s_avg, s_std = norm_factors
+    return (s - s_avg) / s_std
 
-def normalize_spectrum_clean(s, norm_factor):
-    s_avg = np.mean(s)
-    return (s - s_avg) / norm_factor
-
-def unnormalize_spectrum(s, norm_factor):
-    return s * norm_factor
+def unnormalize_spectrum(s, norm_factors):
+    s_avg, s_std = norm_factors
+    return (s * s_std) + s_avg
 
 
 ### NOISING FUNCTIONS  
