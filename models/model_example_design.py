@@ -1,9 +1,11 @@
 # Example of convolutional autoencoder model
 
 from keras.layers import Input, Dense, \
+    Conv1D, Conv1DTranspose, \
     Conv2D, Conv2DTranspose, \
         MaxPool2D, BatchNormalization, \
-        Flatten, Reshape, Dropout, Activation, ELU, \
+        Flatten, Permute, Reshape, Dropout, \
+        Activation, ELU, ReLU, \
         LSTM, ConvLSTM2D, GRU
 from keras.models import Model
 from keras import backend as K
