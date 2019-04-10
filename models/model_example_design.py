@@ -80,7 +80,7 @@ class AEModelFactory(object):
         # store some initial values
         x = None
         inputs = Input(shape=self.input_shape)
-        conv_shape = np.zeros(K.int_shape(inputs)[1:])
+        conv_shape = np.zeros(len(K.int_shape(inputs)[1:]), dtype=int)
 
         for layer in self._architecture:
             # get layer data
@@ -104,7 +104,7 @@ class AEModelFactory(object):
             x = AEModelFactory.dict_layers[layer_type](**layer_args)(x)
 
             # calculate shape each time we compute this special type of layer even though we need only the last occurrence:
-            if layer_type == 'conv':
+            if layer_type == 'conv2d':
                 conv_shape = K.int_shape(x)[1:]
 
         self._model = Model(inputs, x)
