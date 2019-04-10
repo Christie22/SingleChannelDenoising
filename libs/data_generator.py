@@ -5,7 +5,6 @@
 
 import os
 import glob
-import hashlib
 import itertools
 import keras
 import librosa as lr
@@ -16,6 +15,7 @@ from scipy.signal import fftconvolve
 from tqdm import tqdm
 
 from libs.processing import make_fragments, normalize_spectrum, normalize_spectrum_clean
+from libs.utilities import hash_args
 
 
 class DataGenerator(keras.utils.Sequence):
@@ -38,7 +38,7 @@ class DataGenerator(keras.utils.Sequence):
         # dataset cfg
         self.filepaths = filepaths
         self.cache_path = osp.expanduser(cache_path) if cache_path else osp.join(
-            osp.dirname(filepaths[0]), 'cache_{}'.format(self.hash_args(proc_args)))
+            osp.dirname(filepaths[0]), 'cache_{}'.format(hash_args(proc_args)))
         self.sr = sr
         # reverberation cfg
         self.rir_path = osp.expanduser(rir_path) if rir_path else None
@@ -92,13 +92,6 @@ class DataGenerator(keras.utils.Sequence):
             lr.frames_to_time(frag_hop_length, sr=sr, n_fft=win_length, hop_length=hop_length)*1e3))
         print('[d] Fragment length (frag_win_length) (ms): {:.0f}'.format(
             lr.frames_to_time(frag_win_length, sr=sr, n_fft=win_length, hop_length=hop_length)*1e3))
-
-    # calcualate md5 hash of input arguments
-    def hash_args(self, args):
-        m = hashlib.md5()
-        for x in args:
-            m.update(str(x).encode())
-        return m.hexdigest()[:6]
 
     # load list of RIR files
     def load_rirs(self):
@@ -169,7 +162,7 @@ class DataGenerator(keras.utils.Sequence):
                         self.fragments_x.append(frag_path)
         # done
         self.fragments_std = np.empty(
-            (len(self.fragments_x) // self.batch_size, self.batch_size))
+            (len(self.fragments_x) // self.batch_size, self.batch_size, 2))
         print('[d] Cache ready, generated {} noisy and {} clean fragments of shape {}'.format(
             len(self.fragments_x), len(self.fragments_y), self.data_shape))
 
@@ -203,7 +196,7 @@ class DataGenerator(keras.utils.Sequence):
         self._data_shape = np.load(frag_path).shape
         # done
         self.fragments_std = np.empty(
-            (len(self.fragments_x) // self.batch_size, self.batch_size))
+            (len(self.fragments_x) // self.batch_size, self.batch_size, 2))
         print('[d] Cache ready, indexed {} noisy and {} clean fragments of shape {}'.format(
             len(self.fragments_x), len(self.fragments_y), self.data_shape))
 
@@ -269,11 +262,11 @@ class DataGenerator(keras.utils.Sequence):
             frag = np.load(filepath)
             #print('[d] loading file {}'.format(filepath))
             # apply normalization
-            frag_normalized, frag_std = normalize_spectrum(frag)
+            frag_normalized, frag_norm_factors = normalize_spectrum(frag)
             # store data
             x[i, ] = frag_normalized
             # store normalization factor [batch_index, element_index]
-            self.fragments_std[index, i] = frag_std
+            self.fragments_std[index, i] = frag_norm_factors
 
         # handle labels
         if self.label_type == 'clean':
@@ -287,8 +280,8 @@ class DataGenerator(keras.utils.Sequence):
                 filepath_y = osp.join(basedir, 'clean', proc_str, filename)
                 # load data
                 clean_frag = np.load(filepath_y)
-                norm_factor = self.fragments_std[index, i]
-                y[i, ] = normalize_spectrum_clean(clean_frag, norm_factor) 
+                norm_factors = self.fragments_std[index, i]
+                y[i, ] = normalize_spectrum_clean(clean_frag, norm_factors) 
                 
         elif self.label_type == 'x':
             y = x

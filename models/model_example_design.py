@@ -12,6 +12,8 @@ from keras.layers import Input, Dense, \
 from keras.models import Model
 from keras import backend as K
 
+from libs.utilities import hash_args
+
 
 # model factory class
 class AEModelFactory(object):
@@ -45,7 +47,7 @@ class AEModelFactory(object):
         if osp.splitext(arch_path)[1] == '.jsont':
             str_data = self.process_template(str_data, **template_args)
         # store data as dict
-        self._architecture = json.load(str_data)['architecture']
+        self._architecture = json.loads(str_data)['architecture']
 
     def process_template(self, str_data, **kwargs):
         print('[m] Processing template...')
@@ -106,5 +108,4 @@ class AEModelFactory(object):
                 conv_shape = K.int_shape(x)[1:]
 
         self._model = Model(inputs, x)
-        self._model.name = 'model'
-
+        self._model.name = hash_args(self._architecture)

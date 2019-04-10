@@ -135,6 +135,7 @@ def train(model_source, dataset_path,
         TerminateOnNaN(),
         # save logs for tensorboard
         TensorBoard(
+            log_dir='logs/model_{}/'.format(model.name),
             #histogram_freq=5,
             batch_size=batch_size,
             write_graph=True,

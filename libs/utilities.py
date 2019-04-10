@@ -3,6 +3,8 @@
 ### Libs
 import os
 import glob
+import hashlib
+
 import pandas as pd
 import numpy as np
 import librosa as lr
@@ -57,3 +59,11 @@ def load_autoencoder_lossfunc(time_slice):
     from models.model_example import AEModelFactory
     # return loss function
     return AEModelFactory.get_lossfunc(time_slice)
+
+
+# calcualate md5 hash of input arguments
+def hash_args(args):
+    m = hashlib.md5()
+    for x in args:
+        m.update(str(x).encode())
+    return m.hexdigest()[:6]
