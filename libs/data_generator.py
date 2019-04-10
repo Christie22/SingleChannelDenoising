@@ -169,7 +169,7 @@ class DataGenerator(keras.utils.Sequence):
                         self.fragments_x.append(frag_path)
         # done
         self.fragments_std = np.empty(
-            (len(self.fragments_x) // self.batch_size, self.batch_size))
+            (len(self.fragments_x) // self.batch_size, self.batch_size, 2))
         print('[d] Cache ready, generated {} noisy and {} clean fragments of shape {}'.format(
             len(self.fragments_x), len(self.fragments_y), self.data_shape))
 
@@ -203,7 +203,7 @@ class DataGenerator(keras.utils.Sequence):
         self._data_shape = np.load(frag_path).shape
         # done
         self.fragments_std = np.empty(
-            (len(self.fragments_x) // self.batch_size, self.batch_size))
+            (len(self.fragments_x) // self.batch_size, self.batch_size, 2))
         print('[d] Cache ready, indexed {} noisy and {} clean fragments of shape {}'.format(
             len(self.fragments_x), len(self.fragments_y), self.data_shape))
 
