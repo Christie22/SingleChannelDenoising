@@ -60,7 +60,8 @@ def train(model_source, dataset_path,
         # general cfg
         'shuffle': True,
         'normalize': 'batch',
-        'label_type': 'local',
+        'label_type': 'clean',
+        'normalize': 'local',
         'batch_size': batch_size,
         'force_cacheinit': force_cacheinit,
     }
