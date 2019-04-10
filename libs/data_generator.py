@@ -68,7 +68,7 @@ class DataGenerator(keras.utils.Sequence):
         # cached vars
         self.fragments_x = None
         self.fragments_y = None
-        self.norm_factors = None
+        self._norm_factors = None
         self.indexes = []
         # setup cache
         if force_cacheinit or not osp.exists(self.cache_path):
@@ -108,10 +108,10 @@ class DataGenerator(keras.utils.Sequence):
     def init_norm_factors(self):
         # initialize norm_factor depending on normalization mode
         if self.normalize == 'local':
-            self.norm_factors = np.empty(
+            self._norm_factors = np.empty(
                 (len(self.fragments_x) // self.batch_size, self.batch_size, 2))
         elif self.normalize == 'batch':
-            self.norm_factors = np.empty((self.batch_size, 2))
+            self._norm_factors = np.empty((self.batch_size, 2))
 
     # init cache
     def init_cache(self):
@@ -273,14 +273,14 @@ class DataGenerator(keras.utils.Sequence):
                 # store data
                 x[i, ] = frag_normalized
                 # store normalization factor [batch_index, element_index]
-                self.norm_factors[index, i] = frag_norm_factors
+                self._norm_factors[index, i] = frag_norm_factors
             else:
                 x[i, ] = frag
 
         # normalize data globally and store norm factors
         if self.normalize == 'batch':
             x, norm_factors = normalize_spectrum(x)
-            self.norm_factors[index] = norm_factors
+            self._norm_factors[index] = norm_factors
 
         # handle labels
         if self.label_type == 'clean':
@@ -294,7 +294,7 @@ class DataGenerator(keras.utils.Sequence):
                 filepath_y = osp.join(basedir, 'clean', proc_str, filename)
                 # load data
                 clean_frag = np.load(filepath_y)
-                norm_factors = self.norm_factors[index, i]
+                norm_factors = self._norm_factors[index, i]
                 # normalize labels individually using params from noisy data
                 if self.normalize == 'local':
                     y[i, ] = normalize_spectrum_clean(clean_frag, norm_factors) 
@@ -321,7 +321,7 @@ class DataGenerator(keras.utils.Sequence):
     # return normalization factors
     @property 
     def norm_factors(self):
-        return self.norm_factors
+        return self._norm_factors
 
     # return number of individual audio fragments
     @property
