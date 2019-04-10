@@ -25,7 +25,7 @@ class DataGenerator(keras.utils.Sequence):
                  n_fft=512, hop_length=128, win_length=512,
                  proc_func=None, proc_func_label=None,
                  frag_hop_length=64, frag_win_length=32,
-                 shuffle=True, label_type='clean', batch_size=32, force_cacheinit=False):
+                 shuffle=True, normalize=False, label_type='clean', batch_size=32, force_cacheinit=False):
         # arguments for chache folder hash
         proc_args = tuple([
             sr,
@@ -57,6 +57,7 @@ class DataGenerator(keras.utils.Sequence):
         self.frag_win_length = frag_win_length
         # general cfg
         self.shuffle = shuffle
+        self.normalize = normalize
         self.label_type = label_type
         self.batch_size = batch_size
         # computed vars
@@ -261,12 +262,16 @@ class DataGenerator(keras.utils.Sequence):
             # load data
             frag = np.load(filepath)
             #print('[d] loading file {}'.format(filepath))
-            # apply normalization
-            frag_normalized, frag_norm_factors = normalize_spectrum(frag)
-            # store data
-            x[i, ] = frag_normalized
-            # store normalization factor [batch_index, element_index]
-            self.fragments_std[index, i] = frag_norm_factors
+            if self.normalize:
+                # apply normalization
+                frag_normalized, frag_norm_factors = normalize_spectrum(frag)
+                # store data
+                x[i, ] = frag_normalized
+                # store normalization factor [batch_index, element_index]
+                self.fragments_std[index, i] = frag_norm_factors
+            else:
+                # store data
+                x[i, ] = frag
 
         # handle labels
         if self.label_type == 'clean':
@@ -281,7 +286,11 @@ class DataGenerator(keras.utils.Sequence):
                 # load data
                 clean_frag = np.load(filepath_y)
                 norm_factors = self.fragments_std[index, i]
-                y[i, ] = normalize_spectrum_clean(clean_frag, norm_factors) 
+                # normalize labels using params from noisy data
+                if self.normalize:
+                    y[i, ] = normalize_spectrum_clean(clean_frag, norm_factors) 
+                else:
+                    y[i, ] = clean_frag
                 
         elif self.label_type == 'x':
             y = x
