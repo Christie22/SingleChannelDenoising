@@ -15,8 +15,6 @@ import matplotlib.pyplot as plt
 from scipy.stats import norm
 from scipy.io.wavfile import read
 
-from models.model_example_design import AEModelFactory
-
 
 def load_dataset(dataset_path):
     # TODO implement actual data handling
@@ -37,6 +35,7 @@ def create_autoencoder_model(model_source, input_shape, template_args, **kwargs)
     # calc input shape and enforce it
     K.set_image_data_format('channels_last')
     # generate model
+    from models.model_example_design import AEModelFactory
     obj = AEModelFactory(
         input_shape, model_source, template_args)
     model = obj.get_model()
