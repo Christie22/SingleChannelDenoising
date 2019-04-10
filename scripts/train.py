@@ -77,7 +77,8 @@ def train(model_source, dataset_path,
     #time_slice = frag_win_length // 2
     input_shape = training_generator.data_shape
     model_template_args = {
-        'input_shape': list(input_shape)
+        'time': input_shape[1],
+        'channels': input_shape[2]
     }
     time_slice = slice(None)
 
@@ -143,7 +144,7 @@ def train(model_source, dataset_path,
         ReduceLROnPlateau(
             monitor='val_loss',
             factor=0.2,
-            patience=5,
+            patience=3,
             min_lr=0,
             verbose=1)
     ]

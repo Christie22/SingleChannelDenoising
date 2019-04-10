@@ -1,0 +1,39 @@
+{
+    "architecture": [{
+            "layer_type": "permute",
+            "layer_args": {
+                "dims": [2, 1, 3]
+            }
+        }, {
+            "layer_type": "reshape",
+            "layer_args": {
+                "target_shape": [{{time}}, -1]
+            }
+        }, {
+            "layer_type": "gru",
+            "layer_args": {
+                "units": 256,
+                "return_sequences": true
+            }
+        }, {
+            "layer_type": "gru",
+            "layer_args": {
+                "units": 256,
+                "return_sequences": true
+            }
+        }, {
+            "layer_type": "reshape",
+            "layer_args": {
+                "target_shape": [{{time}}, -1, {{channels}}]
+            }
+        }, {
+            "layer_type": "permute",
+            "layer_args": {
+                "dims": [2, 1, 3]
+            }
+        }
+    ],
+    "_meta": {
+        "descr": "home-brewed gru network"
+    }
+}
