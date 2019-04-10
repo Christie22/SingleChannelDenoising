@@ -73,11 +73,11 @@ def s_to_power(s):
     # remove a bin if odd number
     if s.shape[0] % 2 != 0:
         s = s[:-1]
-    s_power = np.abs(s) ** 2
+    s_power = np.log10*(np.abs(s) )
     return np.expand_dims(s_power, axis=2)
 
 def power_to_s(power, s_noisy=None):
-    s = np.sqrt(np.abs(power[...,0]))
+    s = 10**np.abs(power[...,0])
     if s_noisy is not None:
         angles = np.angle(s_noisy)
         s = s * np.exp(1j * angles)
