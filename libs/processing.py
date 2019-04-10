@@ -73,7 +73,7 @@ def s_to_power(s):
     # remove a bin if odd number
     if s.shape[0] % 2 != 0:
         s = s[:-1]
-    s_power = np.log10*(np.abs(s) )
+    s_power = np.log10(np.abs(s) )
     return np.expand_dims(s_power, axis=2)
 
 def power_to_s(power, s_noisy=None):
