@@ -70,15 +70,16 @@ def unmake_fragments_slice(s_frag, frag_hop_len, frag_win_len, time_slice):
 ### PRE/POST PROCESSING FUNCTIONS
 # convert complex spectrograms to absolute power spectrum
 def s_to_power(s):
-    # remove a bin if odd number
-    if s.shape[0] % 2 != 0:
-        s = s[:-1]
+    # remove DC if odd number
+    if s.shape[-2] % 2 != 0:
+        s = s[...,:-1,:]
     s_power = np.abs(s) ** 2
-    return np.expand_dims(s_power, axis=2)
+    return s_power[...,np.newaxis]
 
 def power_to_s(power, s_noisy=None):
     s = np.sqrt(np.abs(power[...,0]))
     if s_noisy is not None:
+        s_noisy = s_noisy[..., :-1, :]
         angles = np.angle(s_noisy)
         s = s * np.exp(1j * angles)
     # TODO might require noisy signal as input for phase
