@@ -25,7 +25,7 @@ class DataGenerator(keras.utils.Sequence):
                  n_fft=512, hop_length=128, win_length=512,
                  proc_func=None, proc_func_label=None,
                  frag_hop_length=64, frag_win_length=32,
-                 shuffle=True, normalize=False, label_type='clean', batch_size=32, force_cacheinit=False):
+                 shuffle=True, normalize=None, label_type='clean', batch_size=32, force_cacheinit=False):
         # arguments for chache folder hash
         proc_args = tuple([
             sr,
@@ -68,7 +68,7 @@ class DataGenerator(keras.utils.Sequence):
         # cached vars
         self.fragments_x = None
         self.fragments_y = None
-        self.fragments_std = None
+        self.norm_factors = None
         self.indexes = []
         # setup cache
         if force_cacheinit or not osp.exists(self.cache_path):
@@ -104,6 +104,14 @@ class DataGenerator(keras.utils.Sequence):
             filelist = [None]
             print('[d] Loaded no files')
         return filelist or [None]
+    
+    def init_norm_factors(self):
+        # initialize norm_factor depending on normalization mode
+        if self.normalize == 'local':
+            self.norm_factors = np.empty(
+                (len(self.fragments_x) // self.batch_size, self.batch_size, 2))
+        elif self.normalize == 'batch':
+            self.norm_factors = np.empty((self.batch_size, 2))
 
     # init cache
     def init_cache(self):
@@ -162,8 +170,7 @@ class DataGenerator(keras.utils.Sequence):
                     else:
                         self.fragments_x.append(frag_path)
         # done
-        self.fragments_std = np.empty(
-            (len(self.fragments_x) // self.batch_size, self.batch_size, 2))
+        self.init_norm_factors()
         print('[d] Cache ready, generated {} noisy and {} clean fragments of shape {}'.format(
             len(self.fragments_x), len(self.fragments_y), self.data_shape))
 
@@ -196,8 +203,7 @@ class DataGenerator(keras.utils.Sequence):
         # load last one to get shape
         self._data_shape = np.load(frag_path).shape
         # done
-        self.fragments_std = np.empty(
-            (len(self.fragments_x) // self.batch_size, self.batch_size, 2))
+        self.init_norm_factors()
         print('[d] Cache ready, indexed {} noisy and {} clean fragments of shape {}'.format(
             len(self.fragments_x), len(self.fragments_y), self.data_shape))
 
@@ -261,17 +267,20 @@ class DataGenerator(keras.utils.Sequence):
         for i, filepath in enumerate(filepaths):
             # load data
             frag = np.load(filepath)
-            #print('[d] loading file {}'.format(filepath))
-            if self.normalize:
-                # apply normalization
+            # normalize data individually and store norm factors
+            if self.normalize == 'local':
                 frag_normalized, frag_norm_factors = normalize_spectrum(frag)
                 # store data
                 x[i, ] = frag_normalized
                 # store normalization factor [batch_index, element_index]
-                self.fragments_std[index, i] = frag_norm_factors
+                self.norm_factors[index, i] = frag_norm_factors
             else:
-                # store data
                 x[i, ] = frag
+
+        # normalize data globally and store norm factors
+        if self.normalize == 'batch':
+            x, norm_factors = normalize_spectrum(x)
+            self.norm_factors[index] = norm_factors
 
         # handle labels
         if self.label_type == 'clean':
@@ -285,12 +294,16 @@ class DataGenerator(keras.utils.Sequence):
                 filepath_y = osp.join(basedir, 'clean', proc_str, filename)
                 # load data
                 clean_frag = np.load(filepath_y)
-                norm_factors = self.fragments_std[index, i]
-                # normalize labels using params from noisy data
-                if self.normalize:
+                norm_factors = self.norm_factors[index, i]
+                # normalize labels individually using params from noisy data
+                if self.normalize == 'local':
                     y[i, ] = normalize_spectrum_clean(clean_frag, norm_factors) 
                 else:
                     y[i, ] = clean_frag
+            
+            # normalize labels globally using params from noisy data
+            if self.normalize == 'batch':
+                y = normalize_spectrum_clean(y, norm_factors)
                 
         elif self.label_type == 'x':
             y = x
@@ -308,7 +321,7 @@ class DataGenerator(keras.utils.Sequence):
     # return normalization factors
     @property 
     def norm_factors(self):
-        return self.fragments_std
+        return self.norm_factors
 
     # return number of individual audio fragments
     @property
