@@ -1,5 +1,8 @@
 # Example of convolutional autoencoder model
 
+import json
+import os.path as osp
+import numpy as np
 from keras.layers import Input, Dense, \
         Conv1D, Conv2D, Conv2DTranspose, \
         MaxPool2D, BatchNormalization, \
@@ -8,12 +11,9 @@ from keras.layers import Input, Dense, \
         LSTM, ConvLSTM2D, GRU
 from keras.models import Model
 from keras import backend as K
-import numpy as np
 
-# TODO: change strings of the parsefile into int/floats/whatever is needed.
-# TODO; see how to inject the good constant into Dense layers
-# TODO; see how to integrate n_intermediate_dim & n_latent_dim
-# model
+
+# model factory class
 class AEModelFactory(object):
     dict_layers = {
         'conv1d': Conv1D,
@@ -34,12 +34,30 @@ class AEModelFactory(object):
     def __init__(
             self,
             input_shape,
-            architecture):
+            arch_path,
+            template_args={}):
         self.input_shape = input_shape
-        self.architecture = architecture
-        self._arch= None
         self._model= None
+        # open model arch json file
+        with open(arch_path) as f:
+            str_data = f.read()
+        # if template, process it
+        if osp.splitext(arch_path)[1] == '.jsont':
+            str_data = self.process_template(str_data, **template_args)
+        # store data as dict
+        self._architecture = json.load(str_data)['architecture']
 
+    def process_template(self, str_data, **kwargs):
+        print('[m] Processing template...')
+        # swap single and double curlies
+        str_data = str_data.replace('{{', '__')
+        str_data = str_data.replace('{', '{{')
+        str_data = str_data.replace('__', '{')
+        str_data = str_data.replace('}}', '__')
+        str_data = str_data.replace('}', '}}')
+        str_data = str_data.replace('__', '}')
+        # replace template args
+        return str_data.format(**kwargs)
 
     @staticmethod
     def get_lossfunc(time_slice):
@@ -53,15 +71,16 @@ class AEModelFactory(object):
         return self._model
 
 
-    def gen_arch(self): 
+    def gen_model(self): 
         # ordered processing: every step is considered as a layer; the layers are ordered; 
         # the type of layer is now at the lowest level of the structure, along with the other params.
 
+        # store some initial values
         x = None
         inputs = Input(shape=self.input_shape)
         conv_shape = np.zeros(K.int_shape(inputs)[1:])
 
-        for layer in self.architecture:
+        for layer in self._architecture:
             # get layer data
             layer_type = layer['layer_type']
             layer_args = layer['layer_args']
@@ -73,7 +92,7 @@ class AEModelFactory(object):
                 layer_args['target_shape'] = conv_shape
 
             # debug info
-            print('[] adding layer: {}  -  {}'.format(layer_type, layer_args))
+            print('[m] Adding layer {}  -  {}'.format(layer_type.upper(), layer_args))
 
             # if first layer, use input
             if x is None:
@@ -86,16 +105,6 @@ class AEModelFactory(object):
             if layer_type == 'conv':
                 conv_shape = K.int_shape(x)[1:]
 
-        self._arch = Model(inputs, x)
-        #self._encoder.summary()
-        self._arch.name = 'arch'
+        self._model = Model(inputs, x)
+        self._model.name = 'model'
 
-
-    def gen_model(self):
-        self.gen_arch()
-        # NOTE no need to wrap model into another model
-        #x_true = Input(shape=self.input_shape, name='input')
-        #x_pred = self._arch(x_true)
-        #self._model = Model(inputs=[x_true], outputs=[x_pred])
-        # NOTE this is for compatibility sake
-        self._model = self._arch

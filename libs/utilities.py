@@ -2,23 +2,19 @@
 
 ### Libs
 import os
+import glob
 import pandas as pd
+import numpy as np
+import librosa as lr
 from keras.models import load_model
 from keras import backend as K
-import json
-
-import numpy as np
-from numpy import linalg as LA
 
 import matplotlib.pyplot as plt
 from scipy.stats import norm
 from scipy.io.wavfile import read
-import librosa
-import librosa.display
-import librosa.feature as ftr
-import librosa.onset as onst
-import sys
-import glob
+
+from models.model_example_design import AEModelFactory
+
 
 def load_dataset(dataset_path):
     # TODO implement actual data handling
@@ -29,21 +25,18 @@ def load_dataset(dataset_path):
     return filelist
 
 
-def create_autoencoder_model(model_source, input_shape, **kwargs):
+def create_autoencoder_model(model_source, input_shape, template_args, **kwargs):
     print('[u] Creating autoencoder model from {}'.format(model_source))
-    # import model factory
-    from models.model_example_design import AEModelFactory
-    # load model architecture configuration as dictionary
-    model_architecture = json.load(open(model_source))
     print('[u] Model factory parameters: {}'.format({
-        'model_architecture': model_architecture,
         'input_shape': input_shape,
+        'template_args': template_args,
         **kwargs
     }))
     # calc input shape and enforce it
     K.set_image_data_format('channels_last')
     # generate model
-    obj = AEModelFactory(input_shape, model_architecture['architecture'])
+    obj = AEModelFactory(
+        input_shape, model_source, template_args)
     model = obj.get_model()
     # return model and loss
     return model, AEModelFactory.get_lossfunc(**kwargs)

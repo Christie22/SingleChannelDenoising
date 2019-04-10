@@ -75,6 +75,10 @@ def train(model_source, dataset_path,
     
     # loss function: data slice under consideration
     #time_slice = frag_win_length // 2
+    input_shape = training_generator.data_shape
+    model_template_args = {
+        'input_shape': list(input_shape)
+    }
     time_slice = slice(None)
 
     # set initial epoch to its most obvious value
@@ -95,12 +99,11 @@ def train(model_source, dataset_path,
             osp.basename(model_source))[0].split('_e')[-1])
 
     # if model source is a config file, create model
-    elif model_source_ext == '.json':
+    elif model_source_ext in ['.json', '.jsont']:
         print('[t] Model source is a configuration file!')
         # create stuff
-        input_shape = training_generator.data_shape
         model, lossfunc = create_autoencoder_model(
-            model_source, input_shape, time_slice=time_slice)
+            model_source, input_shape, model_template_args, time_slice=time_slice)
     
     # if model source isn't either, well, *shrugs*
     else:
