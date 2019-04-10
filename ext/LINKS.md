@@ -5,6 +5,8 @@
 - cheatsheet ml https://stanford.edu/~shervine/teaching/cs-229/
 - cheatsheet dnn https://stanford.edu/~shervine/teaching/cs-230/
 - generators https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly
+- batch norm https://towardsdatascience.com/intuit-and-implement-batch-normalization-c05480333c5b
+- brain analogies http://cs231n.github.io/neural-networks-1/?fbclid=IwAR1aPAJhOrIMAB7nwLA3qS6bsE0Nyzkbi1zc3rQZZs9LseoAhug2VBUszsQ
 
 ## Denoising autoencoders
 - https://github.com/TheAILearner/Denoising-Autoencoders-in-Keras
