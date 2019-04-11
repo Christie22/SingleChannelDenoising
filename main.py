@@ -61,7 +61,7 @@ def train(ctx,
           epochs,
           model_destination,
           force_cacheinit):
-    noise_snrs_list = [int(n) for n in noise_snrs.split(' ')]
+    noise_snrs_list = [int(n) for n in noise_snrs.split(',')]
     script_train(model_source,
                  dataset_path,
                  sr,
@@ -107,7 +107,7 @@ def results(ctx,
             frag_hop_length,
             frag_win_length,
             batch_size):
-    noise_snrs_list = [int(n) for n in noise_snrs.split(' ')]
+    noise_snrs_list = [int(n) for n in noise_snrs.split(',')]
     script_results(model_name,
                    model_path,
                    dataset_path,
