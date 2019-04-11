@@ -6,7 +6,11 @@
 - cheatsheet dnn https://stanford.edu/~shervine/teaching/cs-230/
 - generators https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly
 - batch norm https://towardsdatascience.com/intuit-and-implement-batch-normalization-c05480333c5b
-- brain analogies http://cs231n.github.io/neural-networks-1/?fbclid=IwAR1aPAJhOrIMAB7nwLA3qS6bsE0Nyzkbi1zc3rQZZs9LseoAhug2VBUszsQ
+- brain analogies http://cs231n.github.io/neural-networks-1/
+- cnn with spectrograms etc http://www.jordipons.me/towards-adapting-cnns-for-music-spectrograms-1/
+- dynamic range compr with ANN 
+  - http://elias-mistler.de/downloads/ml_drc_final.pdf
+  - https://ptrrupprecht.wordpress.com/2016/10/05/deep-learning-part-iv-2-compressing-the-dynamic-range-in-raw-audio-signals/
 
 ## Denoising autoencoders
 - https://github.com/TheAILearner/Denoising-Autoencoders-in-Keras

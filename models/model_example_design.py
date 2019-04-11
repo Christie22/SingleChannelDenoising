@@ -1,6 +1,7 @@
 # Example of convolutional autoencoder model
 
 import json
+import time
 import os.path as osp
 import numpy as np
 from keras.layers import Input, Dense, \
@@ -108,4 +109,6 @@ class AEModelFactory(object):
                 conv_shape = K.int_shape(x)[1:]
 
         self._model = Model(inputs, x)
-        self._model.name = hash_args(self._architecture)
+        # give univoque name to model, based on creation time and architecture hash
+        timestamp = time.strftime('%y%m%d_%H%M')
+        self._model.name = '{}_{}'.format(timestamp, hash_args(self._architecture))
