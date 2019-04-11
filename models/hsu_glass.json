@@ -237,7 +237,7 @@
         },
         
         {
-            "layer_type": "2dt",
+            "layer_type": "conv2dt",
             "layer_args": {
                 "filters": 256, 
                 "kernel_size": [256, 1],
