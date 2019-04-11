@@ -112,6 +112,9 @@ class DataGenerator(keras.utils.Sequence):
                 (len(self.fragments_x) // self.batch_size, self.batch_size, 2))
         elif self.normalize == 'batch':
             self._norm_factors = np.empty((self.batch_size, 2))
+        elif self.normalize == 'global':
+            self._norm_factors = np.empty((2))
+
 
     # init cache
     def init_cache(self):
