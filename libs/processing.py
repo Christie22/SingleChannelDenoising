@@ -69,20 +69,22 @@ def unmake_fragments_slice(s_frag, frag_hop_len, frag_win_len, time_slice):
 
 ### PRE/POST PROCESSING FUNCTIONS
 # convert complex spectrograms to absolute power spectrum
-def s_to_power(s, exponent=2.0/3):
+def s_to_power(s, exponent=2):
     # remove DC if odd number
     if s.shape[-2] % 2 != 0:
         s = s[...,:-1,:]
-    s_power = np.abs(s) ** 2 ** exponent
+    # complex -> magnitude -> power/amplitude/etc
+    s_power = np.abs(s) ** exponent
     return s_power[...,np.newaxis]
 
-def power_to_s(power, s_noisy=None, exponent=2.0/3):
-    s = np.abs(power[...,0]) ** (1.0/2) ** (1.0/exponent)
+def power_to_s(power, s_noisy=None, exponent=2):
+    # power/amplitude/etc -> magnitude
+    s = power[...,0] ** (1.0/exponent)
+    # use phase from noisy signal: magnitude -> complex
     if s_noisy is not None:
         s_noisy = s_noisy[..., :-1, :]
         angles = np.angle(s_noisy)
         s = s * np.exp(1j * angles)
-    # TODO might require noisy signal as input for phase
     # add previously removed bin
     pad_shape = list(s.shape)
     pad_shape[-2] = 1
@@ -90,6 +92,33 @@ def power_to_s(power, s_noisy=None, exponent=2.0/3):
     padding = np.zeros(pad_shape)
     s = np.concatenate((s, padding), axis=-2)
     return s
+
+
+def s_to_db(s):
+    # remove DC if odd number
+    if s.shape[-2] % 2 != 0:
+        s = s[..., :-1, :]
+    # complex -> magnitude -> decibels
+    s_db = lr.amplitude_to_db(np.abs(s))
+    return s_db[..., np.newaxis]
+
+
+def db_to_s(db, s_noisy=None):
+    # decibels -> magnitude
+    s = lr.db_to_amplitude(db[..., 0])
+    # use phase from noisy signal: magnitude -> complex
+    if s_noisy is not None:
+        s_noisy = s_noisy[..., :-1, :]
+        angles = np.angle(s_noisy)
+        s = s * np.exp(1j * angles)
+    # add previously removed bin
+    pad_shape = list(s.shape)
+    pad_shape[-2] = 1
+    pad_shape = tuple(pad_shape)
+    padding = np.zeros(pad_shape)
+    s = np.concatenate((s, padding), axis=-2)
+    return s
+
 
 # convert complex spectrograms to Re/Im representation
 def s_to_reim(s):

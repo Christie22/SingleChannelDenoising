@@ -59,7 +59,6 @@ def train(model_source, dataset_path,
         'frag_win_length': frag_win_length,
         # general cfg
         'shuffle': True,
-        'normalize': 'batch',
         'label_type': 'clean',
         'normalize': 'local',
         'batch_size': batch_size,
