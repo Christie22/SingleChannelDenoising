@@ -1,0 +1,5 @@
+{/architecture/:{/encoder/: encoder,
+        /decoder/: encoder}, 
+/dims/: /input_shape/: input_shape,
+        /n_intermediate_dim/: n_intermediate_dim,
+        /n_latent_dim/ : n_latent_dim} 

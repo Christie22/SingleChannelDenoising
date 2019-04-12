@@ -1,0 +1,1 @@
+{"architecture": {"encoder":{"Layer1":{"strides": [4,5], "n_filters": 46, "kernel_size": 4, "activation": "relu", "type_layer": "Dense"}} }}
