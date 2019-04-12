@@ -79,9 +79,13 @@ def store_logs(logs_path, new_log):
                 json.dump([new_log], f)
             return
 
-        with open(logs_path, 'w+') as f:
+        with open(logs_path) as f:
             logs = json.load(f)
-            logs.append(new_log)
+
+        os.remove(logs_path)
+        logs.append(new_log)
+
+        with open(logs_path, 'w+') as f:
             json.dump(logs, f)
     except Exception as e:
         print('[u] Exception while writing log: {} - {}'.format(type(e), e))

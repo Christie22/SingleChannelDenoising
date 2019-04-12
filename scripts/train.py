@@ -156,8 +156,8 @@ def train(model_source, dataset_path,
     # create and store log entry
     training_name = '[{}]: [{} {}] -> [{}]'.format(
         time.strftime('%Y-%m-%d %H:%M:%S'),
-        osp.basename(model_source),
         model.name,
+        osp.basename(model_source),
         osp.basename(model_destination))
     log_data = {
         'training name': training_name,
