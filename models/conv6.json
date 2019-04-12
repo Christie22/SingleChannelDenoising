@@ -1,33 +1,88 @@
 {
     "architecture": [
+    	 {
+    	 			"_index": 1,
+    	            "layer_type": "conv2d",
+    	            "layer_args": {
+    	                "filters": 32, 
+    	                "kernel_size": 3,
+    	                "padding": "same",
+    	                "strides": 2,
+    	                "bias_initializer": "ones"
+    	            }
+    	        },
+    	        {
+    	            "layer_type": "batchnorm",
+    	            "layer_args": {}
+    	        },
+    	        {
+    	            "layer_type": "activation",
+    	            "layer_args": {
+    	                "activation": "relu"
+    	            }
+    	        },
+    	        {
+    	            "layer_type": "dropout",
+    	            "layer_args": {
+    	                "rate": 0.02
+    	            }
+    	        },
+      {
+             "_index": 2,
+             "layer_type": "conv2d",
+             "layer_args": {
+                 "filters": 64, 
+                 "kernel_size": 3,
+                 "padding": "same",
+                 "strides": 2,
+                 "bias_initializer": "ones"
+                 }
+             },
+            {
+                "layer_type": "batchnorm",
+                "layer_args": {}
+            },
+            {
+                "layer_type": "activation",
+                "layer_args": {
+                    "activation": "relu"
+                }
+            },
+            {
+                "layer_type": "dropout",
+                "layer_args": {
+                    "rate": 0.02
+                }
+            },
+	   {
+           "_index": 3,
+           "layer_type": "conv2d",
+           "layer_args": {
+               "filters": 64, 
+               "kernel_size": 3,
+               "padding": "same",
+               "strides": 2,
+               "bias_initializer": "ones"
+	        }
+       },
+       {
+           "layer_type": "batchnorm",
+           "layer_args": {}
+       },
+       {
+           "layer_type": "activation",
+           "layer_args": {
+               "activation": "relu"
+           }
+       },
+       {
+           "layer_type": "dropout",
+           "layer_args": {
+               "rate": 0.02
+           }
+       },
         {
-            "layer_type": "conv2d",
-            "layer_args": {
-                "filters": 64, 
-                "kernel_size": 3,
-                "padding": "same",
-                "strides": 2,
-                "bias_initializer": "ones"
-            }
-        },
-        {
-            "layer_type": "batchnorm",
-            "layer_args": {}
-        },
-        {
-            "layer_type": "activation",
-            "layer_args": {
-                "activation": "relu"
-            }
-        },
-        {
-            "layer_type": "dropout",
-            "layer_args": {
-                "rate": 0.02
-            }
-        },
-        
-        {
+            "_index": 4,
             "layer_type": "conv2d",
             "layer_args": {
                 "filters": 128, 
@@ -55,6 +110,35 @@
         },
         
         {
+        	"_index": 5,
+            "layer_type": "conv2d",
+            "layer_args": {
+                "filters": 128, 
+                "kernel_size": 2,
+                "padding": "same",
+                "strides": 2,
+                "bias_initializer": "ones"
+            }
+        },
+        {
+            "layer_type": "batchnorm",
+            "layer_args": {}
+        },
+        {
+            "layer_type": "activation",
+            "layer_args": {
+                "activation": "relu"
+            }
+        },
+        {
+            "layer_type": "dropout",
+            "layer_args": {
+                "rate": 0.02
+            }
+        },
+        
+        {
+            "_index": 6,
             "layer_type": "conv2d",
             "layer_args": {
                 "filters": 128, 
@@ -188,6 +272,7 @@
         },
         
         {
+            "_index": 6,
             "layer_type": "conv2dt",
             "layer_args": {
                 "filters": 128, 
@@ -215,6 +300,7 @@
         },
         
         {
+            "_index": 5,
             "layer_type": "conv2dt",
             "layer_args": {
                 "filters": 128, 
@@ -242,6 +328,34 @@
         },
         
         {
+            "_index": 4,
+            "layer_type": "conv2dt",
+            "layer_args": {
+                "filters": 128, 
+                "kernel_size": 3,
+                "padding": "same",
+                "strides": 2,
+                "bias_initializer": "ones"
+            }
+        },
+        {
+            "layer_type": "batchnorm",
+            "layer_args": {}
+        },
+        {
+            "layer_type": "activation",
+            "layer_args": {
+                "activation": "relu"
+            }
+        },
+        {
+            "layer_type": "dropout",
+            "layer_args": {
+                "rate": 0.02
+            }
+        },
+        {
+            "_index": 3,
             "layer_type": "conv2dt",
             "layer_args": {
                 "filters": 64, 
@@ -268,6 +382,62 @@
             }
         },
         
+       {
+           "_index": 2,
+           "layer_type": "conv2dt",
+           "layer_args": {
+               "filters": 64, 
+               "kernel_size": 3,
+               "padding": "same",
+               "strides": 2,
+               "bias_initializer": "ones"
+           }
+       },
+       {
+           "layer_type": "batchnorm",
+           "layer_args": {}
+       },
+       {
+           "layer_type": "activation",
+           "layer_args": {
+               "activation": "relu"
+           }
+       },
+       {
+           "layer_type": "dropout",
+           "layer_args": {
+               "rate": 0.2
+           }
+       },
+                
+        {
+            "_index": 1,
+            "layer_type": "conv2dt",
+            "layer_args": {
+                "filters": 32, 
+                "kernel_size": 3,
+                "padding": "same",
+                "strides": 2,
+                "bias_initializer": "ones"
+            }
+        },
+        {
+            "layer_type": "batchnorm",
+            "layer_args": {}
+        },
+        {
+            "layer_type": "activation",
+            "layer_args": {
+                "activation": "relu"
+            }
+        },
+        {
+            "layer_type": "dropout",
+            "layer_args": {
+                "rate": 0.02
+            }
+        },
+                
         {
             "layer_type": "conv2dt",
             "layer_args": {
