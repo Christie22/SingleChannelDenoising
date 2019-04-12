@@ -150,7 +150,7 @@ def train(model_source, dataset_path,
             write_images=True
         ),
         ReduceLROnPlateau(
-            monitor='val_loss',
+            monitor='loss',
             factor=0.2,
             patience=3,
             min_lr=0,

@@ -9,7 +9,7 @@ from scripts.denoise import denoise as script_denoise
 defaults = {
     'sr': 16000,
     'rir_path': None,  # '/data/riccardo_datasets/rirs/train/',
-    'noise_snrs': '10,25',
+    'noise_snrs': '5,10,25',
     'n_fft': 512,
     'hop_length': 128,
     'win_length': 512,
