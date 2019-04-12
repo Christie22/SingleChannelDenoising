@@ -768,7 +768,7 @@
         {
             "layer_type": "conv2dt",
             "layer_args": {
-                "filters": {{channels}}, 
+                "filters": 1, 
                 "kernel_size": 3,
                 "padding": "same",
                 "strides": 1,

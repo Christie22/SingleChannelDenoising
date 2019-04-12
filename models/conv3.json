@@ -23,7 +23,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": 0.02
+                "rate": "{{drop_rate}}"
             }
         },
         
@@ -50,7 +50,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": 0.02
+                "rate": "{{drop_rate}}"
             }
         },
         
@@ -77,7 +77,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": 0.02
+                "rate": "{{drop_rate}}"
             }
         },
         
@@ -105,7 +105,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": 0.02
+                "rate": "{{drop_rate}}"
             }
         },
         
@@ -128,7 +128,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": 0.02
+                "rate": "{{drop_rate}}"
             }
         },
         
@@ -153,7 +153,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": 0.02
+                "rate": "{{drop_rate}}"
             }
         },
         
@@ -176,7 +176,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": 0.02
+                "rate": "{{drop_rate}}"
             }
         },
         
@@ -210,7 +210,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": 0.02
+                "rate": "{{drop_rate}}"
             }
         },
         
@@ -237,7 +237,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": 0.2
+                "rate": "{{drop_rate}}"
             }
         },
         
@@ -264,14 +264,14 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": 0.02
+                "rate": "{{drop_rate}}"
             }
         },
         
         {
             "layer_type": "conv2dt",
             "layer_args": {
-                "filters": {{channels}}, 
+                "filters": "{{channels}}", 
                 "kernel_size": 3,
                 "padding": "same",
                 "strides": 1,
