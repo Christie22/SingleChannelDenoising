@@ -154,7 +154,13 @@ def train(model_source, dataset_path,
     ]
 
     # create and store log entry
+    training_name = '[{}]: [{} {}] -> [{}]'.format(
+        time.strftime('%Y-%m-%d %H:%M:%S'),
+        osp.basename(model_source),
+        model.name,
+        osp.basename(model_destination))
     log_data = {
+        'training name': training_name,
         'data': {
             'clean': {
                 'dataset_path': dataset_path,
@@ -184,7 +190,7 @@ def train(model_source, dataset_path,
             'model_destination': model_destination, 
             'input_shape': input_shape,
             'model_template_args': model_template_args,
-            'time_slice': time_slice,
+            'time_slice': [time_slice.start, time_slice.stop],
             'model_summary': get_model_summary(model)
         },
         'training': {
