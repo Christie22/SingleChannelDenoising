@@ -3,7 +3,10 @@
 ### Libs
 import os
 import glob
+import json
 import hashlib
+import io
+import os.path as osp
 
 import pandas as pd
 import numpy as np
@@ -20,7 +23,7 @@ def load_dataset(dataset_path):
     # TODO implement actual data handling
     # (requires figuring out data format)
     print('[u] Loading all wav files from {}'.format(dataset_path))
-    filelist = glob.glob(os.path.join(dataset_path, '*.wav'))
+    filelist = glob.glob(osp.join(dataset_path, '*.wav'))
     print('[u] Loaded {} files'.format(len(filelist)))
     return filelist
 
@@ -66,3 +69,30 @@ def hash_args(args):
     for x in args:
         m.update(str(x).encode())
     return m.hexdigest()[:6]
+
+
+def store_logs(logs_path, new_log):
+    try:
+        if not osp.exists(logs_path):
+            print('[u] Creating log file {}'.format(logs_path))
+            with open(logs_path, 'x') as f:
+                json.dump([], f)
+
+        with open(logs_path, 'w') as f:
+            logs = json.load(f)
+            logs.append(new_log)
+            json.dump(logs, f)
+    except Exception as e:
+        print('[u] Exception while writing log: {}'.format(e))
+    
+
+# return model.summary() as string
+def get_model_summary(model):
+    stream = io.StringIO()
+    model.summary(print_fn=lambda x: stream.write(x + '\n'))
+    summary_string = stream.getvalue()
+    stream.close()
+    return summary_string
+    
+    
+
