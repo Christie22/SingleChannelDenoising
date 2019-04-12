@@ -15,7 +15,7 @@ from libs.utilities import load_dataset, store_logs, get_model_summary, \
     create_autoencoder_model, load_autoencoder_model, load_autoencoder_lossfunc
 from libs.model_utils import LossLayer
 from libs.data_generator import DataGenerator
-from libs.processing import pink_noise, s_to_power
+from libs.processing import pink_noise, s_to_exp
 
 
 def train(model_source, dataset_path, 
@@ -54,15 +54,15 @@ def train(model_source, dataset_path,
         'hop_length': hop_length,
         'win_length': win_length,
         # processing cfg
-        'proc_func': s_to_power,    # TODO un-hardcode
-        'proc_func_label': s_to_power,    # TODO un-hardcode
+        'proc_func': s_to_exp(1.0/6),    # TODO un-hardcode
+        'proc_func_label': s_to_exp(1.0/6),    # TODO un-hardcode
         # fragmenting cfg
         'frag_hop_length': frag_hop_length,
         'frag_win_length': frag_win_length,
         # general cfg
         'shuffle': True,
         'label_type': 'clean',
-        'normalize': 'local',
+        'normalize': False,
         'batch_size': batch_size,
         'force_cacheinit': force_cacheinit,
     }
