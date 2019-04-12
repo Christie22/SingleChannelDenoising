@@ -18,7 +18,8 @@ defaults = {
     'batch_size': 128,
     'epochs': 100,
     'model_destination': '/data/riccardo_models/denoising/model_e{epoch}.h5',
-    'cuda_device': '2'
+    'cuda_device': '2',
+    'logs_path': './training_logs.json'
 }
 
 
@@ -45,6 +46,7 @@ def cli(ctx, cuda_device):
 @click.option('--batch_size', type=int, default=defaults['batch_size'])
 @click.option('--epochs', type=int, default=defaults['epochs'])
 @click.option('--model_destination', type=click.Path(), default=defaults['model_destination'])
+@click.option('--logs_path', type=click.Path(), default=defaults['logs_path'])
 @click.option('--force_cacheinit', is_flag=True, default=False)
 def train(ctx,
           model_source, 
@@ -60,6 +62,7 @@ def train(ctx,
           batch_size,
           epochs,
           model_destination,
+          logs_path,
           force_cacheinit):
     noise_snrs_list = [int(n) for n in noise_snrs.split(',')]
     script_train(model_source,
@@ -75,6 +78,7 @@ def train(ctx,
                  batch_size,
                  epochs,
                  model_destination,
+                 logs_path,
                  force_cacheinit,
                  ctx.obj['cuda_device'])
 

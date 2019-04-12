@@ -79,7 +79,7 @@ class DataGenerator(keras.utils.Sequence):
                 if not self.test_cache():
                     print( '[d] Cache indexing test failed. Attempting to initialize it...')
                     self.init_cache()
-            except Exception as e:
+            except IOError:
                 print('[d] Cache indexing caused an exception. Attempting to initialize it...')
                 self.init_cache()
         # shuffle batches if needed
@@ -234,7 +234,7 @@ class DataGenerator(keras.utils.Sequence):
     def test_cache(self):
         try:
             [np.load(f) for f in np.random.choice(self.fragments_x, 5)]
-        except Exception as e:
+        except IOError:
             return False
         return True
 

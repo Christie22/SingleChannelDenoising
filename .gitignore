@@ -1,12 +1,14 @@
 *.pdf
 .DS_Store
 .vscode/settings.json
+training_logs.json
 
 logs/
 
 __pycache__/
 *.py[cod]
 *$py.class
+
 
 notebooks/.ipynb_checkpoints
 

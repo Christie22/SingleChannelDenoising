@@ -11,7 +11,8 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint, TerminateOnNaN, Tens
 from sklearn.model_selection import train_test_split
 
 # custom modules
-from libs.utilities import load_dataset, create_autoencoder_model, load_autoencoder_model, load_autoencoder_lossfunc
+from libs.utilities import load_dataset, store_logs, get_model_summary, \
+    create_autoencoder_model, load_autoencoder_model, load_autoencoder_lossfunc
 from libs.model_utils import LossLayer
 from libs.data_generator import DataGenerator
 from libs.processing import pink_noise, s_to_power
@@ -20,13 +21,14 @@ from libs.processing import pink_noise, s_to_power
 def train(model_source, dataset_path, 
           sr, rir_path, noise_snrs, 
           n_fft, hop_length, win_length, frag_hop_length, frag_win_length, 
-          batch_size, epochs, model_destination, force_cacheinit, cuda_device):
+          batch_size, epochs, model_destination, logs_path, force_cacheinit, cuda_device):
     print('[t] Training model on dataset {}'.format(dataset_path))
     print('[t] Training parameters: {}'.format({
         'epochs': epochs,
         'model_source': model_source,
         'model_destination': model_destination,
-        'cuda_device': cuda_device
+        'cuda_device': cuda_device,
+        'logs_path': logs_path
     }))
 
     # set GPU devices
@@ -136,7 +138,7 @@ def train(model_source, dataset_path,
         TerminateOnNaN(),
         # save logs for tensorboard
         TensorBoard(
-            log_dir='logs/model_{}/'.format(model.name),
+            log_dir=osp.join('logs', '{}'.format(model.name)),
             #histogram_freq=5,
             batch_size=batch_size,
             write_graph=True,
@@ -150,6 +152,58 @@ def train(model_source, dataset_path,
             min_lr=0,
             verbose=1)
     ]
+
+    # create and store log entry
+    training_name = '[{}]: [{} {}] -> [{}]'.format(
+        time.strftime('%Y-%m-%d %H:%M:%S'),
+        model.name,
+        osp.basename(model_source),
+        osp.basename(model_destination))
+    log_data = {
+        'training name': training_name,
+        'data': {
+            'clean': {
+                'dataset_path': dataset_path,
+                'filepath_list_train': filepath_list_train, 
+                'filepath_list_valid': filepath_list_valid
+            },
+            'noise': {
+                'rir_path': rir_path, 
+                'noise_snrs': noise_snrs,
+                'noise_funcs': [f.__name__ for f in generator_args['noise_funcs']]
+                # NOTE include noise paths
+            },
+            'processing': {
+                'sr': sr, 
+                'n_fft': n_fft, 
+                'hop_length': hop_length, 
+                'win_length': win_length, 
+                'frag_hop_length': frag_hop_length, 
+                'frag_win_length': frag_win_length,
+                'proc_func': generator_args['proc_func'].__name__,
+                'proc_func_label': generator_args['proc_func_label'].__name__
+            }
+        },
+        'model': {
+            'model_name': model.name,
+            'model_source': model_source, 
+            'model_destination': model_destination, 
+            'input_shape': input_shape,
+            'model_template_args': model_template_args,
+            'time_slice': [time_slice.start, time_slice.stop],
+            'model_summary': get_model_summary(model)
+        },
+        'training': {
+            'epochs': epochs, 
+            'initial_epoch': initial_epoch,
+            'max_epochs': max_epochs,
+            'batch_size': batch_size, 
+            'train_steps_per_epoch': train_steps_per_epoch,
+            'valid_steps_per_epoch': valid_steps_per_epoch,
+            'cuda_device': cuda_device
+        }
+    }
+    store_logs(logs_path, log_data)
 
     # train model
     print('[t] Begin training process...')
