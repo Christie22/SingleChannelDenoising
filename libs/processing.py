@@ -68,7 +68,7 @@ def unmake_fragments_slice(s_frag, frag_hop_len, frag_win_len, time_slice):
 
 
 ### PRE/POST PROCESSING FUNCTIONS
-# helper funcs
+## helper funcs
 def rem_dc_bin(s):
     if s.shape[-2] % 2 != 0:
         s = s[..., :-1, :]
@@ -83,13 +83,19 @@ def add_dc_bin(s):
     return s
 
 
-def s_to_exp(exponent):
-    def func(s):
+## convert complex spectrograms to/from magnitude^exponent
+# NOTE implementation based on callable class rather than nested functions
+#      due to `fit_generator` requiring data_generator arguments to be 
+#      picklable (nested functions aren't)
+class s_to_exp(object):
+    def __init__(self, exponent):
+        self.exponent = exponent
+
+    def __call__(self, s):
         s = rem_dc_bin(s)
         # complex -> magnitude -> power/amplitude/etc
-        s_power = np.abs(s) ** exponent
+        s_power = np.abs(s) ** self.exponent
         return s_power[..., np.newaxis]
-    return func
 
 def exp_to_s(exponent):
     def func(power, s_noisy):
@@ -105,7 +111,7 @@ def exp_to_s(exponent):
     return func
 
 
-# convert complex spectrograms to absolute power spectrum
+## convert complex spectrograms to/from absolute power spectrum
 def s_to_power(s):
     return s_to_exp(2)(s)
 
@@ -113,6 +119,7 @@ def power_to_s(power, s_noisy=None):
     return exp_to_s(2)(power, s_noisy)
 
 
+## convert complex spectrograms to/from decibel-spectrum
 def s_to_db(s):
     s = rem_dc_bin(s)
     # complex -> magnitude -> decibels
