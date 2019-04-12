@@ -81,7 +81,9 @@ def train(model_source, dataset_path,
     input_shape = training_generator.data_shape
     model_template_args = {
         'time': input_shape[1],
-        'channels': input_shape[2]
+        "drop_rate": 0.2, 
+        "channels": 1, 
+        "activ_func": "relu"
     }
     time_slice = slice(None)
 

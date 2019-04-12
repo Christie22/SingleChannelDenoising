@@ -1,4 +1,8 @@
 {
+	"_meta": {
+	        "source": "https://github.com/jerrygood0703/DDAE",
+	        "descr": "A test model from the internet"
+	    },
     "architecture": [{
             "layer_type": "dense",
             "layer_args": {
@@ -85,9 +89,5 @@
                 "units": 257
             }
         }
-    ],
-    "_meta": {
-        "source": "https://github.com/jerrygood0703/DDAE",
-        "descr": "A test model from the internet"
-    }
+    ]
 }
