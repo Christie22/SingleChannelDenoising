@@ -174,10 +174,9 @@ def train(model_source, dataset_path,
                 'win_length': win_length, 
                 'frag_hop_length': frag_hop_length, 
                 'frag_win_length': frag_win_length,
-                'proc_func': generator_args['proc_func'],
-                'proc_func_label': generator_args['proc_func_label']
+                'proc_func': generator_args['proc_func'].__name__,
+                'proc_func_label': generator_args['proc_func_label'].__name__
             }
-
         },
         'model': {
             'model_name': model.name,

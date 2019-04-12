@@ -75,15 +75,16 @@ def store_logs(logs_path, new_log):
     try:
         if not osp.exists(logs_path):
             print('[u] Creating log file {}'.format(logs_path))
-            with open(logs_path, 'x') as f:
-                json.dump([], f)
+            with open(logs_path, 'w+') as f:
+                json.dump([new_log], f)
+            return
 
-        with open(logs_path, 'w') as f:
+        with open(logs_path, 'w+') as f:
             logs = json.load(f)
             logs.append(new_log)
             json.dump(logs, f)
     except Exception as e:
-        print('[u] Exception while writing log: {}'.format(e))
+        print('[u] Exception while writing log: {} - {}'.format(type(e), e))
     
 
 # return model.summary() as string
