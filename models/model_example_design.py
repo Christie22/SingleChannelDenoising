@@ -104,8 +104,8 @@ class AEModelFactory(object):
             # declare layer with functional API
             x = AEModelFactory.dict_layers[layer_type](**layer_args)(x)
 
-            # calculate shape each time we compute this special type of layer even though we need only the last occurrence:
-            if layer_type == 'conv2d' or layer_type == 'conv1d':
+            # calculate shape each time we compute this special types of layer even though we need only the last occurrence:
+            if layer_type in ['conv1d', 'conv2d']:
                 conv_shape = K.int_shape(x)[1:]
 
         self._model = Model(inputs, x)

@@ -1,0 +1,92 @@
+{
+    "_meta": {
+        "descr": "RNN model: 2 GRU layer",
+        "source": "Convolutional-Recurrent Neural Networks for Speech Enhancement",
+        "author": "Han Zhao et al.",
+        "url": "https://arxiv.org/abs/1805.00579"
+    },
+    "architecture": [{
+            "layer_type": "conv2d",
+            "layer_args": {
+                "filters": {{n_conv}}, 
+                "kernel_size": [32, 11],
+                "padding": "same",
+                "strides": [16, 1],
+                "bias_initializer": "ones"
+            }
+        },{
+            "layer_type": "batchnorm",
+            "layer_args": {}
+        },{
+            "layer_type": "activation",
+            "layer_args": {
+                "activation": "relu"
+            }
+        },{
+            "layer_type": "dropout",
+            "layer_args": {
+                "rate": {{dropout_rate}}
+            }
+        },
+        
+        {
+            "layer_type": "permute",
+            "layer_args": {
+                "dims": [2, 1, 3]
+            }
+        }, {
+            "layer_type": "reshape",
+            "layer_args": {
+                "target_shape": [{{timesteps}}, -1]
+            }
+        }, 
+        
+        {
+            "layer_type": "gru",
+            "layer_args": {
+                "units": {{n_recurrent}},
+                "return_sequences": true
+            }
+        }, {
+            "layer_type": "dropout",
+            "layer_args": {
+                "rate": {{dropout_rate}}
+            }
+        },{
+            "layer_type": "gru",
+            "layer_args": {
+                "units": {{n_recurrent}},
+                "return_sequences": true
+            }
+        },{
+            "layer_type": "dropout",
+            "layer_args": {
+                "rate": {{dropout_rate}}
+            }
+        },
+
+        {
+            "layer_type": "dense",
+            "layer_args": {
+                "units": {{n_dense}}
+            }
+        },{
+            "layer_type": "dropout",
+            "layer_args": {
+                "rate": {{dropout_rate}}
+            }
+        },
+        
+        {
+            "layer_type": "reshape",
+            "layer_args": {
+                "target_shape": [{{timesteps}}, -1, {{channels}}]
+            }
+        }, {
+            "layer_type": "permute",
+            "layer_args": {
+                "dims": [2, 1, 3]
+            }
+        }
+    ]
+}

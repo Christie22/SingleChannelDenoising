@@ -80,8 +80,12 @@ def train(model_source, dataset_path,
     #time_slice = frag_win_length // 2
     input_shape = training_generator.data_shape
     model_template_args = {
-        'time': input_shape[1],
-        'channels': input_shape[2]
+        'n_conv': 256,
+        'n_recurrent': 256,
+        'n_dense': input_shape[0]*input_shape[2],
+        'timesteps': input_shape[1],
+        'channels': input_shape[2],
+        'dropout_rate': 0.2
     }
     time_slice = slice(None)
 
@@ -160,7 +164,7 @@ def train(model_source, dataset_path,
         osp.basename(model_source),
         osp.basename(model_destination))
     log_data = {
-        'training name': training_name,
+        'training_name': training_name,
         'data': {
             'clean': {
                 'dataset_path': dataset_path,
