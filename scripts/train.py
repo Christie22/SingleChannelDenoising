@@ -4,6 +4,7 @@ import os
 import os.path as osp
 import time
 import pickle
+import types
 import numpy as np
 import pandas as pd
 from keras import backend as K
@@ -158,6 +159,13 @@ def train(model_source, dataset_path,
     ]
 
     # create and store log entry
+    # set some useful variables first 
+    proc_func_name = generator_args['proc_func'].__name__ if isinstance(
+        generator_args['proc_func'], types.FunctionType) else generator_args['proc_func'].__class__.__name__
+    proc_func_label_name = generator_args['proc_func_label'].__name__ if isinstance(
+        generator_args['proc_func_label'], types.FunctionType) else generator_args['proc_func_label'].__class__.__name__
+    noise_funcs_names = [f.__name__ if isinstance(
+        f, types.FunctionType) else f.__class__.__name__ for f in generator_args['noise_funcs']]
     training_name = '[{}]: [{} {}] -> [{}]'.format(
         time.strftime('%Y-%m-%d %H:%M:%S'),
         model.name,
@@ -174,7 +182,7 @@ def train(model_source, dataset_path,
             'noise': {
                 'rir_path': rir_path, 
                 'noise_snrs': noise_snrs,
-                'noise_funcs': [f.__name__ for f in generator_args['noise_funcs']]
+                'noise_funcs': noise_funcs_names
                 # NOTE include noise paths
             },
             'processing': {
@@ -184,8 +192,8 @@ def train(model_source, dataset_path,
                 'win_length': win_length, 
                 'frag_hop_length': frag_hop_length, 
                 'frag_win_length': frag_win_length,
-                'proc_func': generator_args['proc_func'].__name__,
-                'proc_func_label': generator_args['proc_func_label'].__name__
+                'proc_func': proc_func_name,
+                'proc_func_label': proc_func_label_name
             }
         },
         'model': {

@@ -98,7 +98,7 @@ class s_to_exp(object):
         return s_power[..., np.newaxis]
 
 def exp_to_s(exponent):
-    def func(power, s_noisy):
+    def func(power, s_noisy=None):
         # power/amplitude/etc -> magnitude
         s = power[..., 0] ** (1.0/exponent)
         # use phase from noisy signal: magnitude -> complex
