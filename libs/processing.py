@@ -90,6 +90,7 @@ def add_dc_bin(s):
 class s_to_exp(object):
     def __init__(self, exponent):
         self.exponent = exponent
+        self.__name__ = 's_to_exp({:.3f})'.format(exponent)
 
     def __call__(self, s):
         s = rem_dc_bin(s)

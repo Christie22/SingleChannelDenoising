@@ -6,6 +6,7 @@ import glob
 import json
 import hashlib
 import io
+import types
 import os.path as osp
 
 import pandas as pd
@@ -99,5 +100,11 @@ def get_model_summary(model):
     stream.close()
     return summary_string
     
-    
+
+# get name of function or class from instance
+def get_func_name(f):
+    if isinstance(f, types.FunctionType) or hasattr(f, '__name__'):
+        return f.__name__
+    else:
+        return f.__class__.__name__
 

@@ -4,7 +4,6 @@ import os
 import os.path as osp
 import time
 import pickle
-import types
 import numpy as np
 import pandas as pd
 from keras import backend as K
@@ -12,7 +11,7 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint, TerminateOnNaN, Tens
 from sklearn.model_selection import train_test_split
 
 # custom modules
-from libs.utilities import load_dataset, store_logs, get_model_summary, \
+from libs.utilities import load_dataset, store_logs, get_model_summary, get_func_name, \
     create_autoencoder_model, load_autoencoder_model, load_autoencoder_lossfunc
 from libs.model_utils import LossLayer
 from libs.data_generator import DataGenerator
@@ -159,13 +158,6 @@ def train(model_source, dataset_path,
     ]
 
     # create and store log entry
-    # set some useful variables first 
-    proc_func_name = generator_args['proc_func'].__name__ if isinstance(
-        generator_args['proc_func'], types.FunctionType) else generator_args['proc_func'].__class__.__name__
-    proc_func_label_name = generator_args['proc_func_label'].__name__ if isinstance(
-        generator_args['proc_func_label'], types.FunctionType) else generator_args['proc_func_label'].__class__.__name__
-    noise_funcs_names = [f.__name__ if isinstance(
-        f, types.FunctionType) else f.__class__.__name__ for f in generator_args['noise_funcs']]
     training_name = '[{}]: [{} {}] -> [{}]'.format(
         time.strftime('%Y-%m-%d %H:%M:%S'),
         model.name,
@@ -182,7 +174,7 @@ def train(model_source, dataset_path,
             'noise': {
                 'rir_path': rir_path, 
                 'noise_snrs': noise_snrs,
-                'noise_funcs': noise_funcs_names
+                'noise_funcs': [get_func_name(f) for f in generator_args['noise_funcs']]
                 # NOTE include noise paths
             },
             'processing': {
@@ -192,8 +184,8 @@ def train(model_source, dataset_path,
                 'win_length': win_length, 
                 'frag_hop_length': frag_hop_length, 
                 'frag_win_length': frag_win_length,
-                'proc_func': proc_func_name,
-                'proc_func_label': proc_func_label_name
+                'proc_func': get_func_name(generator_args['proc_func']),
+                'proc_func_label': get_func_name(generator_args['proc_func_label'])
             }
         },
         'model': {
