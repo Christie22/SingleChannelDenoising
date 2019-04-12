@@ -210,7 +210,7 @@ def train(model_source, dataset_path,
     store_logs(logs_path, log_data)
 
     # train model
-    print('[t] Begin training process...')
+    print('[t] Begin training process, tensorboard identifier = [{}]'.format(model.name))
     model.fit_generator(
         generator=training_generator,
         validation_data=validation_generator,
