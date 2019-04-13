@@ -73,7 +73,7 @@ class LossLayer(Layer):
         self.add_loss(loss, inputs=inputs)
         return x_true
 
-# tensorboard callback with LR tracking
+# extended tensorboard callback
 class ExtendedTensorBoard(TensorBoard):
     def __init__(self, data_generator, **kwargs):
         super().__init__(**kwargs)
@@ -83,11 +83,11 @@ class ExtendedTensorBoard(TensorBoard):
         # add learning rate to logs
         logs.update({'lr': K.eval(self.model.optimizer.lr)})
 
-        # adds stuff to validation_data (only 1 batch)
+        # adds stuff to validation_data (NOTE only 1 batch)
         s_noisy, s_true = None, None
-        # NOTE loop over batches here
+        # TODO loop over batches here
         s_noisy, s_true = self.data_generator[0]
-        self.validation_data = [s_noisy, s_true]
+        self.validation_data = [s_noisy, s_true, np.ones((self.batch_size)), 0]
 
         # call parent's func
         super().on_epoch_end(epoch, logs)

@@ -158,7 +158,7 @@ def train(model_source, dataset_path,
             batch_size=batch_size,
             write_graph=True,
             write_grads=True,
-            write_images=True),
+            write_images=False),
         ReduceLROnPlateau(
             monitor='loss',
             factor=0.2,
