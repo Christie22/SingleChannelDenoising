@@ -1,3 +1,4 @@
+from keras.callbacks import TensorBoard
 from keras.layers import Layer
 from keras import backend as K
 
@@ -68,3 +69,12 @@ class LossLayer(Layer):
         loss = self.lossfun(x_true, x_pred, z)
         self.add_loss(loss, inputs=inputs)
         return x_true
+
+# tensorboard callback with LR tracking
+class ExtendedTensorBoard(TensorBoard):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def on_epoch_end(self, epoch, logs=None):
+        logs.update({'lr': K.eval(self.model.optimizer.lr)})
+        super().on_epoch_end(epoch, logs)

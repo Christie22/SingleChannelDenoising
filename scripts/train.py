@@ -7,13 +7,13 @@ import pickle
 import numpy as np
 import pandas as pd
 from keras import backend as K
-from keras.callbacks import EarlyStopping, ModelCheckpoint, TerminateOnNaN, TensorBoard, ReduceLROnPlateau
+from keras.callbacks import EarlyStopping, ModelCheckpoint, TerminateOnNaN, ReduceLROnPlateau
 from sklearn.model_selection import train_test_split
 
 # custom modules
 from libs.utilities import load_dataset, store_logs, get_model_summary, get_func_name, \
     create_autoencoder_model, load_autoencoder_model, load_autoencoder_lossfunc
-from libs.model_utils import LossLayer
+from libs.model_utils import ExtendedTensorBoard
 from libs.data_generator import DataGenerator
 from libs.processing import pink_noise, s_to_exp
 
@@ -141,7 +141,7 @@ def train(model_source, dataset_path,
                         verbose=1),
         TerminateOnNaN(),
         # save logs for tensorboard
-        TensorBoard(
+        ExtendedTensorBoard(
             log_dir=osp.join('logs', '{}'.format(model.name)),
             #histogram_freq=5,
             batch_size=batch_size,
