@@ -7,7 +7,9 @@ import pickle
 import numpy as np
 import pandas as pd
 from keras import backend as K
-from keras.callbacks import EarlyStopping, ModelCheckpoint, TerminateOnNaN, TensorBoard, ReduceLROnPlateau
+from keras.optimizers import Adam
+from keras.callbacks import EarlyStopping, ModelCheckpoint, \
+    TerminateOnNaN, TensorBoard, ReduceLROnPlateau, LearningRateScheduler
 from sklearn.model_selection import train_test_split
 
 # custom modules
@@ -17,6 +19,11 @@ from libs.model_utils import LossLayer
 from libs.data_generator import DataGenerator
 from libs.processing import pink_noise, s_to_exp
 
+
+def step_decay(epoch):
+    lrate = 0.01 * 0.7 ** ((1+epoch)//10)
+    print('[t] LR = {}'.format(lrate))
+    return lrate
 
 def train(model_source, dataset_path, 
           sr, rir_path, noise_snrs, 
@@ -81,11 +88,11 @@ def train(model_source, dataset_path,
     input_shape = training_generator.data_shape
     model_template_args = {
         'n_conv': 256,
-        'n_recurrent': 256,
+        'n_recurrent': 512,
         'n_dense': input_shape[0]*input_shape[2],
         'timesteps': input_shape[1],
         'channels': input_shape[2],
-        'dropout_rate': 0.2
+        'dropout_rate': 0.35
     }
     time_slice = slice(None)
 
@@ -122,8 +129,10 @@ def train(model_source, dataset_path,
     # and tensorboard (see keras docs on fit_generator)
     max_epochs = initial_epoch + epochs
 
+    optimizer = Adam(lr=0.01)
+
     # compile model (loss function must be set in the model class)
-    model.compile(optimizer='adam', loss=lossfunc)
+    model.compile(optimizer=optimizer, loss=lossfunc)
     # print model summaries
     #model.get_layer('encoder').summary()
     #model.get_layer('decoder').summary()
@@ -134,11 +143,12 @@ def train(model_source, dataset_path,
         # conclude training if no improvement after N epochs
         EarlyStopping(monitor='loss', patience=8),
         # save model after each epoch if improved
-        ModelCheckpoint(filepath=model_destination,
-                        monitor='loss',
-                        save_best_only=True,
-                        save_weights_only=False,
-                        verbose=1),
+        ModelCheckpoint(
+            filepath=model_destination,
+            monitor='loss',
+            save_best_only=True,
+            save_weights_only=False,
+            verbose=1),
         TerminateOnNaN(),
         # save logs for tensorboard
         TensorBoard(
@@ -147,14 +157,15 @@ def train(model_source, dataset_path,
             batch_size=batch_size,
             write_graph=True,
             write_grads=True,
-            write_images=True
-        ),
+            write_images=True),
         ReduceLROnPlateau(
             monitor='loss',
             factor=0.2,
             patience=3,
             min_lr=0,
-            verbose=1)
+            verbose=1),
+        LearningRateScheduler(
+            schedule=step_decay)
     ]
 
     # create and store log entry
@@ -205,6 +216,7 @@ def train(model_source, dataset_path,
             'train_steps_per_epoch': train_steps_per_epoch,
             'valid_steps_per_epoch': valid_steps_per_epoch,
             'cuda_device': cuda_device
+            # NOTE add 
         }
     }
     store_logs(logs_path, log_data)
