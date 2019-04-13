@@ -1,4 +1,5 @@
 import math
+import numpy as np
 
 from keras.callbacks import TensorBoard
 from keras.layers import Layer
@@ -74,11 +75,21 @@ class LossLayer(Layer):
 
 # tensorboard callback with LR tracking
 class ExtendedTensorBoard(TensorBoard):
-    def __init__(self, **kwargs):
+    def __init__(self, data_generator, **kwargs):
         super().__init__(**kwargs)
+        self.data_generator = data_generator
 
     def on_epoch_end(self, epoch, logs=None):
+        # add learning rate to logs
         logs.update({'lr': K.eval(self.model.optimizer.lr)})
+
+        # adds stuff to validation_data (only 1 batch)
+        s_noisy, s_true = None, None
+        # NOTE loop over batches here
+        s_noisy, s_true = self.data_generator[0]
+        self.validation_data = [s_noisy, s_true]
+
+        # call parent's func
         super().on_epoch_end(epoch, logs)
 
 

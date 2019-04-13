@@ -133,9 +133,10 @@ def train(model_source, dataset_path,
     model.summary()
 
     # learning rate params
-    initial_lr = 0.05
-    drop_rate = 0.9
-    drop_epochs = 15
+    initial_lr = 0.01
+    drop_rate = 0.8
+    drop_epochs = 20
+    lr_schedule = lr_schedule_func(initial_lr, drop_rate, drop_epochs)
 
     # training callback functions
     Callbacks = [
@@ -151,8 +152,9 @@ def train(model_source, dataset_path,
         TerminateOnNaN(),
         # save logs for tensorboard
         ExtendedTensorBoard(
+            data_generator=validation_generator,
             log_dir=osp.join('logs', '{}'.format(model.name)),
-            #histogram_freq=5,
+            histogram_freq=5,
             batch_size=batch_size,
             write_graph=True,
             write_grads=True,
@@ -164,7 +166,7 @@ def train(model_source, dataset_path,
             min_lr=0,
             verbose=1),
         LearningRateScheduler(
-            schedule=lr_schedule_func(initial_lr, drop_rate, drop_epochs))
+            schedule=lr_schedule)
     ]
 
     # create and store log entry
