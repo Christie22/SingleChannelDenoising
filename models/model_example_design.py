@@ -47,8 +47,10 @@ class AEModelFactory(object):
         # if template, process it
         if osp.splitext(arch_path)[1] == '.jsont':
             str_data = self.process_template(str_data, **template_args)
-        # store data as dict
-        self._architecture = json.loads(str_data)['architecture']
+        # store data as dicts
+        data = json.loads(str_data)
+        self._architecture = data['architecture']
+        self._descr = data['_meta']
 
     def process_template(self, str_data, **kwargs):
         print('[m] Processing template...')
@@ -104,11 +106,19 @@ class AEModelFactory(object):
             # declare layer with functional API
             x = AEModelFactory.dict_layers[layer_type](**layer_args)(x)
 
-            # calculate shape each time we compute this special type of layer even though we need only the last occurrence:
-            if layer_type == 'conv2d' or layer_type == 'conv1d':
+            # calculate shape each time we compute this special types of layer even though we need only the last occurrence:
+            if layer_type in ['conv1d', 'conv2d']:
                 conv_shape = K.int_shape(x)[1:]
 
         self._model = Model(inputs, x)
         # give univoque name to model, based on creation time and architecture hash
         timestamp = time.strftime('%y%m%d_%H%M')
         self._model.name = '{}_{}'.format(timestamp, hash_args(self._architecture))
+
+    @property
+    def architecture(self):
+        return self._architecture
+
+    @property
+    def description(self):
+        return self._descr

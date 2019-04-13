@@ -68,24 +68,13 @@ def unmake_fragments_slice(s_frag, frag_hop_len, frag_win_len, time_slice):
 
 
 ### PRE/POST PROCESSING FUNCTIONS
-# convert complex spectrograms to absolute power spectrum
-def s_to_power(s, exponent=2):
-    # remove DC if odd number
+## helper funcs
+def rem_dc_bin(s):
     if s.shape[-2] % 2 != 0:
-        s = s[...,:-1,:]
-    # complex -> magnitude -> power/amplitude/etc
-    s_power = np.abs(s) ** exponent
-    return s_power[...,np.newaxis]
+        s = s[..., :-1, :]
+    return s
 
-def power_to_s(power, s_noisy=None, exponent=2):
-    # power/amplitude/etc -> magnitude
-    s = power[...,0] ** (1.0/exponent)
-    # use phase from noisy signal: magnitude -> complex
-    if s_noisy is not None:
-        s_noisy = s_noisy[..., :-1, :]
-        angles = np.angle(s_noisy)
-        s = s * np.exp(1j * angles)
-    # add previously removed bin
+def add_dc_bin(s):
     pad_shape = list(s.shape)
     pad_shape[-2] = 1
     pad_shape = tuple(pad_shape)
@@ -94,14 +83,49 @@ def power_to_s(power, s_noisy=None, exponent=2):
     return s
 
 
+## convert complex spectrograms to/from magnitude^exponent
+# NOTE implementation based on callable class rather than nested functions
+#      due to `fit_generator` requiring data_generator arguments to be 
+#      picklable (nested functions aren't)
+class s_to_exp(object):
+    def __init__(self, exponent):
+        self.exponent = exponent
+        self.__name__ = 's_to_exp({:.3f})'.format(exponent)
+
+    def __call__(self, s):
+        s = rem_dc_bin(s)
+        # complex -> magnitude -> power/amplitude/etc
+        s_power = np.abs(s) ** self.exponent
+        return s_power[..., np.newaxis]
+
+def exp_to_s(exponent):
+    def func(power, s_noisy=None):
+        # power/amplitude/etc -> magnitude
+        s = power[..., 0] ** (1.0/exponent)
+        # use phase from noisy signal: magnitude -> complex
+        if s_noisy is not None:
+            s_noisy = s_noisy[..., :-1, :]
+            angles = np.angle(s_noisy)
+            s = s * np.exp(1j * angles)
+        s = add_dc_bin(s)
+        return s
+    return func
+
+
+## convert complex spectrograms to/from absolute power spectrum
+def s_to_power(s):
+    return s_to_exp(2)(s)
+
+def power_to_s(power, s_noisy=None):
+    return exp_to_s(2)(power, s_noisy)
+
+
+## convert complex spectrograms to/from decibel-spectrum
 def s_to_db(s):
-    # remove DC if odd number
-    if s.shape[-2] % 2 != 0:
-        s = s[..., :-1, :]
+    s = rem_dc_bin(s)
     # complex -> magnitude -> decibels
     s_db = lr.amplitude_to_db(np.abs(s))
     return s_db[..., np.newaxis]
-
 
 def db_to_s(db, s_noisy=None):
     # decibels -> magnitude
@@ -111,16 +135,12 @@ def db_to_s(db, s_noisy=None):
         s_noisy = s_noisy[..., :-1, :]
         angles = np.angle(s_noisy)
         s = s * np.exp(1j * angles)
-    # add previously removed bin
-    pad_shape = list(s.shape)
-    pad_shape[-2] = 1
-    pad_shape = tuple(pad_shape)
-    padding = np.zeros(pad_shape)
-    s = np.concatenate((s, padding), axis=-2)
+    s = add_dc_bin(s)
     return s
 
 
 # convert complex spectrograms to Re/Im representation
+# NOTE unmaintained!
 def s_to_reim(s):
     # remove a bin if odd number
     if s.shape[0] % 2 != 0:

@@ -1,3 +1,7 @@
+import math
+import numpy as np
+
+from keras.callbacks import TensorBoard
 from keras.layers import Layer
 from keras import backend as K
 
@@ -68,3 +72,29 @@ class LossLayer(Layer):
         loss = self.lossfun(x_true, x_pred, z)
         self.add_loss(loss, inputs=inputs)
         return x_true
+
+# extended tensorboard callback
+class ExtendedTensorBoard(TensorBoard):
+    def __init__(self, data_generator, **kwargs):
+        super().__init__(**kwargs)
+        self.data_generator = data_generator
+
+    def on_epoch_end(self, epoch, logs=None):
+        # add learning rate to logs
+        logs.update({'lr': K.eval(self.model.optimizer.lr)})
+
+        # adds stuff to validation_data (NOTE only 1 batch)
+        s_noisy, s_true = None, None
+        # TODO loop over batches here
+        s_noisy, s_true = self.data_generator[0]
+        self.validation_data = [s_noisy, s_true, np.ones((self.batch_size)), 0]
+
+        # call parent's func
+        super().on_epoch_end(epoch, logs)
+
+
+# learning rate scheduling function
+def lr_schedule_func(initial_lr, drop_rate, drop_epochs):
+    def func(epoch):
+        return initial_lr * drop_rate ** math.floor((1+epoch)//drop_epochs)
+    return func

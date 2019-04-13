@@ -9,14 +9,14 @@ from scripts.denoise import denoise as script_denoise
 defaults = {
     'sr': 16000,
     'rir_path': None,  # '/data/riccardo_datasets/rirs/train/',
-    'noise_snrs': '20',
+    'noise_snrs': '5,10,25',
     'n_fft': 512,
     'hop_length': 128,
     'win_length': 512,
     'frag_hop_length': 16,
     'frag_win_length': 32,
     'batch_size': 128,
-    'epochs': 100,
+    'epochs': 50,
     'model_destination': '/data/riccardo_models/denoising/model_e{epoch}.h5',
     'cuda_device': '2',
     'logs_path': './training_logs.json'

@@ -297,15 +297,16 @@ class DataGenerator(keras.utils.Sequence):
                 filepath_y = osp.join(basedir, 'clean', proc_str, filename)
                 # load data
                 clean_frag = np.load(filepath_y)
-                norm_factors = self._norm_factors[index, i]
                 # normalize labels individually using params from noisy data
                 if self.normalize == 'local':
+                    norm_factors = self._norm_factors[index, i]
                     y[i, ] = normalize_spectrum_clean(clean_frag, norm_factors) 
                 else:
                     y[i, ] = clean_frag
             
             # normalize labels globally using params from noisy data
             if self.normalize == 'batch':
+                norm_factors = self._norm_factors[index]
                 y = normalize_spectrum_clean(y, norm_factors)
                 
         elif self.label_type == 'x':

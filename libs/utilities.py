@@ -6,6 +6,7 @@ import glob
 import json
 import hashlib
 import io
+import types
 import os.path as osp
 
 import pandas as pd
@@ -28,7 +29,7 @@ def load_dataset(dataset_path):
     return filelist
 
 
-def create_autoencoder_model(model_source, input_shape, template_args, **kwargs):
+def create_autoencoder_model(model_source, input_shape, template_args, return_descr=False, **kwargs):
     print('[u] Creating autoencoder model from {}'.format(model_source))
     print('[u] Model factory parameters: {}'.format({
         'input_shape': input_shape,
@@ -42,8 +43,11 @@ def create_autoencoder_model(model_source, input_shape, template_args, **kwargs)
     obj = AEModelFactory(
         input_shape, model_source, template_args)
     model = obj.get_model()
+    arch = obj.architecture
+    descr = obj.description
+    lossfunc = AEModelFactory.get_lossfunc(**kwargs)
     # return model and loss
-    return model, AEModelFactory.get_lossfunc(**kwargs)
+    return (model, lossfunc, arch, descr) if return_descr else (model, lossfunc)
 
 
 def load_autoencoder_model(model_path, custom_objects=None):
@@ -99,5 +103,11 @@ def get_model_summary(model):
     stream.close()
     return summary_string
     
-    
+
+# get name of function or class from instance
+def get_func_name(f):
+    if isinstance(f, types.FunctionType) or hasattr(f, '__name__'):
+        return f.__name__
+    else:
+        return f.__class__.__name__
 
