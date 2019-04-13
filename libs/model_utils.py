@@ -1,3 +1,5 @@
+import math
+
 from keras.callbacks import TensorBoard
 from keras.layers import Layer
 from keras import backend as K
@@ -78,3 +80,10 @@ class ExtendedTensorBoard(TensorBoard):
     def on_epoch_end(self, epoch, logs=None):
         logs.update({'lr': K.eval(self.model.optimizer.lr)})
         super().on_epoch_end(epoch, logs)
+
+
+# learning rate scheduling function
+def lr_schedule_func(initial_lr, drop_rate, drop_epochs):
+    def func(epoch):
+        return initial_lr * drop_rate ** math.floor((1+epoch)//drop_epochs)
+    return func

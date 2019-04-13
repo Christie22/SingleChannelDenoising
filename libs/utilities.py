@@ -29,7 +29,7 @@ def load_dataset(dataset_path):
     return filelist
 
 
-def create_autoencoder_model(model_source, input_shape, template_args, **kwargs):
+def create_autoencoder_model(model_source, input_shape, template_args, return_descr=False, **kwargs):
     print('[u] Creating autoencoder model from {}'.format(model_source))
     print('[u] Model factory parameters: {}'.format({
         'input_shape': input_shape,
@@ -43,8 +43,11 @@ def create_autoencoder_model(model_source, input_shape, template_args, **kwargs)
     obj = AEModelFactory(
         input_shape, model_source, template_args)
     model = obj.get_model()
+    arch = obj.architecture
+    descr = obj.description
+    lossfunc = AEModelFactory.get_lossfunc(**kwargs)
     # return model and loss
-    return model, AEModelFactory.get_lossfunc(**kwargs)
+    return (model, lossfunc, arch, descr) if return_descr else (model, lossfunc)
 
 
 def load_autoencoder_model(model_path, custom_objects=None):

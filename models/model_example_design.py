@@ -47,8 +47,10 @@ class AEModelFactory(object):
         # if template, process it
         if osp.splitext(arch_path)[1] == '.jsont':
             str_data = self.process_template(str_data, **template_args)
-        # store data as dict
-        self._architecture = json.loads(str_data)['architecture']
+        # store data as dicts
+        data = json.loads(str_data)
+        self._architecture = data['architecture']
+        self._descr = data['_meta']
 
     def process_template(self, str_data, **kwargs):
         print('[m] Processing template...')
@@ -112,3 +114,11 @@ class AEModelFactory(object):
         # give univoque name to model, based on creation time and architecture hash
         timestamp = time.strftime('%y%m%d_%H%M')
         self._model.name = '{}_{}'.format(timestamp, hash_args(self._architecture))
+
+    @property
+    def architecture(self):
+        return self._architecture
+
+    @property
+    def description(self):
+        return self._descr
