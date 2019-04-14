@@ -28,7 +28,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": {{drop_rate}}
+                "rate": {{dropout_rate}}
             }
         },
         
@@ -55,7 +55,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": {{drop_rate}}
+                "rate": {{dropout_rate}}
             }
         },
         
@@ -82,7 +82,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": {{drop_rate}}
+                "rate": {{dropout_rate}}
             }
         },
         
@@ -110,7 +110,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": {{drop_rate}}
+                "rate": {{dropout_rate}}
             }
         },
         
@@ -133,7 +133,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": {{drop_rate}}
+                "rate": {{dropout_rate}}
             }
         },
         
@@ -158,7 +158,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": {{drop_rate}}
+                "rate": {{dropout_rate}}
             }
         },
         
@@ -181,7 +181,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": {{drop_rate}}
+                "rate": {{dropout_rate}}
             }
         },
         
@@ -215,7 +215,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": {{drop_rate}}
+                "rate": {{dropout_rate}}
             }
         },
         
@@ -242,7 +242,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": {{drop_rate}}
+                "rate": {{dropout_rate}}
             }
         },
         
@@ -269,7 +269,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": {{drop_rate}}
+                "rate": {{dropout_rate}}
             }
         },
         

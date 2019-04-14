@@ -28,7 +28,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": {{drop_rate}}
+                "rate": {{dropout_rate}}
             }
         },
       {
@@ -55,7 +55,7 @@
             {
                 "layer_type": "dropout",
                 "layer_args": {
-                    "rate": {{drop_rate}}
+                    "rate": {{dropout_rate}}
                 }
             },
 	   {
@@ -82,7 +82,7 @@
        {
            "layer_type": "dropout",
            "layer_args": {
-               "rate": {{drop_rate}}
+               "rate": {{dropout_rate}}
            }
        },
         {
@@ -109,7 +109,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": {{drop_rate}}
+                "rate": {{dropout_rate}}
             }
         },
         
@@ -137,7 +137,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": {{drop_rate}}
+                "rate": {{dropout_rate}}
             }
         },
         
@@ -165,7 +165,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": {{drop_rate}}
+                "rate": {{dropout_rate}}
             }
         },
         
@@ -193,7 +193,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": {{drop_rate}}
+                "rate": {{dropout_rate}}
             }
         },
         
@@ -216,7 +216,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": {{drop_rate}}
+                "rate": {{dropout_rate}}
             }
         },
         
@@ -241,7 +241,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": {{drop_rate}}
+                "rate": {{dropout_rate}}
             }
         },
         
@@ -264,7 +264,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": {{drop_rate}}
+                "rate": {{dropout_rate}}
             }
         },
         
@@ -299,7 +299,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": {{drop_rate}}
+                "rate": {{dropout_rate}}
             }
         },
         
@@ -327,7 +327,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": {{drop_rate}}
+                "rate": {{dropout_rate}}
             }
         },
         
@@ -355,7 +355,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": {{drop_rate}}2
+                "rate": {{dropout_rate}}2
             }
         },
         {
@@ -382,7 +382,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": {{drop_rate}}
+                "rate": {{dropout_rate}}
             }
         },
         
@@ -410,7 +410,7 @@
        {
            "layer_type": "dropout",
            "layer_args": {
-               "rate": {{drop_rate}}
+               "rate": {{dropout_rate}}
            }
        },
                 
@@ -438,7 +438,7 @@
         {
             "layer_type": "dropout",
             "layer_args": {
-                "rate": {{drop_rate}}
+                "rate": {{dropout_rate}}
             }
         },
                 
