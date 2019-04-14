@@ -121,37 +121,44 @@ class DataGenerator(keras.utils.Sequence):
         print('[d] Initializing cache in {}...'.format(self.cache_path))
         self.fragments_x = []
         self.fragments_y = []
-        for i, filepath in enumerate(tqdm(self.filepaths)):
-            #print('[d] Loading file {}/{}: {}'.format(i, len(self.filepaths), filepath))
+        pbar = tqdm(self.filepaths)
+        for filepath in pbar:
             # load data
-            x, _ = lr.core.load(filepath, sr=self.sr, mono=True)
+            pbar.set_description('loading {}'.format(filepath))
+            x, _ = lr.core.load(filepath, sr=self.sr, mono=True, res_type='kaiser_fast')
             # apply variations of noise parameters + clean (labels)
-            for noise_variation in self.noise_variations + ['clean']:
-                #print('[d]  Applying noise variation {}'.format(noise_variation))
+            for noise_i, noise_variation in enumerate(self.noise_variations + ['clean']):
                 if noise_variation == 'clean':
                     # convert to TF-domain
+                    pbar.set_description('clean: stft')
                     s = lr.core.stft(
                         x, n_fft=self.n_fft, hop_length=self.hop_length, win_length=self.win_length)
                     # apply label preprocessing
+                    pbar.set_description('clean: pre-proc')
                     s_proc = self.proc_func_label(
                         s) if self.proc_func_label else np.reshape(s, (*s.shape, 1))
 
                 else:
                     noise_func, snr, rir_filepath = noise_variation
                     # apply room
+                    pbar.set_description('noise #{} reverb'.format(noise_i))
                     x_rev = self.apply_reverb(
                         x, rir_filepath) if rir_filepath else x
                     # apply noise function
+                    pbar.set_description('noise #{} noising'.format(noise_i))
                     x_noised = noise_func(
                         x_rev, sr=self.sr, snr=snr) if noise_func else x_rev
                     # convert to TF-domain
+                    pbar.set_description('noise #{} stft'.format(noise_i))
                     s_noised = lr.core.stft(
                         x_noised, n_fft=self.n_fft, hop_length=self.hop_length, win_length=self.win_length)
                     # apply data repr processing
+                    pbar.set_description('noise #{} pre-proc'.format(noise_i))
                     s_proc = self.proc_func(s_noised) if self.proc_func else np.reshape(
                         s_noised, (*s_noised.shape, 1))
 
                 # fragment data
+                pbar.set_description('fragmenting')
                 s_frags = make_fragments(
                     s_proc, self.frag_hop_length, self.frag_win_length)
                 # store shape!
@@ -160,6 +167,7 @@ class DataGenerator(keras.utils.Sequence):
 
                 # store fragments as numpy arrays
                 for i, frag in enumerate(s_frags):
+                    pbar.set_description('storing frag {}/{}'.format(i, len(s_frags)))
                     # generate filepath from parameters
                     frag_path = self.gen_cache_path(
                         self.cache_path, filepath, noise_variation,
@@ -176,6 +184,7 @@ class DataGenerator(keras.utils.Sequence):
         self.init_norm_factors()
         print('[d] Cache ready, generated {} noisy and {} clean fragments of shape {}'.format(
             len(self.fragments_x), len(self.fragments_y), self.data_shape))
+
 
     # load a pre-initialized cache (use with caution)
     def load_cache(self):
