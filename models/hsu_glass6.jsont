@@ -1,7 +1,7 @@
 {
 	"_meta": {
 		"desc": "hsu-glass model for 6 convolutional layers",
-		"source": "see original model (3 layers) at https://arxiv.org/pdf/1704.04222.pdf",	
+		"source": "see original model (3 layers) at https://arxiv.org/pdf/1704.04222.pdf"	
 	},
 	
     "architecture": [
