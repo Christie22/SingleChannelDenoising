@@ -5,17 +5,17 @@ import numpy as np
 #from keras.models import load_model
 import librosa
 
-from libs.utilities import load_autoencoder_lossfunc, load_autoencoder_model
+from libs.utilities import load_autoencoder_model
 from libs.processing import s_to_power, power_to_s, make_fragments, unmake_fragments, normalize_spectrum, unnormalize_spectrum
 
-def denoise(model_name, model_path, input_path, output_path,
+
+def denoise(model_source, input_path, output_path,
         sr, n_fft, hop_length, win_length, frag_hop_length, frag_win_length, 
         batch_size, cuda_device):
 
-    print('[dn] Applying model in {} at {} on data in {}'.format(model_name, model_path, input_path))
+    print('[dn] Applying model {} on data in {}'.format(model_source, input_path))
     print('[dn] Denoising parameters: {}'.format({
-        'model_name': model_name,
-        'model_path': model_path,
+        'model_source': model_source,
         'input_path': input_path,
         'output_path': output_path,
         'cuda_device': cuda_device
@@ -46,9 +46,8 @@ def denoise(model_name, model_path, input_path, output_path,
     time_slice = frag_win_length // 2
 
     # load trained model
-    print('[dn] Loading model from {}...'.format(model_path))
-    lossfunc = load_autoencoder_lossfunc(model_name, time_slice)
-    _, _, model = load_autoencoder_model(model_path, {'lossfunc': lossfunc})
+    model, _ = load_autoencoder_model(
+        model_source, time_slice=time_slice)
     # print model summary
     model.summary()
 

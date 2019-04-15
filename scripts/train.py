@@ -14,7 +14,7 @@ from sklearn.model_selection import train_test_split
 
 # custom modules
 from libs.utilities import load_dataset, store_logs, get_model_summary, get_func_name, \
-    create_autoencoder_model, load_autoencoder_model, load_autoencoder_lossfunc
+    create_autoencoder_model, load_autoencoder_model
 from libs.model_utils import ExtendedTensorBoard, lr_schedule_func
 from libs.data_generator import DataGenerator
 from libs.processing import pink_noise, s_to_exp
@@ -105,8 +105,8 @@ def train(model_source, dataset_path,
     if model_source_ext == '.h5':
         print('[t] Model source is a pre-trained model!')
         # load stuff
-        lossfunc = load_autoencoder_lossfunc(time_slice)
-        _, _, model = load_autoencoder_model(model_source, {'lossfunc': lossfunc})
+        model, lossfunc = load_autoencoder_model(
+            model_source, time_slice=time_slice)
         # figure out number of already-trained epochs
         initial_epoch = int(osp.splitext(
             osp.basename(model_source))[0].split('_e')[-1])

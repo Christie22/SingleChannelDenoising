@@ -50,14 +50,13 @@ def create_autoencoder_model(model_source, input_shape, template_args, return_de
     return (model, lossfunc, arch, descr) if return_descr else (model, lossfunc)
 
 
-def load_autoencoder_model(model_path, custom_objects=None):
+def load_autoencoder_model(model_path, **kwargs):
     print('[u] Loading autoencoder model from {}'.format(model_path))
+    from models.model_example import AEModelFactory
+    lossfunc = AEModelFactory.get_lossfunc(**kwargs)
+    custom_objects = {'lossfunc': lossfunc}
     model = load_model(model_path, custom_objects=custom_objects)
-    # extract encoder from main model
-    #encoder = model.get_layer('encoder')
-    #decoder = model.get_layer('decoder')
-    # NOTE compatibility sake
-    return None, None, model
+    return model, lossfunc
 
 
 def load_autoencoder_lossfunc(time_slice):

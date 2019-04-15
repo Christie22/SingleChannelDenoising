@@ -86,8 +86,7 @@ def train(ctx,
 # RESULTS
 @cli.command()
 @click.pass_context
-@click.argument('model_name', type=str)
-@click.argument('model_path', type=click.Path(exists=True, file_okay=True, dir_okay=False))
+@click.argument('model_source', type=click.Path(exists=True, file_okay=True, dir_okay=False))
 @click.argument('dataset_path', type=click.Path(exists=True, file_okay=False, dir_okay=True))
 @click.option('--sr', type=int, default=defaults['sr'])
 @click.option('--rir_path', type=click.Path(exists=True, file_okay=False, dir_okay=True), default=defaults['rir_path'])
@@ -98,9 +97,9 @@ def train(ctx,
 @click.option('--frag_hop_length', type=int, default=defaults['frag_hop_length'])
 @click.option('--frag_win_length', type=int, default=defaults['frag_win_length'])
 @click.option('--batch_size', type=int, default=defaults['batch_size'])
+@click.option('--force_cacheinit', is_flag=True, default=False)
 def results(ctx,
-            model_name,
-            model_path,
+            model_source,
             dataset_path,
             sr,
             rir_path,
@@ -110,10 +109,10 @@ def results(ctx,
             win_length,
             frag_hop_length,
             frag_win_length,
-            batch_size):
+            batch_size,
+            force_cacheinit):
     noise_snrs_list = [int(n) for n in noise_snrs.split(',')]
-    script_results(model_name,
-                   model_path,
+    script_results(model_source,
                    dataset_path,
                    sr,
                    rir_path,
@@ -124,13 +123,13 @@ def results(ctx,
                    frag_hop_length,
                    frag_win_length,
                    batch_size,
+                   force_cacheinit,
                    ctx.obj['cuda_device'])
 
 # DENOISE
 @cli.command()
 @click.pass_context
-@click.argument('model_name', type=str)
-@click.argument('model_path', type=click.Path(exists=True, file_okay=True, dir_okay=False))
+@click.argument('model_source', type=click.Path(exists=True, file_okay=True, dir_okay=False))
 @click.argument('input_path', type=click.Path(exists=True, file_okay=True, dir_okay=False))
 @click.argument('output_path', type=click.Path())
 @click.option('--sr', type=int, default=defaults['sr'])
@@ -141,8 +140,7 @@ def results(ctx,
 @click.option('--frag_win_length', type=int, default=defaults['frag_win_length'])
 @click.option('--batch_size', type=int, default=defaults['batch_size'])
 def denoise(ctx,
-            model_name,
-            model_path,
+            model_source,
             input_path,
             output_path,
             sr,
@@ -152,8 +150,7 @@ def denoise(ctx,
             frag_hop_length,
             frag_win_length,
             batch_size):
-    script_denoise(model_name,
-                   model_path,
+    script_denoise(model_source,
                    input_path,
                    output_path,
                    sr,
