@@ -62,6 +62,7 @@ class DataGenerator(keras.utils.Sequence):
         self.batch_size = batch_size
         # computed vars
         self._data_shape = None
+        self._data_shape_label = None
         self.rir_filepaths = self.load_rirs()
         self.noise_variations = list(itertools.product(
             self.noise_funcs, self.noise_snrs, self.rir_filepaths))
@@ -162,8 +163,12 @@ class DataGenerator(keras.utils.Sequence):
                 s_frags = make_fragments(
                     s_proc, self.frag_hop_length, self.frag_win_length)
                 # store shape!
-                if not self._data_shape:
-                    self._data_shape = s_frags[0].shape
+                if noise_variation == 'clean':
+                    if not self._data_shape:
+                        self._data_shape = s_frags[0].shape
+                else:
+                    if not self._data_shape_label:
+                        self._data_shape_label = s_frags[0].shape
 
                 # store fragments as numpy arrays
                 for i, frag in enumerate(s_frags):
@@ -212,8 +217,13 @@ class DataGenerator(keras.utils.Sequence):
                         self.fragments_y.append(frag_path)
                     else:
                         self.fragments_x.append(frag_path)
-        # load last one to get shape
-        self._data_shape = np.load(frag_path).shape
+                # load shape!
+                if noise_variation == 'clean':
+                    if not self._data_shape:
+                        self._data_shape = np.load(frag_path).shape
+                else:
+                    if not self._data_shape_label:
+                        self._data_shape_label = np.load(frag_path).shape
         # done
         self.init_norm_factors()
         print('[d] Cache ready, indexed {} noisy and {} clean fragments of shape {}'.format(
@@ -330,6 +340,10 @@ class DataGenerator(keras.utils.Sequence):
     @property
     def data_shape(self):
         return self._data_shape
+
+    @property
+    def label_shape(self):
+        return self._data_shape_label
 
     # return normalization factors
     @property 

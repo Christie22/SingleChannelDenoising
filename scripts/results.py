@@ -109,7 +109,7 @@ def results(model_source,
     for filepath in pbar:
         # loop for noise variations
         for noise_variation in noise_variations:
-            noise_func, snr, rir_filepath = noise_variation
+            noise_func, snr, _ = noise_variation
             # create DataGenerator objects (one file at a time!)
             pbar.set_description('{} @ {}'.format(filepath, noise_variation))
             testing_generator = DataGenerator(
@@ -121,16 +121,18 @@ def results(model_source,
             n_batches = len(testing_generator)
 
             # data temp variables
-            y_noisy = np.empty((n_batches, *testing_generator.data_shape))
-            y_true = np.empty((n_batches, *testing_generator.data_shape))
-            y_pred = np.empty((n_batches, *testing_generator.data_shape))
+            y_noisy = np.empty((n_batches, batch_size, *testing_generator.data_shape))
+            y_true = np.empty((n_batches, batch_size, *testing_generator.data_shape))
+            y_pred = np.empty((n_batches, batch_size, *testing_generator.data_shape))
             # loop through batches
-            for batch_index in n_batches:
+            for batch_index in range(n_batches):
                 pbar.set_description('predicting {}/{} '.format(
                     batch_index, n_batches))
                 # predict data and sort out noisy and clean
-                y_noisy[batch_index], y_true[batch_index] = testing_generator[batch_index]
-                y_pred[batch_index] = model.predict(y_noisy[batch_index])
+                y_noisy_batch, y_true_batch = testing_generator[batch_index]
+                y_noisy[batch_index] = y_noisy_batch
+                y_true[batch_index] = y_true_batch
+                y_pred[batch_index] = model.predict(y_noisy_batch)
 
             # flatten along batches
             pbar.set_description('reshaping')
@@ -140,9 +142,9 @@ def results(model_source,
 
             # convert to complex spectrogram
             pbar.set_description('post-proc')
-            s_noisy = unproc_func(y_noisy, y_noisy)
-            s_true = unproc_func(y_true, y_true)
-            s_pred = unproc_func(y_pred, y_noisy)
+            s_noisy = unproc_func(y_noisy)
+            s_true = unproc_func(y_true)
+            s_pred = unproc_func(y_pred)
 
             # merge batches
             pbar.set_description('merge frags')
