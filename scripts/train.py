@@ -85,6 +85,7 @@ def train(model_source, dataset_path,
         'n_recurrent': 512,
         'ker_size':2,
         'n_dense': input_shape[0]*input_shape[2],
+        'ker_size': 2,
         'timesteps': input_shape[1],
         'channels': input_shape[2],
         'dropout_rate': 0.35,
@@ -109,8 +110,8 @@ def train(model_source, dataset_path,
     if model_source_ext == '.h5':
         print('[t] Model source is a pre-trained model!')
         # load stuff
-        model, lossfunc = load_autoencoder_model(
-            model_source, time_slice=time_slice)
+        lossfunc = load_autoencoder_lossfunc(time_slice)
+        _, _, model = load_autoencoder_model(model_source, {'lossfunc': lossfunc})
         # figure out number of already-trained epochs
         initial_epoch = int(osp.splitext(
             osp.basename(model_source))[0].split('_e')[-1])
