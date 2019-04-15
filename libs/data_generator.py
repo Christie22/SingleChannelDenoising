@@ -73,16 +73,19 @@ class DataGenerator(keras.utils.Sequence):
         self.indexes = []
         # setup cache
         if force_cacheinit or not osp.exists(self.cache_path):
-            self.init_cache()
+            if self.init_cache():
+                self.load_cache()
         else:
             try:
                 self.load_cache()
                 if not self.test_cache():
                     print( '[d] Cache indexing test failed. Attempting to initialize it...')
-                    self.init_cache()
+                    if self.init_cache():
+                        self.load_cache()
             except IOError:
                 print('[d] Cache indexing caused an exception. Attempting to initialize it...')
-                self.init_cache()
+                if self.init_cache():
+                    self.load_cache()
         # shuffle batches if needed
         self.on_epoch_end()
         # print some debugging info
@@ -119,6 +122,7 @@ class DataGenerator(keras.utils.Sequence):
 
     # init cache
     def init_cache(self, check_existence=True):
+        _cache_need_reload = False
         print('[d] Initializing cache in {}...'.format(self.cache_path))
         self.fragments_x = []
         self.fragments_y = []
@@ -136,6 +140,7 @@ class DataGenerator(keras.utils.Sequence):
                         self.cache_path, filepath, noise_variation,
                         self.proc_func if noise_variation != 'clean' else self.proc_func_label, 0)
                     if osp.exists(frag_path):
+                        cache_need_reload = True
                         continue
 
                 if noise_variation == 'clean':
@@ -196,8 +201,11 @@ class DataGenerator(keras.utils.Sequence):
                         self.fragments_x.append(frag_path)
         # done
         self.init_norm_factors()
-        print('[d] Cache ready, generated {} noisy and {} clean fragments of shape {}'.format(
+        print('[d] Cache ready, generated {} new noisy and {} new clean fragments of shape {}'.format(
             len(self.fragments_x), len(self.fragments_y), self.data_shape))
+        if cache_need_reload:
+            print('[d] Some elements haven\'t been re-generated, cache will be indexed!')
+        return cache_need_reload
 
 
     # load a pre-initialized cache (use with caution)
