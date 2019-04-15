@@ -14,7 +14,7 @@ from sklearn.model_selection import train_test_split
 
 # custom modules
 from libs.utilities import load_dataset, store_logs, get_model_summary, get_func_name, \
-    create_autoencoder_model, load_autoencoder_model
+    create_autoencoder_model, load_autoencoder_model, load_autoencoder_lossfunc
 from libs.model_utils import ExtendedTensorBoard, lr_schedule_func
 from libs.data_generator import DataGenerator
 from libs.processing import pink_noise, s_to_exp
@@ -83,11 +83,15 @@ def train(model_source, dataset_path,
     model_template_args = {
         'n_conv': 256,
         'n_recurrent': 512,
+        'ker_size':2,
         'n_dense': input_shape[0]*input_shape[2],
         'timesteps': input_shape[1],
         'channels': input_shape[2],
         'dropout_rate': 0.35,
-        'activ_func': 'relu'
+        'activ_func': 'relu',
+        'n_stacks': 1,
+        'dilatations': [1],
+        'use_skip_connections': str(False).lower()
     }
     #time_slice = frag_win_length // 2
     time_slice = slice(None)
@@ -135,7 +139,7 @@ def train(model_source, dataset_path,
 
     # learning rate params
     initial_lr = 0.01
-    drop_rate = 0.8
+    drop_rate = 1
     drop_epochs = 20
     lr_schedule = lr_schedule_func(initial_lr, drop_rate, drop_epochs)
 

@@ -12,6 +12,7 @@ from keras.layers import Input, Dense, \
         LSTM, ConvLSTM2D, GRU
 from keras.models import Model
 from keras import backend as K
+from tcn import TCN
 
 from libs.utilities import hash_args
 
@@ -33,6 +34,7 @@ class AEModelFactory(object):
         'lstmconv2d': ConvLSTM2D,
         'gru': GRU,
         'elu': ELU,
+        'tcn': TCN
     }
     def __init__(
             self,
