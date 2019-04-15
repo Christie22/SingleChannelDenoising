@@ -118,7 +118,7 @@ class DataGenerator(keras.utils.Sequence):
 
 
     # init cache
-    def init_cache(self):
+    def init_cache(self, check_existence=True):
         print('[d] Initializing cache in {}...'.format(self.cache_path))
         self.fragments_x = []
         self.fragments_y = []
@@ -129,6 +129,15 @@ class DataGenerator(keras.utils.Sequence):
             x, _ = lr.core.load(filepath, sr=self.sr, mono=True, res_type='kaiser_fast')
             # apply variations of noise parameters + clean (labels)
             for noise_i, noise_variation in enumerate(self.noise_variations + ['clean']):
+                # skip generation if the target files already exist
+                if check_existence:
+                    pbar.set_description('checking existence')
+                    frag_path = self.gen_cache_path(
+                        self.cache_path, filepath, noise_variation,
+                        self.proc_func if noise_variation != 'clean' else self.proc_func_label, 0)
+                    if osp.exists(frag_path):
+                        continue
+
                 if noise_variation == 'clean':
                     # convert to TF-domain
                     pbar.set_description('clean: stft')

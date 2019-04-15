@@ -13,3 +13,5 @@ __pycache__/
 notebooks/.ipynb_checkpoints
 
 notes/03_27.md
+
+*.svg

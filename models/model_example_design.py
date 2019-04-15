@@ -51,6 +51,7 @@ class AEModelFactory(object):
         data = json.loads(str_data)
         self._architecture = data['architecture']
         self._descr = data['_meta']
+        self._name = osp.splitext(osp.basename(arch_path))[0]
 
     def process_template(self, str_data, **kwargs):
         print('[m] Processing template...')
@@ -112,8 +113,9 @@ class AEModelFactory(object):
 
         self._model = Model(inputs, x)
         # give univoque name to model, based on creation time and architecture hash
+        
         timestamp = time.strftime('%y%m%d_%H%M')
-        self._model.name = '{}_{}'.format(timestamp, hash_args(self._architecture))
+        self._model.name = '{}_{}_{}'.format(timestamp, self._name, hash_args(self._architecture))
 
     @property
     def architecture(self):
@@ -122,3 +124,7 @@ class AEModelFactory(object):
     @property
     def description(self):
         return self._descr
+
+    @property
+    def name(self):
+        return self._name

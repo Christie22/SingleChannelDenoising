@@ -89,19 +89,19 @@ def powerlaw_psd_gaussian(exponent, size, fmin=0):
     s_scale = s_scale[(newaxis,) * dims_to_add + (Ellipsis,)]
 
     # Generate scaled random power + phase
-    sr = normal(scale=s_scale, size=size)
-    si = normal(scale=s_scale, size=size)
+    s_re = normal(scale=s_scale, size=size)
+    s_im = normal(scale=s_scale, size=size)
 
     # If the signal length is even, frequencies +/- 0.5 are equal
     # so the coefficient must be real.
     if not (samples % 2):
-        si[..., -1] = 0
+        s_im[..., -1] = 0
 
     # Regardless of signal length, the DC component must be real
-    si[..., 0] = 0
+    s_im[..., 0] = 0
 
     # Combine power + corrected phase to Fourier components
-    s = sr + 1J * si
+    s = s_re + 1J * s_im
 
     # Transform to real time series & scale to unit variance
     y = irfft(s, n=samples, axis=-1) / sigma
