@@ -7,6 +7,7 @@
 #  - SAR (source-to-artifact ratio) 
 
 import os
+import os.path as osp
 import itertools
 import pandas as pd
 import numpy as np
@@ -98,20 +99,20 @@ def results(model_source,
     n_files = len(filepath_list)
     n_variations = len(noise_variations)
     metrics = {
-        'mse': np.zeros(n_files * n_variations),
-        'sdr': np.zeros(n_files * n_variations),
-        'sar': np.zeros(n_files * n_variations),
-        'sir': np.zeros(n_files * n_variations),
+        'mse': np.zeros((n_files, n_variations)),
+        'sdr': np.zeros((n_files, n_variations)),
+        'sar': np.zeros((n_files, n_variations)),
+        'sir': np.zeros((n_files, n_variations)),
     }
 
     # loop through files
     pbar = tqdm(filepath_list)
-    for filepath in pbar:
+    for file_index, filepath in enumerate(pbar):
         # loop for noise variations
-        for noise_variation in noise_variations:
+        for variation_index, noise_variation in enumerate(noise_variations):
             noise_func, snr, _ = noise_variation
             # create DataGenerator objects (one file at a time!)
-            pbar.set_description('{} @ {}'.format(filepath, noise_variation))
+            pbar.set_description('{} @ {}'.format(osp.basename(filepath), noise_variation))
             testing_generator = DataGenerator(
                 filepaths=[filepath], 
                 noise_funcs=[noise_func],
@@ -159,10 +160,11 @@ def results(model_source,
             x_pred = lr.istft(s_pred, hop_length=hop_length, win_length=win_length)
                 
             # METRIC 1: mean squared error
-            pbar.set_description('merge frags')
+            pbar.set_description('metrics (1)')
             mse = sample_metric(s_pred, s_true)
 
             # METRIC 2: sdr, sir, sar
+            pbar.set_description('metrics (2)')
             src_true = np.array([
                 x_true,        # true clean
                 x_noisy-x_true # true noise (-ish)
@@ -174,10 +176,10 @@ def results(model_source,
             sdr, sir, sar, _ = bss_eval_sources(src_true, src_pred)
 
             # store metrics
-            metrics['mse'][batch_index] = mse
-            metrics['sdr'][batch_index] = sdr[0]
-            metrics['sir'][batch_index] = sir[0]
-            metrics['sar'][batch_index] = sar[0]
+            metrics['mse'][file_index, variation_index] = mse
+            metrics['sdr'][file_index, variation_index] = sdr[0]
+            metrics['sir'][file_index, variation_index] = sir[0]
+            metrics['sar'][file_index, variation_index] = sar[0]
 
     print('[r] Results:')
     print('[r]   Average MSE: {}'.format(metrics['mse'].mean()))
