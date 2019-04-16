@@ -23,9 +23,21 @@
                    "dilations": {{dilatations}},
                    "nb_stacks": {{n_stacks}},
                    "use_skip_connections": {{use_skip_connections}},
-                   "return_sequences": true
+                   "return_sequences": {{return_sequences}}
                    	}
-                },  {
+                }, {
+                 "layer_type": "tcn",
+                 "layer_args": {
+                     "nb_filters": {{n_filters}},
+                     "dropout_rate": {{dropout_rate}},
+                     "kernel_size": {{ker_size}},
+                     "dilations": {{dilatations}},
+                     "nb_stacks": {{n_stacks}},
+                     "use_skip_connections": {{use_skip_connections}},
+                     "return_sequences": {{return_sequences}}
+                     	}
+                  },
+                 {
             "layer_type": "reshape",
             "layer_args": {
                 "target_shape": [{{timesteps}}, -1, {{channels}}]

@@ -81,18 +81,19 @@ def train(model_source, dataset_path,
     # loss function: data slice under consideration
     input_shape = training_generator.data_shape
     model_template_args = {
-        'n_filters': 64,
+        'n_filters': 256,
         'n_conv': 256,
         'n_recurrent': 512,
-        'ker_size':6,
+        'ker_size':8,
         'n_dense': input_shape[0]*input_shape[2],
         'timesteps': input_shape[1],
         'channels': input_shape[2],
         'dropout_rate': 0.35,
         'activ_func': 'relu',
-        'n_stacks': 3,
+        'n_stacks': 2,
         'dilatations': [1, 2, 4, 8, 16],
-        'use_skip_connections': str(True).lower()
+        'use_skip_connections': str(True).lower(),
+        'return_sequences': str(True).lower()
     }
     #time_slice = frag_win_length // 2
     time_slice = slice(None)
