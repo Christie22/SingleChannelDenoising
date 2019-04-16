@@ -254,20 +254,20 @@ def velvet_noise(x, SNR):
 def take_file_as_noise(filepath):
     # checking TODO
     print('[l] Using the following file as noise: {0}'.format(filepath))
-    # path = os.path.join(filepath + '.wav')
-    xn, srn = lr.load(filepath)
     
-    def noising_prototype(x, SNR):
+    
+    def noising_prototype(x, sr, snr):
+        xn, srn = lr.load(filepath)
         dur_speech = x.shape[0]
         if srn != sr:
-            print("[l] resampling the noise from {} to {}".format(srn, sn))
-            xn = lr.resample(xn, orig_srn, sr)
+            print("[l] resampling the noise from {} to {}".format(srn, sr))
+            xn = lr.resample(xn, srn, sr)
         else:
             print("[l] no resampling is needed, sr = {}".format(srn))
         dur_noise = xn.shape[0]
 
         # Noise params + scaling
-        snr = 10.0**(SNR_dB/10.0)
+        snr = 10.0**(snr/10.0)
 
         xn_mean = xn.mean()
         x_rms = x.std()
