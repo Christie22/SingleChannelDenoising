@@ -3,9 +3,6 @@ from scripts.train import train as script_train
 from scripts.results import results as script_results
 from scripts.denoise import denoise as script_denoise
 
-# pass models as class, parse model_name here (just like we do it snrs)
-
-
 defaults = {
     'sr': 16000,
     'rir_path': None,  # '/data/riccardo_datasets/rirs/train/',
@@ -19,7 +16,8 @@ defaults = {
     'epochs': 50,
     'model_destination': '/data/riccardo_models/denoising/model_e{epoch}.h5',
     'cuda_device': '2',
-    'logs_path': './training_logs.json'
+    'logs_path': './training_logs.json',
+    'results_output_path': '../results/results_{ts}_{model_name}.pkl'
 }
 
 
@@ -98,6 +96,7 @@ def train(ctx,
 @click.option('--frag_win_length', type=int, default=defaults['frag_win_length'])
 @click.option('--batch_size', type=int, default=defaults['batch_size'])
 @click.option('--force_cacheinit', is_flag=True, default=False)
+@click.option('--output_path', type=click.Path(exists=True, file_okay=True, dir_okay=False), default=defaults['results_output_path'])
 def results(ctx,
             model_source,
             dataset_path,
@@ -110,7 +109,8 @@ def results(ctx,
             frag_hop_length,
             frag_win_length,
             batch_size,
-            force_cacheinit):
+            force_cacheinit,
+            output_path):
     noise_snrs_list = [int(n) for n in noise_snrs.split(',')]
     script_results(model_source,
                    dataset_path,
@@ -124,6 +124,7 @@ def results(ctx,
                    frag_win_length,
                    batch_size,
                    force_cacheinit,
+                   output_path,
                    ctx.obj['cuda_device'])
 
 # DENOISE

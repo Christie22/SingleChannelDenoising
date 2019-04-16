@@ -9,6 +9,7 @@
 import os
 import os.path as osp
 import itertools
+import time
 import pandas as pd
 import numpy as np
 import librosa as lr
@@ -22,7 +23,7 @@ import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 # custom modules
-from libs.utilities import load_dataset, load_autoencoder_model
+from libs.utilities import load_dataset, load_autoencoder_model, get_func_name
 from libs.model_utils import LossLayer
 from libs.data_generator import DataGenerator
 from libs.processing import pink_noise, s_to_exp, exp_to_s, unmake_fragments
@@ -33,11 +34,12 @@ def results(model_source,
             dataset_path, sr, 
             rir_path, noise_snrs,
             n_fft, hop_length, win_length, frag_hop_length, frag_win_length,
-            batch_size, force_cacheinit, cuda_device):
+            batch_size, force_cacheinit, output_path, cuda_device):
     print('[r] Calculating results for model {} on dataset {}'.format(
         model_source, dataset_path))
     print('[r] Parameters: {}'.format({
         'model_source': model_source,
+        'output_path': output_path,
         'dataset_path': dataset_path,
         'cuda_device': cuda_device,
         'force_cacheinit': force_cacheinit
@@ -95,97 +97,101 @@ def results(model_source,
     # print model summary
     model.summary()
 
-    # metrics data structure
-    n_files = len(filepath_list)
-    n_variations = len(noise_variations)
-    metrics = {
-        'mse': np.zeros((n_files, n_variations)),
-        'sdr': np.zeros((n_files, n_variations)),
-        'sar': np.zeros((n_files, n_variations)),
-        'sir': np.zeros((n_files, n_variations)),
-    }
+    # list of filepath-noise_variation combinations
+    file_noisevariation_prod = list(itertools.product(filepath_list, noise_variations))
+    
+    # metrics dataframe vars
+    df_index = pd.MultiIndex.from_tuples(
+        file_noisevariation_prod, names=['filepath', 'noise_variation'])
+    df_columns = ['mse', 'sdr', 'sir', 'sar']
+    df = pd.DataFrame(np.empty((len(df_index), len(df_columns))),
+                      index=df_index, columns=df_columns)
 
-    # loop through files
-    pbar = tqdm(filepath_list)
-    for file_index, filepath in enumerate(pbar):
-        # loop for noise variations
-        for variation_index, noise_variation in enumerate(noise_variations):
-            noise_func, snr, _ = noise_variation
-            # create DataGenerator objects (one file at a time!)
-            pbar.set_description('{} @ {}'.format(osp.basename(filepath), noise_variation))
-            testing_generator = DataGenerator(
-                filepaths=[filepath], 
-                noise_funcs=[noise_func],
-                noise_snrs=[snr],
-                rir_path=rir_path,  # TODO un-hardcode
-                **generator_args)
-            n_batches = len(testing_generator)
+    # loop for filepath-noise_variation combinations
+    pbar = tqdm(file_noisevariation_prod)
+    for file_noisevariation in pbar:
+        # unpack data
+        filepath, noise_variation = file_noisevariation
+        noise_func, snr, _ = noise_variation
+        # create DataGenerator objects (one file at a time!)
+        pbar.set_description('{} @ {}'.format(osp.basename(filepath), noise_variation))
+        testing_generator = DataGenerator(
+            filepaths=[filepath], 
+            noise_funcs=[noise_func],
+            noise_snrs=[snr],
+            rir_path=rir_path,  # TODO un-hardcode
+            **generator_args)
+        n_batches = len(testing_generator)
 
-            # data temp variables
-            y_noisy = np.empty((n_batches, batch_size, *testing_generator.data_shape))
-            y_true = np.empty((n_batches, batch_size, *testing_generator.data_shape))
-            y_pred = np.empty((n_batches, batch_size, *testing_generator.data_shape))
-            # loop through batches
-            for batch_index in range(n_batches):
-                pbar.set_description('predicting {}/{} '.format(
-                    batch_index, n_batches))
-                # predict data and sort out noisy and clean
-                y_noisy_batch, y_true_batch = testing_generator[batch_index]
-                y_noisy[batch_index] = y_noisy_batch
-                y_true[batch_index] = y_true_batch
-                y_pred[batch_index] = model.predict(y_noisy_batch)
+        # data temp variables
+        y_noisy = np.empty((n_batches, batch_size, *testing_generator.data_shape))
+        y_true = np.empty((n_batches, batch_size, *testing_generator.data_shape))
+        y_pred = np.empty((n_batches, batch_size, *testing_generator.data_shape))
+        # loop through batches
+        for batch_index in range(n_batches):
+            pbar.set_description('predicting {}/{} '.format(
+                batch_index, n_batches))
+            # predict data and sort out noisy and clean
+            y_noisy_batch, y_true_batch = testing_generator[batch_index]
+            y_noisy[batch_index] = y_noisy_batch
+            y_true[batch_index] = y_true_batch
+            y_pred[batch_index] = model.predict(y_noisy_batch)
 
-            # flatten along batches
-            pbar.set_description('reshaping')
-            y_noisy = y_noisy.reshape(-1, *testing_generator.data_shape)
-            y_true = y_true.reshape(-1, *testing_generator.data_shape)
-            y_pred = y_pred.reshape(-1, *testing_generator.data_shape)
+        # flatten along batches
+        pbar.set_description('reshaping')
+        y_noisy = y_noisy.reshape(-1, *testing_generator.data_shape)
+        y_true = y_true.reshape(-1, *testing_generator.data_shape)
+        y_pred = y_pred.reshape(-1, *testing_generator.data_shape)
 
-            # convert to complex spectrogram
-            pbar.set_description('post-proc')
-            s_noisy = unproc_func(y_noisy)
-            s_true = unproc_func(y_true)
-            s_pred = unproc_func(y_pred)
+        # convert to complex spectrogram
+        pbar.set_description('post-proc')
+        s_noisy = unproc_func(y_noisy)
+        s_true = unproc_func(y_true)
+        s_pred = unproc_func(y_pred)
 
-            # merge batches
-            pbar.set_description('merge frags')
-            s_noisy = unmake_fragments(s_noisy, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
-            s_true = unmake_fragments(s_true, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
-            s_pred = unmake_fragments(s_pred, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
+        # merge batches
+        pbar.set_description('merge frags')
+        s_noisy = unmake_fragments(s_noisy, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
+        s_true = unmake_fragments(s_true, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
+        s_pred = unmake_fragments(s_pred, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
 
-            # get waveform
-            pbar.set_description('istft')
-            x_noisy = lr.istft(s_noisy, hop_length=hop_length, win_length=win_length)
-            x_true = lr.istft(s_true, hop_length= hop_length, win_length=win_length)
-            x_pred = lr.istft(s_pred, hop_length=hop_length, win_length=win_length)
-                
-            # METRIC 1: mean squared error
-            pbar.set_description('metrics (1)')
-            mse = sample_metric(s_pred, s_true)
+        # get waveform
+        pbar.set_description('istft')
+        x_noisy = lr.istft(s_noisy, hop_length=hop_length, win_length=win_length)
+        x_true = lr.istft(s_true, hop_length= hop_length, win_length=win_length)
+        x_pred = lr.istft(s_pred, hop_length=hop_length, win_length=win_length)
+            
+        # METRIC 1: mean squared error
+        pbar.set_description('metrics (1)')
+        mse = sample_metric(s_pred, s_true)
 
-            # METRIC 2: sdr, sir, sar
-            pbar.set_description('metrics (2)')
-            src_true = np.array([
-                x_true,        # true clean
-                x_noisy-x_true # true noise (-ish)
-            ])
-            src_pred = np.array([
-                x_pred,         # predicted clean
-                x_noisy-x_pred  # predicted noise (-ish)
-            ])
-            sdr, sir, sar, _ = bss_eval_sources(src_true, src_pred)
+        # METRIC 2: sdr, sir, sar
+        pbar.set_description('metrics (2)')
+        src_true = np.array([
+            x_true,         # true clean
+            x_noisy-x_true  # true noise (-ish)
+        ])
+        src_pred = np.array([
+            x_pred,         # predicted clean
+            x_noisy-x_pred  # predicted noise (-ish)
+        ])
+        sdr, sir, sar, _ = bss_eval_sources(src_true, src_pred)
 
-            # store metrics
-            metrics['mse'][file_index, variation_index] = mse
-            metrics['sdr'][file_index, variation_index] = sdr[0]
-            metrics['sir'][file_index, variation_index] = sir[0]
-            metrics['sar'][file_index, variation_index] = sar[0]
+        # store metrics
+        df.loc[file_noisevariation, 'mse'] = mse
+        df.loc[file_noisevariation, 'sdr'] = sdr[0]
+        df.loc[file_noisevariation, 'sir'] = sir[0]
+        df.loc[file_noisevariation, 'sar'] = sar[0]
+    
+    # store results in pandas dataframe
+    timestamp = time.strftime('%y%m%d_%H%M')
+    output_path = output_path.format(model_name=model.name, ts=timestamp)
+    df.to_pickle(output_path)
+
+
 
     print('[r] Results:')
-    print('[r]   Average MSE: {}'.format(metrics['mse'].mean()))
-    print('[r]   Average SDR: {}'.format(metrics['sdr'].mean()))
-    print('[r]   Average SIR: {}'.format(metrics['sir'].mean()))
-    print('[r]   Average SAR: {}'.format(metrics['sar'].mean()))
+    print(df)
     print('[r] Done!')
 
 
