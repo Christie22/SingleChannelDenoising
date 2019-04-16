@@ -185,10 +185,11 @@ def results(model_source,
     
     # store results in pandas dataframe
     timestamp = time.strftime('%y%m%d_%H%M')
-    output_path = output_path.format(model_name=model.name, ts=timestamp)
+    filename = 'results_{}.pkl'.format(timestamp)
+    output_path = osp.join(output_path, model.name)
+    os.makedirs(output_path, exist_ok=True)
+    output_path = osp.join(output_path, filename)
     df.to_pickle(output_path)
-
-
 
     print('[r] Results:')
     print(df)

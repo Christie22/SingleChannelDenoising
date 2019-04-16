@@ -17,7 +17,7 @@ defaults = {
     'model_destination': '/data/riccardo_models/denoising/model_e{epoch}.h5',
     'cuda_device': '2',
     'logs_path': './training_logs.json',
-    'results_output_path': '../results/results_{ts}_{model_name}.pkl'
+    'results_output_path': '../results/'
 }
 
 
