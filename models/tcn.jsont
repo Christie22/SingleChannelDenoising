@@ -17,7 +17,7 @@
         }, {
                "layer_type": "tcn",
                "layer_args": {
-                   "nb_filters": 256,
+                   "nb_filters": {{n_filters}},
                    "dropout_rate": {{dropout_rate}},
                    "kernel_size": {{ker_size}},
                    "dilations": {{dilatations}},
