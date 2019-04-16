@@ -251,27 +251,89 @@ def velvet_noise(x, SNR):
     noise = [sigma * ((vv> rate_zero) - (vv < -rate_zero)) for vv in myVelvetNoise]
     return x+noise
 
-# def take_file_as_noise(x, SNR):
-#     N = len(x)
-#     sigma = np.sqrt( (x @ x.T) / (N * 10**(SNR/10)) )
-#     def noising_prototype( filepath):
-#         print('Using the following file as noise: {0}'.format(filepath))
-# #        path = os.path.join(filepath + '.wav')
-#         load_noise = np.load(filepath)
-#         noise =  sigma * (load_noise - np.mean(load_noise)) + np.mean(load_noise) 
-#         return noise
-#     return noising_prototype
-
 def take_file_as_noise(filepath):
     # checking TODO
-    print('Using the following file as noise: {0}'.format(filepath))
+    print('[l] Using the following file as noise: {0}'.format(filepath))
     # path = os.path.join(filepath + '.wav')
-    load_noise = np.load(filepath)
+    xn, srn = lr.load(filepath)
     
     def noising_prototype(x, SNR):
-        N = len(x)
-        sigma = np.sqrt( (x @ x.T) / (N * 10**(SNR/10)) )
-        noise =  sigma * (load_noise - np.mean(load_noise)) + np.mean(load_noise) 
-        return noise
+        dur_speech = x.shape[0]
+        if srn != sr:
+            print("[l] resampling the noise from {} to {}".format(srn, sn))
+            xn = lr.resample(xn, orig_srn, sr)
+        else:
+            print("[l] no resampling is needed, sr = {}".format(srn))
+        dur_noise = xn.shape[0]
+
+        # Noise params + scaling
+        snr = 10.0**(SNR_dB/10.0)
+
+        xn_mean = xn.mean()
+        x_rms = x.std()
+        xn_rms = xn.std()
+        scaling = x_rms / (snr * xn_rms)
+
+        xn_scale= (xn[:] - xn_mean) * scaling + xn_mean
+
+
+        # Create Fade-in & fade-out and apply it
+        p100_fade = .005 # proportion
+        fade_len = np.int(p100_fade * dur_noise)
+
+        fadein = np.cos(np.linspace(-np.pi/2,0,fade_len))
+        fadeout = np.cos(np.linspace(0, np.pi/2,fade_len))
+
+        noise = xn_scale[:]
+        noise[:fade_len] = fadein * noise[:fade_len]
+        noise[-fade_len:] = fadeout * noise[-fade_len:] 
+
+        # Draw random proportion for the beginning of the noise
+        rnd_beg_ind = np.int(np.random.random(1) * dur_noise)
+
+        # init
+        out = x[:] #np.zeros((dur_speech))  #x #
+        portion_noise = dur_noise-rnd_beg_ind # always <dur_noise
+    
+        # Checking if the remaining portion of noise can fit into out
+        if portion_noise < dur_speech: 
+            n_noise_next = 0
+            n_out_next = dur_noise-rnd_beg_ind
+            out[ :n_out_next] += noise[rnd_beg_ind: ]
+        else:
+            n_noise_next = rnd_beg_ind+dur_speech
+            n_out_next = 0
+            out[:] += noise[rnd_beg_ind : n_noise_next]
+
+        nb_iter = np.int((x.shape[0] - fade_len) / (dur_noise-fade_len))
+
+        for n in range(nb_iter):
+            n_out_beg = n_out_next - fade_len
+            n_out_end = n_out_beg + dur_noise
+
+            if n_out_beg < 0: #can happen because we want to superpose fadeout portion of step (n-1) with fadein portion if step (n)
+                #print('the initialisation index {} is inferior to the fadein duration {}'.format(rnd_beg_ind, fade_len))
+                n_out_end = np.min((n_out_beg+dur_noise, n_min))
+                portion_out = n_out_end
+                out[ :n_out_end] += noise[n_noise_next: n_noise_next + portion_out ]
+                n_out_next = 0
+                n_noise_next = n_noise_next + portion_out
+                
+            elif n_out_end > dur_speech:
+                #print('The noise is too long for the remaining of the speech file. Trimmed')
+                portion_out = dur_speech-n_out_beg
+                out[n_out_beg: ] += noise[n_noise_next : n_noise_next + portion_out]
+                n_noise_next = 'we dont care' 
+                n_out_next = 'we dont care'
+            
+            else:
+                #print('Nothing special here')
+                portion_out = dur_noise
+                n_out_end = n_out_beg + portion_out
+                out[n_out_beg:n_out_end] += noise[:]
+                n_noise_next = 0
+                n_out_next = n_out_end
+ 
+        return out
     return noising_prototype
 
