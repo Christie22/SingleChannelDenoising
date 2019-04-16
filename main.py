@@ -96,7 +96,7 @@ def train(ctx,
 @click.option('--frag_win_length', type=int, default=defaults['frag_win_length'])
 @click.option('--batch_size', type=int, default=defaults['batch_size'])
 @click.option('--force_cacheinit', is_flag=True, default=False)
-@click.option('--output_path', type=click.Path(exists=True, file_okay=True, dir_okay=False), default=defaults['results_output_path'])
+@click.option('--output_path', type=click.Path(), default=defaults['results_output_path'])
 def results(ctx,
             model_source,
             dataset_path,
