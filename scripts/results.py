@@ -9,6 +9,7 @@
 import os
 import os.path as osp
 import itertools
+import contextlib
 import time
 import pandas as pd
 import numpy as np
@@ -116,14 +117,18 @@ def results(model_source,
         # unpack data
         filepath, noise_variation = file_noisevariation
         noise_func, snr, _ = noise_variation
-        # create DataGenerator objects (one file at a time!)
+        # create DataGenerator objects
+        # NOTE one file at a time!
+        # NOTE output suppressed for proper rendering of progress bar
         pbar.set_description('{} @ {}'.format(osp.basename(filepath), noise_variation))
-        testing_generator = DataGenerator(
-            filepaths=[filepath], 
-            noise_funcs=[noise_func],
-            noise_snrs=[snr],
-            rir_path=rir_path,  # TODO un-hardcode
-            **generator_args)
+        with open(os.devnull, 'w') as devnull:
+            with contextlib.redirect_stdout(devnull):
+                testing_generator = DataGenerator(
+                    filepaths=[filepath], 
+                    noise_funcs=[noise_func],
+                    noise_snrs=[snr],
+                    rir_path=rir_path,  # TODO un-hardcode
+                    **generator_args)
         n_batches = len(testing_generator)
 
         # data temp variables
