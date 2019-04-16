@@ -16,7 +16,10 @@ import librosa as lr
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from keras.models import load_model
+
+from sklearn.metrics import mean_squared_error
 from mir_eval.separation import bss_eval_sources
+from pystoi.stoi import stoi as eval_stoi
 
 # suppress mir_eval warnings
 import warnings
@@ -27,7 +30,7 @@ from libs.utilities import load_dataset, load_autoencoder_model, get_func_name
 from libs.model_utils import LossLayer
 from libs.data_generator import DataGenerator
 from libs.processing import pink_noise, s_to_exp, exp_to_s, unmake_fragments
-from libs.metrics import calc_metrics, sample_metric
+from libs.metrics import sample_metric
 
 
 def results(model_source, 
@@ -103,7 +106,7 @@ def results(model_source,
     # metrics dataframe vars
     df_index = pd.MultiIndex.from_tuples(
         file_noisevariation_prod, names=['filepath', 'noise_variation'])
-    df_columns = ['mse', 'sdr', 'sir', 'sar']
+    df_columns = ['mse', 'sdr', 'sir', 'sar', 'stoi']
     df = pd.DataFrame(np.empty((len(df_index), len(df_columns))),
                       index=df_index, columns=df_columns)
 
@@ -155,18 +158,18 @@ def results(model_source,
         s_true = unmake_fragments(s_true, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
         s_pred = unmake_fragments(s_pred, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
 
-        # get waveform
+        # get waveforms
         pbar.set_description('istft')
         x_noisy = lr.istft(s_noisy, hop_length=hop_length, win_length=win_length)
         x_true = lr.istft(s_true, hop_length= hop_length, win_length=win_length)
         x_pred = lr.istft(s_pred, hop_length=hop_length, win_length=win_length)
             
         # METRIC 1: mean squared error
-        pbar.set_description('metrics (1)')
-        mse = sample_metric(s_pred, s_true)
+        pbar.set_description('metrics (mse)')
+        mse = mean_squared_error(s_pred, s_true)
 
         # METRIC 2: sdr, sir, sar
-        pbar.set_description('metrics (2)')
+        pbar.set_description('metrics (bss)')
         src_true = np.array([
             x_true,         # true clean
             x_noisy-x_true  # true noise (-ish)
@@ -177,21 +180,29 @@ def results(model_source,
         ])
         sdr, sir, sar, _ = bss_eval_sources(src_true, src_pred)
 
+        # METRIC 3: stoi
+        pbar.set_description('metrics (stoi)')
+        stoi = eval_stoi(x=x_true, y=x_pred, fs_sig=sr, extended=False)
+
         # store metrics
         df.loc[file_noisevariation, 'mse'] = mse
         df.loc[file_noisevariation, 'sdr'] = sdr[0]
         df.loc[file_noisevariation, 'sir'] = sir[0]
         df.loc[file_noisevariation, 'sar'] = sar[0]
+        df.loc[file_noisevariation, 'stoi'] = stoi
     
-    # store results in pandas dataframe
+    # generate folder structure
+    subfolder = 'model_{}'.format(model.name)
+    output_path = osp.join(output_path, subfolder)
+    os.makedirs(output_path, exist_ok=True)
+    # generate complete path
     timestamp = time.strftime('%y%m%d_%H%M')
     filename = 'results_{}.pkl'.format(timestamp)
-    output_path = osp.join(output_path, model.name)
-    os.makedirs(output_path, exist_ok=True)
     output_path = osp.join(output_path, filename)
+    # store dataframe as pickle (load with pd.read_pickle)
     df.to_pickle(output_path)
 
-    print('[r] Results:')
+    print('[r] Results stored in {}'.format(output_path))
     print(df)
     print('[r] Done!')
 
