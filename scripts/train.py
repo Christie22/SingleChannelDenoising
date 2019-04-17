@@ -84,14 +84,14 @@ def train(model_source, dataset_path,
         'n_filters': 256,
         'n_conv': 256,
         'n_recurrent': 512,
-        'ker_size':8,
+        'ker_size':3,
         'n_dense': input_shape[0]*input_shape[2],
         'timesteps': input_shape[1],
         'channels': input_shape[2],
-        'dropout_rate': 0.35,
+        'dropout_rate': 0.0,
         'activ_func': 'relu',
         'n_stacks': 2,
-        'dilatations': [1, 2, 4, 8, 16],
+        'dilations': [1, 2, 4, 8],
         'use_skip_connections': str(True).lower(),
         'return_sequences': str(True).lower()
     }
@@ -148,7 +148,7 @@ def train(model_source, dataset_path,
     # training callback functions
     Callbacks = [
         # conclude training if no improvement after N epochs
-        EarlyStopping(monitor='loss', patience=8),
+        EarlyStopping(monitor='loss', patience=16),
         # save model after each epoch if improved
         ModelCheckpoint(
             filepath=model_destination,
@@ -161,7 +161,7 @@ def train(model_source, dataset_path,
         ExtendedTensorBoard(
             data_generator=validation_generator,
             log_dir=osp.join('logs', '{}'.format(model.name)),
-            histogram_freq=5,
+            #histogram_freq=5,
             batch_size=batch_size,
             write_graph=True,
             write_grads=True,
