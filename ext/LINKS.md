@@ -5,7 +5,9 @@
 - cheatsheet ml https://stanford.edu/~shervine/teaching/cs-229/
 - cheatsheet dnn https://stanford.edu/~shervine/teaching/cs-230/
 - generators https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly
-- batch norm https://towardsdatascience.com/intuit-and-implement-batch-normalization-c05480333c5b
+- batch norm:
+  - explanation https://towardsdatascience.com/intuit-and-implement-batch-normalization-c05480333c5b 
+  - usage http://cs231n.stanford.edu/slides/2017/cs231n_2017_lecture6.pdf
 - brain analogies http://cs231n.github.io/neural-networks-1/
 - cnn with spectrograms etc http://www.jordipons.me/towards-adapting-cnns-for-music-spectrograms-1/
 - dynamic range compr with ANN 
