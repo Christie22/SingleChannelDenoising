@@ -266,17 +266,6 @@ def take_file_as_noise(filepath):
             print("[l] no resampling is needed, sr = {}".format(srn))
         dur_noise = xn.shape[0]
 
-        # Noise params + scaling
-        snr = 10.0**(snr/10.0)
-
-        xn_mean = xn.mean()
-        x_rms = x.std()
-        xn_rms = xn.std()
-        scaling = x_rms / (snr * xn_rms)
-
-        xn_scale= (xn[:] - xn_mean) * scaling + xn_mean
-
-
         # Create Fade-in & fade-out and apply it
         p100_fade = .005 # proportion
         fade_len = np.int(p100_fade * dur_noise)
@@ -284,7 +273,7 @@ def take_file_as_noise(filepath):
         fadein = np.cos(np.linspace(-np.pi/2,0,fade_len))
         fadeout = np.cos(np.linspace(0, np.pi/2,fade_len))
 
-        noise = xn_scale[:]
+        noise = xn[:]
         noise[:fade_len] = fadein * noise[:fade_len]
         noise[-fade_len:] = fadeout * noise[-fade_len:] 
 
@@ -292,7 +281,7 @@ def take_file_as_noise(filepath):
         rnd_beg_ind = np.int(np.random.random(1) * dur_noise)
 
         # init
-        out = x[:] #np.zeros((dur_speech))  #x #
+        out =np.zeros((dur_speech))  # x[:] #
         portion_noise = dur_noise-rnd_beg_ind # always <dur_noise
     
         # Checking if the remaining portion of noise can fit into out
@@ -319,12 +308,10 @@ def take_file_as_noise(filepath):
                 n_out_next = 0
                 n_noise_next = n_noise_next + portion_out
                 
-            elif n_out_end > dur_speech:
+            elif n_out_end > dur_speech: #last entry in the loop
                 #print('The noise is too long for the remaining of the speech file. Trimmed')
                 portion_out = dur_speech-n_out_beg
                 out[n_out_beg: ] += noise[n_noise_next : n_noise_next + portion_out]
-                n_noise_next = 'we dont care' 
-                n_out_next = 'we dont care'
             
             else:
                 #print('Nothing special here')
@@ -334,6 +321,6 @@ def take_file_as_noise(filepath):
                 n_noise_next = 0
                 n_out_next = n_out_end
  
-        return out
+        return sum_with_snr(x,out,snr)
     return noising_prototype
 
