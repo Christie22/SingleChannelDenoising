@@ -1,0 +1,350 @@
+{
+	"_meta":{
+		"desc": "AE with 6 convolutional layers",
+		"source": ""
+	},
+    "architecture": [
+    	 {
+ 			"_index": 1,
+            "layer_type": "conv2d",
+            "layer_args": {
+                "filters": 64, 
+                "kernel_size": 3,
+                "padding": "same",
+                "strides": 2,
+                "bias_initializer": "ones"
+            }
+        },
+        {
+            "layer_type": "batchnorm",
+            "layer_args": {}
+        },
+        {
+            "layer_type": "activation",
+            "layer_args": {
+                "activation": "{{activ_func}}"
+            }
+        },
+        {
+            "layer_type": "dropout",
+            "layer_args": {
+                "rate": {{dropout_rate}}
+            }
+        },
+      {
+             "_index": 2,
+             "layer_type": "conv2d",
+             "layer_args": {
+                 "filters": 128, 
+                 "kernel_size": 3,
+                 "padding": "same",
+                 "strides": 2,
+                 "bias_initializer": "ones"
+                 }
+             },
+            {
+                "layer_type": "batchnorm",
+                "layer_args": {}
+            },
+            {
+                "layer_type": "activation",
+                "layer_args": {
+                    "activation": "{{activ_func}}"
+                }
+            },
+            {
+                "layer_type": "dropout",
+                "layer_args": {
+                    "rate": {{dropout_rate}}
+                }
+            },
+	   {
+           "_index": 3,
+           "layer_type": "conv2d",
+           "layer_args": {
+               "filters": 256, 
+               "kernel_size": 3,
+               "padding": "same",
+               "strides": 2,
+               "bias_initializer": "ones"
+	        }
+       },
+       {
+           "layer_type": "batchnorm",
+           "layer_args": {}
+       },
+       {
+           "layer_type": "activation",
+           "layer_args": {
+               "activation": "{{activ_func}}"
+           }
+       },
+       {
+           "layer_type": "dropout",
+           "layer_args": {
+               "rate": {{dropout_rate}}
+           }
+       },
+        {
+            "_index": 4,
+            "layer_type": "conv2d",
+            "layer_args": {
+                "filters": 512, 
+                "kernel_size": 3,
+                "padding": "same",
+                "strides": 2,
+                "bias_initializer": "ones"
+            }
+        },
+        {
+            "layer_type": "batchnorm",
+            "layer_args": {}
+        },
+        {
+            "layer_type": "activation",
+            "layer_args": {
+                "activation": "{{activ_func}}"
+            }
+        },
+        {
+            "layer_type": "dropout",
+            "layer_args": {
+                "rate": {{dropout_rate}}
+            }
+        },
+        
+        {
+            "layer_type": "flatten",
+            "layer_args": {}
+        },
+        
+        {
+            "layer_type": "dense",
+            "layer_args": {
+                "units": 256
+            }
+        },
+        {
+            "layer_type": "batchnorm",
+            "layer_args": {}
+        },
+        {
+            "layer_type": "activation",
+            "layer_args": {
+                "activation": "{{activ_func}}"
+            }
+        },
+        {
+            "layer_type": "dropout",
+            "layer_args": {
+                "rate": {{dropout_rate}}
+            }
+        },
+        
+        {
+            "layer_type": "dense",
+            "layer_args": {
+                "units": 128
+            }
+        },
+        {
+            "layer_type": "batchnorm",
+            "layer_args": {}
+        },
+        {
+            "layer_type": "activation",
+            "layer_args": {
+                "activation": "{{activ_func}}"
+            }
+        },
+        {
+            "layer_type": "dropout",
+            "layer_args": {
+                "rate": {{dropout_rate}}
+            }
+        },
+        
+        
+        
+        {
+            "layer_type": "dense",
+            "layer_args": {
+                "units": 256
+            }
+        },
+        {
+            "layer_type": "batchnorm",
+            "layer_args": {}
+        },
+        {
+            "layer_type": "activation",
+            "layer_args": {
+                "activation": "{{activ_func}}"
+            }
+        },
+        {
+            "layer_type": "dropout",
+            "layer_args": {
+                "rate": {{dropout_rate}}
+            }
+        },
+        
+        {
+            "layer_type": "dense",
+            "layer_args": {
+                "units": -1
+            }
+        },
+        {
+            "layer_type": "batchnorm",
+            "layer_args": {}
+        },
+        {
+            "layer_type": "activation",
+            "layer_args": {
+                "activation": "{{activ_func}}"
+            }
+        },
+        {
+            "layer_type": "dropout",
+            "layer_args": {
+                "rate": {{dropout_rate}}
+            }
+        },
+        
+        {
+            "layer_type": "reshape",
+            "layer_args": {
+                "target_shape": -1
+            }
+        },
+        
+        {
+            "_index": 4,
+            "layer_type": "conv2dt",
+            "layer_args": {
+                "filters": 512, 
+                "kernel_size": 3,
+                "padding": "same",
+                "strides": 2,
+                "bias_initializer": "ones"
+            }
+        },
+        {
+            "layer_type": "batchnorm",
+            "layer_args": {}
+        },
+        {
+            "layer_type": "activation",
+            "layer_args": {
+                "activation": "{{activ_func}}"
+            }
+        },
+        {
+            "layer_type": "dropout",
+            "layer_args": {
+                "rate": {{dropout_rate}}2
+            }
+        },
+        {
+            "_index": 3,
+            "layer_type": "conv2dt",
+            "layer_args": {
+                "filters": 256, 
+                "kernel_size": 3,
+                "padding": "same",
+                "strides": 2,
+                "bias_initializer": "ones"
+            }
+        },
+        {
+            "layer_type": "batchnorm",
+            "layer_args": {}
+        },
+        {
+            "layer_type": "activation",
+            "layer_args": {
+                "activation": "{{activ_func}}"
+            }
+        },
+        {
+            "layer_type": "dropout",
+            "layer_args": {
+                "rate": {{dropout_rate}}
+            }
+        },
+        
+       {
+           "_index": 2,
+           "layer_type": "conv2dt",
+           "layer_args": {
+               "filters": 128, 
+               "kernel_size": 3,
+               "padding": "same",
+               "strides": 2,
+               "bias_initializer": "ones"
+           }
+       },
+       {
+           "layer_type": "batchnorm",
+           "layer_args": {}
+       },
+       {
+           "layer_type": "activation",
+           "layer_args": {
+               "activation": "{{activ_func}}"
+           }
+       },
+       {
+           "layer_type": "dropout",
+           "layer_args": {
+               "rate": {{dropout_rate}}
+           }
+       },
+                
+        {
+            "_index": 1,
+            "layer_type": "conv2dt",
+            "layer_args": {
+                "filters": 64, 
+                "kernel_size": 3,
+                "padding": "same",
+                "strides": 2,
+                "bias_initializer": "ones"
+            }
+        },
+        {
+            "layer_type": "batchnorm",
+            "layer_args": {}
+        },
+        {
+            "layer_type": "activation",
+            "layer_args": {
+                "activation": "{{activ_func}}"
+            }
+        },
+        {
+            "layer_type": "dropout",
+            "layer_args": {
+                "rate": {{dropout_rate}}
+            }
+        },
+                
+        {
+            "layer_type": "conv2dt",
+            "layer_args": {
+                "filters": {{channels}}, 
+                "kernel_size": 3,
+                "padding": "same",
+                "strides": 1,
+                "bias_initializer": "ones"
+            }
+        },
+        {
+            "layer_type": "activation",
+            "layer_args": {
+                "activation": "linear"
+            }
+        }
+    ]
+}
