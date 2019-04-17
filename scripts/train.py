@@ -109,7 +109,7 @@ def train(model_source, dataset_path,
             model_source, time_slice=time_slice)
         # figure out number of already-trained epochs
         initial_epoch = int(osp.splitext(
-            osp.basename(model_source))[0].split('_e')[-1])
+            osp.basename(model_source))[0].split('_e')[-1]) + 1
 
     # if model source is a config file, create model
     elif model_source_ext in ['.json', '.jsont']:

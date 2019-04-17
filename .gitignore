@@ -15,3 +15,5 @@ notebooks/.ipynb_checkpoints
 notes/03_27.md
 
 *.svg
+web_demo/model/*
+*.h5

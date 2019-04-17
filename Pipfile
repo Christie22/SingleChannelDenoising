@@ -21,6 +21,7 @@ click = "*"
 tqdm = "*"
 mir-eval = "*"
 pystoi = {git = "https://github.com/mpariente/pystoi.git",ref = "master"}
+tensorflowjs = "*"
 
 [requires]
 python_version = "3.6"
