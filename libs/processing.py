@@ -209,16 +209,15 @@ def white_noise(x, sr, snr):
     return sum_with_snr(x, n, snr)
 
 
-def take_file_as_noise(filepath):
-    # checking TODO
-    print('[l] Using the following file as noise: {0}'.format(filepath))
-    
-    
-    def noising_prototype(x, sr, snr):
-        xn, srn = lr.load(filepath, sr = sr)
+class take_file_as_noise(object):
+    def __init__(self, filepath):
+        self.filepath = filepath
+        self.__name__ = 'take_file_as_noise({})'.format(filepath)
+
+    def __call__(self, x, sr, snr):
+        xn, _ = lr.load(self.filepath, sr=sr)
         dur_speech = x.shape[0]
         dur_noise = xn.shape[0]
-        print('dur_speech:{}, dur_noise:{}'.format(dur_speech, dur_noise))
         # Create Fade-in & fade-out and apply it
         p100_fade = .005 # proportion
         fade_len = np.int(p100_fade * dur_noise)
@@ -232,7 +231,6 @@ def take_file_as_noise(filepath):
 
         # Draw random proportion for the beginning of the noise
         rnd_beg_ind = np.int(np.random.random(1) * (dur_noise - 2*fade_len)) + fade_len
-        print('rnd_beg_ind:{}'.format(rnd_beg_ind))
         # init
         out = np.zeros((dur_speech))  # x[:] #
         portion_noise = dur_noise-rnd_beg_ind # always <dur_noise
@@ -248,7 +246,6 @@ def take_file_as_noise(filepath):
             out[:] += noise[rnd_beg_ind : n_noise_next]
 
         nb_iter = 1+np.int((dur_speech - dur_noise) / (dur_noise-fade_len))
-        print('nb_iter: {}'.format(nb_iter))
 
         for n in range(nb_iter):
             n_out_beg = n_out_next - fade_len
@@ -276,7 +273,6 @@ def take_file_as_noise(filepath):
                 n_out_next = n_out_end
  
         return sum_with_snr(x,out,snr)
-    return noising_prototype
 
 
 # add pink (1/f) noise using Voss-McCartney algorithm
