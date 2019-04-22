@@ -15,7 +15,7 @@ from scipy.signal import fftconvolve
 from tqdm import tqdm
 
 from libs.processing import make_fragments, normalize_spectrum, normalize_spectrum_clean
-from libs.utilities import hash_args
+from libs.utilities import hash_args, get_func_name
 
 
 class DataGenerator(keras.utils.Sequence):
@@ -32,6 +32,8 @@ class DataGenerator(keras.utils.Sequence):
             n_fft,
             hop_length,
             win_length,
+            get_func_name(proc_func),
+            get_func_name(proc_func_label),
             frag_hop_length,
             frag_win_length,
             label_type])
@@ -122,7 +124,7 @@ class DataGenerator(keras.utils.Sequence):
 
     # init cache
     def init_cache(self, check_existence=True):
-        _cache_need_reload = False
+        cache_need_reload = False
         print('[d] Initializing cache in {}...'.format(self.cache_path))
         self.fragments_x = []
         self.fragments_y = []
