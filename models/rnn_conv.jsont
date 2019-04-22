@@ -12,7 +12,7 @@
                 "kernel_size": [32, 11],
                 "padding": "same",
                 "strides": [16, 1],
-                "bias_initializer": "ones"
+                "bias_initializer": "zeros"
             }
         },{
             "layer_type": "batchnorm",
@@ -21,11 +21,6 @@
             "layer_type": "activation",
             "layer_args": {
                 "activation": "relu"
-            }
-        },{
-            "layer_type": "dropout",
-            "layer_args": {
-                "rate": {{dropout_rate}}
             }
         },
         
@@ -48,20 +43,10 @@
                 "return_sequences": true
             }
         }, {
-            "layer_type": "dropout",
-            "layer_args": {
-                "rate": {{dropout_rate}}
-            }
-        },{
             "layer_type": "gru",
             "layer_args": {
                 "units": {{n_recurrent}},
                 "return_sequences": true
-            }
-        },{
-            "layer_type": "dropout",
-            "layer_args": {
-                "rate": {{dropout_rate}}
             }
         },
 

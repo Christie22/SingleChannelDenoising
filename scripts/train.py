@@ -17,7 +17,8 @@ from libs.utilities import load_dataset, store_logs, get_model_summary, get_func
     create_autoencoder_model, load_autoencoder_model
 from libs.model_utils import ExtendedTensorBoard, lr_schedule_func
 from libs.data_generator import DataGenerator
-from libs.processing import pink_noise, s_to_exp
+from libs.processing import pink_noise, take_file_as_noise
+from libs.processing import s_to_exp, s_to_reim, s_to_db
 
 
 def train(model_source, dataset_path, 
@@ -42,6 +43,41 @@ def train(model_source, dataset_path,
     filepath_list_train, filepath_list_valid = train_test_split(
         filepath_list, test_size=0.2, random_state=1337)
     
+    ## hyper-parameters (TODO un-hardcode some?)
+    # noising functions
+    noise_paths = [
+        '/data/riccardo_datasets/demand/STRAFFIC/ch01.wav',
+        '/data/riccardo_datasets/demand/TMETRO/ch01.wav'
+    ]
+    noise_funcs = [
+        pink_noise,
+        *[take_file_as_noise(f) for f in noise_paths]
+    ]
+    # data processing function
+    exponent = 1.0/6
+    proc_func = s_to_exp(exponent)
+    proc_func_label = s_to_exp(exponent)
+    # loss function slice
+    time_slice = slice(None)  # also try: time_slice = frag_win_length // 2
+    # training stop patience in epochs
+    patience_earlystopping = 25
+    # learning rate params
+    initial_lr = 0.0075
+    drop_rate = 0.5
+    drop_epochs = 50
+    print('[t] Varius hyperparameters: {}'.format({
+        'noise_paths': noise_paths,
+        'noise_funcs': noise_funcs,
+        'exponent': exponent,
+        'proc_func': proc_func,
+        'proc_func_label': proc_func_label,
+        'time_slice': time_slice,
+        'patience_earlystopping': patience_earlystopping,
+        'initial_lr': initial_lr,
+        'drop_rate': drop_rate,
+        'drop_epochs': drop_epochs
+    }))
+
     # store DataGenerator args
     generator_args = {
         # dataset cfg
@@ -49,15 +85,15 @@ def train(model_source, dataset_path,
         'cache_path': None,
         # noising/reverberation cfg
         'rir_path': rir_path,
-        'noise_funcs': [pink_noise],  # TODO un-hardcode
+        'noise_funcs': noise_funcs,
         'noise_snrs': noise_snrs,
         # stft cfg
         'n_fft': n_fft,
         'hop_length': hop_length,
         'win_length': win_length,
         # processing cfg
-        'proc_func': s_to_exp(1.0/6),    # TODO un-hardcode
-        'proc_func_label': s_to_exp(1.0/6),    # TODO un-hardcode
+        'proc_func': proc_func,
+        'proc_func_label': proc_func_label,
         # fragmenting cfg
         'frag_hop_length': frag_hop_length,
         'frag_win_length': frag_win_length,
@@ -95,8 +131,6 @@ def train(model_source, dataset_path,
         'use_skip_connections': str(True).lower(),
         'return_sequences': str(True).lower()
     }
-    #time_slice = frag_win_length // 2
-    time_slice = slice(None)
 
     # set initial epoch to its most obvious value
     initial_epoch = 0
@@ -114,7 +148,7 @@ def train(model_source, dataset_path,
         model, lossfunc = load_autoencoder_model(
             model_source, time_slice=time_slice)
         # figure out number of already-trained epochs
-        initial_epoch = int(osp.splitext(
+        initial_epoch = 1 + int(osp.splitext(
             osp.basename(model_source))[0].split('_e')[-1]) + 1
 
     # if model source is a config file, create model
@@ -139,16 +173,13 @@ def train(model_source, dataset_path,
     model.compile(optimizer=optimizer, loss=lossfunc)
     model.summary()
 
-    # learning rate params
-    initial_lr = 0.01
-    drop_rate = 1
-    drop_epochs = 20
+    # learning rate scheduler function
     lr_schedule = lr_schedule_func(initial_lr, drop_rate, drop_epochs)
 
     # training callback functions
     Callbacks = [
         # conclude training if no improvement after N epochs
-        EarlyStopping(monitor='loss', patience=16),
+        EarlyStopping(monitor='loss', patience=patience_earlystopping),
         # save model after each epoch if improved
         ModelCheckpoint(
             filepath=model_destination,
@@ -166,12 +197,12 @@ def train(model_source, dataset_path,
             write_graph=True,
             write_grads=True,
             write_images=False),
-        ReduceLROnPlateau(
-            monitor='loss',
-            factor=0.2,
-            patience=3,
-            min_lr=0,
-            verbose=1),
+        # ReduceLROnPlateau(
+        #     monitor='loss',
+        #     factor=0.2,
+        #     patience=3,
+        #     min_lr=0,
+        #     verbose=1),
         LearningRateScheduler(
             schedule=lr_schedule)
     ]
