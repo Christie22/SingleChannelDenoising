@@ -114,7 +114,6 @@ def train(model_source, dataset_path,
     print('[t] Train steps per epoch: ', train_steps_per_epoch)
     print('[t] Valid steps per epoch: ', valid_steps_per_epoch)
     
-    # loss function: data slice under consideration
     input_shape = training_generator.data_shape
     model_template_args = {
         'n_filters': 256,
@@ -131,6 +130,7 @@ def train(model_source, dataset_path,
         'use_skip_connections': str(True).lower(),
         'return_sequences': str(True).lower()
     }
+    print('[t] Model template arguments: {}'.format(model_template_args))
 
     # set initial epoch to its most obvious value
     initial_epoch = 0
