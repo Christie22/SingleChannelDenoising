@@ -133,6 +133,8 @@ class DataGenerator(keras.utils.Sequence):
             # load data
             pbar.set_description('loading {}'.format(filepath))
             x, _ = lr.core.load(filepath, sr=self.sr, mono=True, res_type='kaiser_fast')
+            # remove DC offset
+            x -= x.mean()
             # apply variations of noise parameters + clean (labels)
             for noise_i, noise_variation in enumerate(self.noise_variations + ['clean']):
                 # skip generation if the target files already exist

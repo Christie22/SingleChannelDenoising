@@ -60,10 +60,10 @@ def train(model_source, dataset_path,
     time_slice = slice(None)  # also try: time_slice = frag_win_length // 2
     # training stop patience in epochs
     patience_earlystopping = 25
-    # learning rate params
+    # learning rate scheduler params
     initial_lr = 0.0075
-    drop_rate = 0.5
-    drop_epochs = 50
+    lr_drop_rate = 0.5
+    lr_drop_epochs = 50
     
     print('[t] Varius hyperparameters: {}'.format({
         'noise_paths': noise_paths,
@@ -74,8 +74,8 @@ def train(model_source, dataset_path,
         'time_slice': time_slice,
         'patience_earlystopping': patience_earlystopping,
         'initial_lr': initial_lr,
-        'drop_rate': drop_rate,
-        'drop_epochs': drop_epochs
+        'lr_drop_rate': lr_drop_rate,
+        'lr_drop_epochs': lr_drop_epochs
     }))
 
     # store DataGenerator args
@@ -174,7 +174,7 @@ def train(model_source, dataset_path,
     model.summary()
 
     # learning rate scheduler function
-    lr_schedule = lr_schedule_func(initial_lr, drop_rate, drop_epochs)
+    lr_schedule = lr_schedule_func(initial_lr, lr_drop_rate, lr_drop_epochs)
 
     # training callback functions
     Callbacks = [
@@ -257,9 +257,11 @@ def train(model_source, dataset_path,
             'train_steps_per_epoch': train_steps_per_epoch,
             'valid_steps_per_epoch': valid_steps_per_epoch,
             'cuda_device': cuda_device,
-            'initial_lr': initial_lr,
-            'drop_rate': drop_rate,
-            'drop_epochs': drop_epochs
+            'learning_rate': {
+                'initial_lr': initial_lr,
+                'lr_drop_rate': lr_drop_rate,
+                'lr_drop_epochs': lr_drop_epochs
+            }
         }
     }
     store_logs(logs_path, log_data)

@@ -239,13 +239,11 @@ class take_file_as_noise(object):
     
         # Checking if the remaining portion of noise can fit into out
         if portion_noise >= dur_speech: 
-            print('noise portion is longer than speech')
             n_noise_next = rnd_beg_ind+dur_speech
             out[:] += noise[rnd_beg_ind : n_noise_next]
             # and that's is!
 
         else:
-            print('noise portion is shorter than speech. Looping')
             n_noise_next = 0
             n_out_next = dur_noise - rnd_beg_ind
             out[ :n_out_next] += noise[rnd_beg_ind:]
