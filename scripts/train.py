@@ -1,5 +1,4 @@
 # train an ANN autoencoder model
-
 import os
 import os.path as osp
 import time
@@ -65,6 +64,7 @@ def train(model_source, dataset_path,
     initial_lr = 0.0075
     drop_rate = 0.5
     drop_epochs = 50
+    
     print('[t] Varius hyperparameters: {}'.format({
         'noise_paths': noise_paths,
         'noise_funcs': noise_funcs,
