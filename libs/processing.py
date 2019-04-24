@@ -6,7 +6,7 @@ import random as rnd
 import librosa as lr
 import time
 import os
-from os import path
+import os.path as osp
 import scipy
 from libs.colored_noise import powerlaw_psd_gaussian
 
@@ -212,66 +212,59 @@ def white_noise(x, sr, snr):
 class take_file_as_noise(object):
     def __init__(self, filepath):
         self.filepath = filepath
-        self.__name__ = 'take_file_as_noise({})'.format(filepath)
+        self.__name__ = 'take_file_as_noise({})'.format(osp.basename(osp.dirname(filepath)))
 
-    def __call__(self, x, sr, snr):
-        xn, _ = lr.load(self.filepath, sr=sr)
+    def __call__(self, x, sr, snr):  
+        xn, _ = lr.load(self.filepath, sr = sr)
         dur_speech = x.shape[0]
         dur_noise = xn.shape[0]
-        # Create Fade-in & fade-out and apply it
-        p100_fade = .005 # proportion
-        fade_len = np.int(p100_fade * dur_noise)
 
+        # Create Fade-in & fade-out 
+        dur_fade = 1# in sec
+        p100_fade = dur_fade*sr / dur_noise # proportion
+        fade_len = np.int(p100_fade * dur_noise)
         fadein = np.cos(np.linspace(-np.pi/2,0,fade_len))**2
         fadeout = np.cos(np.linspace(0, np.pi/2,fade_len))**2
 
+        # apply fading to copy of xn
         noise = xn[:]
-        noise[:fade_len] = fadein * noise[:fade_len]
-        noise[-fade_len:] = fadeout * noise[-fade_len:] 
+        noise[ :fade_len] = fadein * noise[ :fade_len]
+        noise[-fade_len: ] = fadeout * noise[-fade_len: ] 
 
-        # Draw random proportion for the beginning of the noise
+        # Draw random proportion for the beginning of the noise, in the interval [fade_len, dur_noise-fade_len]
         rnd_beg_ind = np.int(np.random.random(1) * (dur_noise - 2*fade_len)) + fade_len
         # init
-        out = np.zeros((dur_speech))  # x[:] #
-        portion_noise = dur_noise-rnd_beg_ind # always <dur_noise
+        out = np.zeros((dur_speech)) 
+        portion_noise = dur_noise - rnd_beg_ind # always <dur_noise
     
         # Checking if the remaining portion of noise can fit into out
-        if portion_noise < dur_speech: 
-            n_noise_next = 0
-            n_out_next = dur_noise-rnd_beg_ind
-            out[ :n_out_next] += noise[rnd_beg_ind: ]
-        else:
+        if portion_noise >= dur_speech: 
+            print('noise portion is longer than speech')
             n_noise_next = rnd_beg_ind+dur_speech
-            n_out_next = 0
             out[:] += noise[rnd_beg_ind : n_noise_next]
+            # and that's is!
 
-        nb_iter = 1+np.int((dur_speech - dur_noise) / (dur_noise-fade_len))
-
-        for n in range(nb_iter):
+        else:
+            print('noise portion is shorter than speech. Looping')
+            n_noise_next = 0
+            n_out_next = dur_noise - rnd_beg_ind
+            out[ :n_out_next] += noise[rnd_beg_ind:]
+            # Looping
             n_out_beg = n_out_next - fade_len
             n_out_end = n_out_beg + dur_noise
-
-            if n_out_beg < 0: #can happen because we want to superpose fadeout portion of step (n-1) with fadein portion if step (n)
-                #print('the initialisation index {} is inferior to the fadein duration {}'.format(rnd_beg_ind, fade_len))
-                n_out_end = np.min((n_out_beg+dur_noise, n_min))
-                portion_out = n_out_end
-                out[ :n_out_end] += noise[n_noise_next: n_noise_next + portion_out ]
-                n_out_next = 0
-                n_noise_next = n_noise_next + portion_out
-                
-            elif n_out_end > dur_speech: #last entry in the loop
-                #print('The noise is too long for the remaining of the speech file. Trimmed')
-                portion_out = dur_speech-n_out_beg
-                out[n_out_beg: ] += noise[n_noise_next : n_noise_next + portion_out]
-            
-            else:
-                #print('Nothing special here')
-                portion_out = dur_noise
-                n_out_end = n_out_beg + portion_out
-                out[n_out_beg:n_out_end] += noise[:]
-                n_noise_next = 0
+            #n = 0
+            while n_out_end < dur_speech:
+                #print('n: {}, nb_out_end: {}'.format(n, n_out_end))
+                out[n_out_beg: n_out_end] += noise[:]
                 n_out_next = n_out_end
- 
+                n_out_beg = n_out_next - fade_len
+                n_out_end = n_out_beg + dur_noise
+                #n +=1
+                
+            #Last iteration: The noise may be too long for the remaining of the speech file. Trimmed 
+            portion_out = dur_speech-n_out_next
+            out[n_out_next: ] += noise[n_noise_next : n_noise_next + portion_out]    
+            
         return sum_with_snr(x,out,snr)
 
 

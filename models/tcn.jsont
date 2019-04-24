@@ -25,7 +25,11 @@
                 "use_skip_connections": {{use_skip_connections}},
                 "return_sequences": {{return_sequences}}
                 	}
-         },  {
+         },{
+         	 "layer_type": "batchnorm",
+           	 "layer_args": { }
+           	 
+          }, {
              "layer_type": "dense",
              "layer_args": {
                  "units": {{n_dense}}
