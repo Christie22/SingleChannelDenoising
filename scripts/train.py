@@ -17,7 +17,7 @@ from libs.utilities import load_dataset, store_logs, get_model_summary, get_func
     create_autoencoder_model, load_autoencoder_model
 from libs.model_utils import ExtendedTensorBoard, lr_schedule_func
 from libs.data_generator import DataGenerator
-from libs.processing import pink_noise, s_to_exp
+from libs.processing import pink_noise, s_to_exp, take_file_as_noise
 
 
 def train(model_source, dataset_path, 
@@ -49,7 +49,7 @@ def train(model_source, dataset_path,
         'cache_path': None,
         # noising/reverberation cfg
         'rir_path': rir_path,
-        'noise_funcs': [pink_noise],  # TODO un-hardcode
+        'noise_funcs': [pink_noise, take_file_as_noise('/data/riccardo_datasets/demand/OOFFICE/ch01.wav')],  # TODO un-hardcode
         'noise_snrs': noise_snrs,
         # stft cfg
         'n_fft': n_fft,
