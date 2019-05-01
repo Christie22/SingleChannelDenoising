@@ -142,9 +142,7 @@ def db_to_s(db, s_noisy=None):
 # convert complex spectrograms to Re/Im representation
 # NOTE unmaintained!
 def s_to_reim(s):
-    # remove a bin if odd number
-    if s.shape[0] % 2 != 0:
-        s = s[:-1]
+    s = rem_dc_bin(s)
     # split re/im
     re = np.real(s)
     im = np.imag(s)
@@ -159,12 +157,7 @@ def reim_to_s(reim):
     im = reim[..., 1]
     # combine into complex values
     s = re + 1j * im
-    # add previously removed bin
-    pad_shape = list(s.shape)
-    pad_shape[-2] = 1
-    pad_shape = tuple(pad_shape)
-    padding = np.zeros(pad_shape)
-    s = np.concatenate((s, padding), axis=-2)
+    s = add_dc_bin(s)
     return s
 
 
