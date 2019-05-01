@@ -50,10 +50,10 @@ def train(model_source, dataset_path,
     ]
     noise_funcs = [
         pink_noise,
-        *[take_file_as_noise(f) for f in noise_paths]
+        #*[take_file_as_noise(f) for f in noise_paths]
     ]
     # data processing function
-    exponent = 1.0/6
+    exponent = 1.0/6.0
     proc_func = s_to_exp(exponent)
     proc_func_label = s_to_exp(exponent)
     # loss function slice
@@ -61,9 +61,9 @@ def train(model_source, dataset_path,
     # training stop patience in epochs
     patience_earlystopping = 25
     # learning rate scheduler params
-    initial_lr = 0.0075
+    initial_lr = 0.005
     lr_drop_rate = 0.5
-    lr_drop_epochs = 50
+    lr_drop_epochs = 150
     
     print('[t] Varius hyperparameters: {}'.format({
         'noise_paths': noise_paths,
@@ -119,16 +119,18 @@ def train(model_source, dataset_path,
         'n_filters': 256,
         'n_conv': 256,
         'n_recurrent': 512,
-        'ker_size':3,
-        'n_dense': input_shape[0]*input_shape[2],
-        'timesteps': input_shape[1],
-        'channels': input_shape[2],
+        'ker_size': 3,
+        'n_dense': int(input_shape[0]*input_shape[2]),
+        'timesteps': int(input_shape[1]),
+        'channels': int(input_shape[2]),
         'dropout_rate': 0.0,
         'activ_func': 'relu',
         'n_stacks': 2,
         'dilations': [1, 2, 4, 8],
         'use_skip_connections': str(True).lower(),
-        'return_sequences': str(True).lower()
+        'return_sequences': str(True).lower(),
+        'bias_initializer': 'zeros',
+        'strides': [2, 2]
     }
     print('[t] Model template arguments: {}'.format(model_template_args))
 
@@ -192,7 +194,7 @@ def train(model_source, dataset_path,
         ExtendedTensorBoard(
             data_generator=validation_generator,
             log_dir=osp.join('logs', '{}'.format(model.name)),
-            #histogram_freq=5,
+            histogram_freq=10,
             batch_size=batch_size,
             write_graph=True,
             write_grads=True,

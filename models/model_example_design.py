@@ -95,7 +95,7 @@ class AEModelFactory(object):
 
             # use conv_shape if needed
             if layer_type == 'dense' and layer_args['units'] == - 1:
-                layer_args['units'] = np.prod(conv_shape)
+                layer_args['units'] = int(np.prod(conv_shape))
             if layer_type == 'reshape' and layer_args['target_shape'] == - 1:
                 layer_args['target_shape'] = conv_shape
 

@@ -13,6 +13,7 @@
 - dynamic range compr with ANN 
   - http://elias-mistler.de/downloads/ml_drc_final.pdf
   - https://ptrrupprecht.wordpress.com/2016/10/05/deep-learning-part-iv-2-compressing-the-dynamic-range-in-raw-audio-signals/
+- back propagation http://neuralnetworksanddeeplearning.com/chap2.html
 
 ## Denoising autoencoders
 - https://github.com/TheAILearner/Denoising-Autoencoders-in-Keras
