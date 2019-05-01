@@ -183,7 +183,7 @@ def train(model_source, dataset_path,
         ExtendedTensorBoard(
             data_generator=validation_generator,
             log_dir=osp.join('logs', '{}'.format(model.name)),
-            histogram_freq=10,
+            histogram_freq=25,
             batch_size=batch_size,
             write_graph=True,
             write_grads=True,
