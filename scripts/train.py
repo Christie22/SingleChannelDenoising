@@ -45,8 +45,10 @@ def train(model_source, dataset_path,
     ## hyper-parameters (TODO un-hardcode some?)
     # noising functions
     noise_paths = [
-        '/data/riccardo_datasets/demand/STRAFFIC/ch01.wav',
-        '/data/riccardo_datasets/demand/TMETRO/ch01.wav'
+    '/data/riccardo_datasets/demand/STRAFFIC/ch01.wav',
+    '/data/riccardo_datasets/demand/TMETRO/ch01.wav',
+    '/data/riccardo_datasets/demand/PCAFETER/ch01.wav',
+    '/data/riccardo_datasets/demand/PRESTO/ch01.wav',
     ]
     noise_funcs = [
         pink_noise,
@@ -125,8 +127,8 @@ def train(model_source, dataset_path,
         'channels': int(input_shape[2]),
         'dropout_rate': 0.0,
         'activ_func': 'relu',
-        'n_stacks': 2,
-        'dilations': [1, 2, 4, 8],
+        'n_stacks': 8,
+        'dilations': [1, 2],
         'use_skip_connections': str(True).lower(),
         'return_sequences': str(True).lower(),
         'bias_initializer': 'zeros',
