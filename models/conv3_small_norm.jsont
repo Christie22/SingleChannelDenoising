@@ -12,7 +12,7 @@
                 "kernel_size": 3,
                 "padding": "same",
                 "strides": {{strides}},
-                "bias_initializer": "zeros"
+                "bias_initializer": "ones"
             }
         },
         {
@@ -33,7 +33,7 @@
                 "kernel_size": 3,
                 "padding": "same",
                 "strides": {{strides}},
-                "bias_initializer": "zeros"
+                "bias_initializer": "ones"
             }
         },
         {
@@ -54,7 +54,7 @@
                 "kernel_size": 3,
                 "padding": "same",
                 "strides": {{strides}},
-                "bias_initializer": "zeros"
+                "bias_initializer": "ones"
             }
         },
         {
@@ -75,7 +75,7 @@
                 "kernel_size": 3,
                 "padding": "same",
                 "strides": {{strides}},
-                "bias_initializer": "zeros"
+                "bias_initializer": "ones"
             }
         },
         {
@@ -96,7 +96,7 @@
                 "kernel_size": 3,
                 "padding": "same",
                 "strides": {{strides}},
-                "bias_initializer": "zeros"
+                "bias_initializer": "ones"
             }
         },
         {
@@ -117,7 +117,7 @@
                 "kernel_size": 3,
                 "padding": "same",
                 "strides": {{strides}},
-                "bias_initializer": "zeros"
+                "bias_initializer": "ones"
             }
         },
         {
@@ -138,7 +138,7 @@
                 "kernel_size": 3,
                 "padding": "same",
                 "strides": 1,
-                "bias_initializer": "zeros"
+                "bias_initializer": "ones"
             }
         },
         {
