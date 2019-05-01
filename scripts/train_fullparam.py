@@ -162,7 +162,7 @@ def train(model_source, dataset_path,
     # compile model and print summary
     optimizer = Adam()
     model.compile(optimizer=optimizer, loss=lossfunc)
-    model.summary()
+    #model.summary()
 
     # learning rate scheduler function
     lr_schedule = lr_schedule_func(initial_lr, lr_drop_rate, lr_drop_epochs)
@@ -261,9 +261,7 @@ def train(model_source, dataset_path,
     print('[t] Begin training process, tensorboard identifier = [{}]'.format(model.name))
     model.fit_generator(
         generator=training_generator,
-        validation_data=validation_generator,
         steps_per_epoch=train_steps_per_epoch,
-        validation_steps=valid_steps_per_epoch,
         initial_epoch=initial_epoch,
         epochs=max_epochs,
         callbacks=Callbacks,

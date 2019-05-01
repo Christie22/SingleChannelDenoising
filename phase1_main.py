@@ -20,11 +20,11 @@ defaults = {
     'win_length': 512,
     'frag_hop_length': 30,
     'frag_win_length': 32,
-    'batch_size': 256,
+    'batch_size': 128,
     'epochs': 1,
     'model_destination_base': '/data/riccardo_models/denoising/phase1/',
     'logs_path': './train_logs/phase1.json',
-    'cuda_device': '0,2,3'
+    'cuda_device': '0'
 }
 
 # construct iterator based on tweakable args
