@@ -148,7 +148,7 @@ def s_to_reim(s):
     im = np.imag(s)
     # stack
     reim = np.stack([re, im], axis=-1)
-   return reim
+    return reim
 
 # convert Re/Im representation to complex spectrograms
 def reim_to_s(reim):
