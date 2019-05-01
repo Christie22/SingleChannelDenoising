@@ -1,5 +1,6 @@
 import os.path as osp
 import itertools
+import keras.backend as K
 
 from scripts.train_fullparam import train
 from libs.utilities import get_func_name
@@ -17,7 +18,7 @@ defaults = {
     'n_fft': 512,
     'hop_length': 128,
     'win_length': 512,
-    'frag_hop_length': 16,
+    'frag_hop_length': 24,
     'frag_win_length': 32,
     'batch_size': 128,
     'epochs': 1,
@@ -35,12 +36,15 @@ proc_func_args = [
     s_to_reim,
     s_to_db,
 ]
-args_list = itertools.product(normalize_args, proc_func_args)
+args_list = list(itertools.product(normalize_args, proc_func_args))
 
 
 # run the thing
 if __name__ == "__main__":
     for i, args in enumerate(args_list):
+        print()
+        print()
+        print()
         print('#### PHASE 1 TRAINING - {}/{}'.format(i, len(args_list)))
 
         # construct remaining arguments
@@ -51,6 +55,7 @@ if __name__ == "__main__":
         )
         model_destination = osp.join(defaults['model_destination_base'], model_destination_name)
 
+        K.clear_session()
         train(
             defaults['model_source_norm'] if normalize else defaults['model_source_no'],
             defaults['dataset_path'],
@@ -69,5 +74,5 @@ if __name__ == "__main__":
             defaults['epochs'],
             model_destination,
             defaults['logs_path'],
-            defaults['force_cacheinit'],
+            False,
             defaults['cuda_device'])
