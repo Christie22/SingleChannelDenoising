@@ -45,7 +45,7 @@ if __name__ == "__main__":
         print()
         print()
         print()
-        print('#### PHASE 1 TRAINING - {}/{}'.format(i, len(args_list)))
+        print('#### PHASE 1 TRAINING - {}/{}'.format(i+1, len(args_list)))
 
         # construct remaining arguments
         normalize, proc_func = args
