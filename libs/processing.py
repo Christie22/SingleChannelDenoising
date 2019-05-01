@@ -147,14 +147,14 @@ def s_to_reim(s):
     re = np.real(s)
     im = np.imag(s)
     # stack
-    reim = np.dstack((re, im))
-    return reim
+    reim = np.stack([re, im], axis=-1)
+   return reim
 
 # convert Re/Im representation to complex spectrograms
 def reim_to_s(reim):
     # extract real and imaginary components
-    re = reim[..., [0]]
-    im = reim[..., [1]]
+    re = reim[..., 0]
+    im = reim[..., 1]
     # combine into complex values
     s = re + 1j * im
     s = add_dc_bin(s)
