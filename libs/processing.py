@@ -153,8 +153,8 @@ def s_to_reim(s):
 # convert Re/Im representation to complex spectrograms
 def reim_to_s(reim):
     # extract real and imaginary components
-    re = reim[..., 0]
-    im = reim[..., 1]
+    re = reim[..., [0]]
+    im = reim[..., [1]]
     # combine into complex values
     s = re + 1j * im
     s = add_dc_bin(s)
