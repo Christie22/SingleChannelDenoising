@@ -18,13 +18,13 @@ defaults = {
     'n_fft': 512,
     'hop_length': 128,
     'win_length': 512,
-    'frag_hop_length': 24,
+    'frag_hop_length': 30,
     'frag_win_length': 32,
-    'batch_size': 128,
+    'batch_size': 256,
     'epochs': 1,
     'model_destination_base': '/data/riccardo_models/denoising/phase1/',
     'logs_path': './train_logs/phase1.json',
-    'cuda_device': '0'
+    'cuda_device': '0,2,3'
 }
 
 # construct iterator based on tweakable args
@@ -54,10 +54,12 @@ if __name__ == "__main__":
             'norm' if normalize else 'no'
         )
         model_destination = osp.join(defaults['model_destination_base'], model_destination_name)
+        model_source = defaults['model_source_norm'] if (
+            normalize or proc_func in [s_to_reim, s_to_db]) else defaults['model_source_no']
 
         K.clear_session()
         train(
-            defaults['model_source_norm'] if normalize else defaults['model_source_no'],
+            model_source,
             defaults['dataset_path'],
             defaults['sr'],
             defaults['rir_path'],
