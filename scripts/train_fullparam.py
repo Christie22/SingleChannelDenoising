@@ -22,7 +22,7 @@ from libs.processing import s_to_exp, s_to_reim, s_to_db
 
 def train(model_source, dataset_path, 
           sr, rir_path, noise_snrs, normalize, proc_func, proc_func_label, 
-          n_fft, hop_length, win_length, frag_hop_length, frag_win_length, 
+          n_fft, hop_length, win_length, frag_hop_length, frag_win_length, time_slice,
           batch_size, epochs, model_destination, logs_path, force_cacheinit, cuda_device):
     print('[t] Training model on dataset {}'.format(dataset_path))
     print('[t] Training parameters: {}'.format({
@@ -30,7 +30,8 @@ def train(model_source, dataset_path,
         'model_source': model_source,
         'model_destination': model_destination,
         'cuda_device': cuda_device,
-        'logs_path': logs_path
+        'logs_path': logs_path,
+        'time_slice': time_slice
     }))
 
     # set GPU devices
@@ -47,8 +48,7 @@ def train(model_source, dataset_path,
     noise_funcs = [
         pink_noise,
     ]
-    # loss function slice
-    time_slice = slice(None)
+   
     # training stop patience in epochs
     patience_earlystopping = 25
     # learning rate scheduler params
@@ -60,7 +60,6 @@ def train(model_source, dataset_path,
         'noise_funcs': noise_funcs,
         'proc_func': proc_func,
         'proc_func_label': proc_func_label,
-        'time_slice': time_slice,
         'patience_earlystopping': patience_earlystopping,
         'initial_lr': initial_lr,
         'lr_drop_rate': lr_drop_rate,

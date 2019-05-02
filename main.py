@@ -12,6 +12,7 @@ defaults = {
     'win_length': 512,
     'frag_hop_length': 16,
     'frag_win_length': 32,
+    'time_slice': None,
     'batch_size': 256,
     'epochs': 100,
     'model_destination': '/data/riccardo_models/denoising/model_e{epoch}.h5',
