@@ -23,10 +23,10 @@ defaults = {
     'frag_win_length': 32,
     'time_slice': None,
     'batch_size': 128,
-    'epochs': 250,
+    'epochs': 500,
     'normalize': False,
     'model_destination_base': '/data/riccardo_models/denoising/phase1/',
-    'logs_path': './train_logs/phase1.json',
+    'logs_path': './train_logs/phase1bis.json',
     'cuda_device': '0',
 }
 
