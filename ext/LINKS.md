@@ -15,7 +15,8 @@
   - https://ptrrupprecht.wordpress.com/2016/10/05/deep-learning-part-iv-2-compressing-the-dynamic-range-in-raw-audio-signals/
 - back propagation http://neuralnetworksanddeeplearning.com/chap2.html
 
-## Denoising autoencoders
+## Denoising
+- some good recent papers https://www.microsoft.com/en-us/research/project/speech-enhancement/#!publications
 - https://github.com/TheAILearner/Denoising-Autoencoders-in-Keras
 - https://github.com/senior-sigan/denoise-autoencoder
 

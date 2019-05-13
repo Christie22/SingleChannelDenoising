@@ -54,12 +54,19 @@ def unmake_fragments_slice(s_frag, frag_hop_len, frag_win_len, time_slice):
     # NOTE: indexing [i] instead of slicing [x:y] cause dimension to collapse
     if isinstance(time_slice, int) or isinstance(time_slice, np.generic):
         time_slice = slice(time_slice, time_slice+frag_hop_len)
-        print(time_slice)
+    # if time slice is larger than frag_hop, actual slice will be of size hop
+    slice_width = time_slice.stop - time_slice.start
+    if slice_width > frag_hop_len:
+        slice_center = (time_slice.stop + time_slice.start) // 2
+        time_slice_curr = slice(slice_center - frag_hop_len // 2, 
+                                slice_center + frag_hop_len//2 + 1)
+    else:
+        time_slice_curr = time_slice
     # initialize recipient
     s = np.zeros(output_shape, dtype=s_frag.dtype)
     for i, frag in enumerate(s_frag):
-        frag = frag[..., time_slice, :] if len(
-            frag.shape) == 3 else frag[..., time_slice]
+        frag = frag[..., time_slice_curr, :] if len(
+            frag.shape) == 3 else frag[..., time_slice_curr]
         lower_bound = i*frag_hop_len
         upper_bound = (i+1)*frag_hop_len
         #upper_bound = i*frag_hop_len+frag_win_len
