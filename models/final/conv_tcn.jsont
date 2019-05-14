@@ -1,0 +1,57 @@
+{
+	"_meta": {
+			"descr": "temporal convoilutional network - 2 TCN layers",
+	        "source": "https://github.com/philipperemy/keras-tcn#why-temporal-convolutional-network"
+	    },
+	    
+    "architecture": [{
+            "layer_type": "permute",
+            "layer_args": {
+                "dims": [2, 1, 3]
+            }
+        }, {
+            "layer_type": "reshape",
+            "layer_args": {
+                "target_shape": [{{timesteps}}, -1]
+            }
+        }, {
+            "layer_type": "tcn",
+            "layer_args": {
+                "nb_filters": {{n_filters}},
+                "dropout_rate": {{dropout_rate}},
+                "kernel_size": {{ker_size}},
+                "dilations": {{dilations}},
+                "nb_stacks": {{n_stacks}},
+                "use_skip_connections": {{use_skip_connections}},
+                "return_sequences": {{return_sequences}}
+                	}
+         }, {
+              "layer_type": "tcn",
+              "layer_args": {
+                  "nb_filters": {{n_filters}},
+                  "dropout_rate": {{dropout_rate}},
+                  "kernel_size": {{ker_size}},
+                  "dilations": {{dilations}},
+                  "nb_stacks": {{n_stacks}},
+                  "use_skip_connections": {{use_skip_connections}},
+                  "return_sequences": {{return_sequences}}
+                  	}
+         },{
+             "layer_type": "dense",
+             "layer_args": {
+                 "units": {{n_dense}}
+                 	}
+          },{
+            "layer_type": "reshape",
+            "layer_args": {
+                "target_shape": [{{timesteps}}, -1, {{channels}}]
+            }
+        }, {
+            "layer_type": "permute",
+            "layer_args": {
+                "dims": [2, 1, 3]
+            }
+        }
+    ]
+    
+}
