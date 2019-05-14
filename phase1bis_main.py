@@ -34,9 +34,8 @@ normalize = defaults['normalize']
 frag_win_length = defaults['frag_win_length']
 # construct iterator based on tweakable args
 proc_func_args = [
-    s_to_exp(1.0),
-    s_to_exp(1.0/6),
-    s_to_reim
+    s_to_exp(2.0/3),
+    s_to_db
 ]
 p_time_slice_args = [0, 0.1, 0.5, 1]
 time_slice_args = [slice(np.int(frag_win_length//2-p/2*frag_win_length),\
