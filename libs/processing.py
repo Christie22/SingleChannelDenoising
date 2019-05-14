@@ -59,7 +59,7 @@ def unmake_fragments_slice(s_frag, frag_hop_len, frag_win_len, time_slice):
     if slice_width > frag_hop_len:
         slice_center = (time_slice.stop + time_slice.start) // 2
         time_slice_curr = slice(slice_center - frag_hop_len // 2, 
-                                slice_center + frag_hop_len // 2)
+                                slice_center + frag_hop_len // 2+1)
     else:
         time_slice_curr = time_slice
     # initialize recipient
