@@ -4,6 +4,7 @@
 training_logs.json
 
 logs/
+train_logs/
 
 __pycache__/
 *.py[cod]
