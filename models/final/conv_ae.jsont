@@ -8,11 +8,11 @@
         {
             "layer_type": "conv2d",
             "layer_args": {
-                "filters": 256, 
+                "filters": {{filters1}}, 
                 "kernel_size": 3,
                 "padding": "same",
                 "strides": {{strides}},
-                "bias_initializer": "zeros"
+                "bias_initializer": {{bias_initializers}}
             }
         },
         {
@@ -29,11 +29,11 @@
         {
             "layer_type": "conv2d",
             "layer_args": {
-                "filters": 64, 
+                "filters": {{filters2}}, 
                 "kernel_size": 3,
                 "padding": "same",
                 "strides": {{strides}},
-                "bias_initializer": "zeros"
+                "bias_initializer": {{bias_initializers}}
             }
         },
         {
@@ -50,11 +50,11 @@
         {
             "layer_type": "conv2d",
             "layer_args": {
-                "filters": 16, 
+                "filters": {{filters4}}, , 
                 "kernel_size": 3,
                 "padding": "same",
                 "strides": {{strides}},
-                "bias_initializer": "zeros"
+                "bias_initializer": {{bias_initializers}}
             }
         },
         {
@@ -71,11 +71,11 @@
         {
             "layer_type": "conv2dt",
             "layer_args": {
-                "filters": 16, 
+                "filters": {{filters3}}, , 
                 "kernel_size": 3,
                 "padding": "same",
                 "strides": {{strides}},
-                "bias_initializer": "zeros"
+                "bias_initializer": {{bias_initializers}}
             }
         },
         {
@@ -92,11 +92,11 @@
         {
             "layer_type": "conv2dt",
             "layer_args": {
-                "filters": 64, 
+                "filters": {{filters2}}, , 
                 "kernel_size": 3,
                 "padding": "same",
                 "strides": {{strides}},
-                "bias_initializer": "zeros"
+                "bias_initializer": {{bias_initializers}}
             }
         },
         {
@@ -113,11 +113,11 @@
         {
             "layer_type": "conv2dt",
             "layer_args": {
-                "filters": 256, 
+                "filters": {{filters1}}, , 
                 "kernel_size": 3,
                 "padding": "same",
                 "strides": {{strides}},
-                "bias_initializer": "zeros"
+                "bias_initializer": {{bias_initializers}}
             }
         },
         {
@@ -138,7 +138,7 @@
                 "kernel_size": 3,
                 "padding": "same",
                 "strides": 1,
-                "bias_initializer": "zeros"
+                "bias_initializer": {{bias_initializers}}
             }
         },
         {

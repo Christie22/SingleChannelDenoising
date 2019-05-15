@@ -12,7 +12,7 @@
                 "kernel_size": [32, 11],
                 "padding": "same",
                 "strides": [16, 1],
-                "bias_initializer": "zeros"
+                "bias_initializer": {{bias_initializer}}
             }
         },{
             "layer_type": "batchnorm",
@@ -20,7 +20,7 @@
         },{
             "layer_type": "activation",
             "layer_args": {
-                "activation": "relu"
+                "activation": {{conv_activ_func}}
             }
         },
         

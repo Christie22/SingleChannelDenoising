@@ -8,11 +8,11 @@
     "architecture": [{
             "layer_type": "conv2d",
             "layer_args": {
-                "filters": {{n_conv}}, 
+                "filters": {{n_filters}}, 
                 "kernel_size": [32, 11],
                 "padding": "same",
                 "strides": [16, 1],
-                "bias_initializer": "zeros"
+                "bias_initializer": {{bias_initializer}}
             }
         },{
             "layer_type": "batchnorm",

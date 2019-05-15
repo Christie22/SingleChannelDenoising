@@ -1,0 +1,68 @@
+{
+    "architecture": [{
+            "layer_type": "lstmconv",
+            "layer_args": {
+                "filters": 40,
+                "kernel_size": [3, 3],
+                "padding": "same",
+                "return_sequences": true
+            }
+        },
+        {
+            "layer_type": "batchnorm",
+            "layer_args": {}
+        },
+        {
+            "layer_type": "lstmconv",
+            "layer_args": {
+                "filters": 40,
+                "kernel_size": [3, 3],
+                "padding": "same",
+                "return_sequences": true
+            }
+        },
+        {
+            "layer_type": "batchnorm",
+            "layer_args": {}
+        },
+        {
+            "layer_type": "lstmconv",
+            "layer_args": {
+                "filters": 40,
+                "kernel_size": [3, 3],
+                "padding": "same",
+                "return_sequences": true
+            }
+        },
+        {
+            "layer_type": "batchnorm",
+            "layer_args": {}
+        },
+        {
+            "layer_type": "lstmconv",
+            "layer_args": {
+                "filters": 40,
+                "kernel_size": [3, 3],
+                "padding": "same",
+                "return_sequences": true
+            }
+        },
+        {
+            "layer_type": "batchnorm",
+            "layer_args": {}
+        },
+        {
+            "layer_type": "conv",
+            "layer_args": {
+                "filters": 40,
+                "kernel_size": [3, 3],
+                "activation": "sigmoid",
+                "padding": "same"
+            }
+        }
+    ],
+    "_meta": {
+        "source": "https://github.com/keras-team/keras/blob/master/examples/conv_lstm.py",
+        "descr": "A test model using recurrent layers"
+        }
+}

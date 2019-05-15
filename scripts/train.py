@@ -55,11 +55,12 @@ def train(model_source, dataset_path,
         #*[take_file_as_noise(f) for f in noise_paths]
     ]
     # data processing function
-    exponent = 1.0/6.0
-    proc_func = s_to_exp(exponent)
-    proc_func_label = s_to_exp(exponent)
+    exponent = 1
+    slice_width = 3
+    proc_func = s_to_db
+    proc_func_label = s_to_db
     # loss function slice
-    time_slice = slice(None)  # also try: time_slice = frag_win_length // 2
+    time_slice = slice((frag_win_length - slice_width) // 2, (frag_win_length + slice_width) // 2)
     # training stop patience in epochs
     patience_earlystopping = 25
     # learning rate scheduler params
@@ -132,7 +133,10 @@ def train(model_source, dataset_path,
         'use_skip_connections': str(True).lower(),
         'return_sequences': str(True).lower(),
         'bias_initializer': 'zeros',
-        'strides': [2, 2]
+        'strides': [2, 2],
+        'filters1': 128,
+        'filters2': 64,
+        'filters3': 16
     }
     print('[t] Model template arguments: {}'.format(model_template_args))
 
