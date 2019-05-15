@@ -118,25 +118,35 @@ def train(model_source, dataset_path,
     print('[t] Valid steps per epoch: ', valid_steps_per_epoch)
     
     input_shape = training_generator.data_shape
-    model_template_args = {
-        'n_filters': 256,
-        'n_conv': 256,
-        'n_recurrent': 512,
+    model_template_args = {        
         'ker_size': 3,
-        'n_dense': int(input_shape[0]*input_shape[2]),
-        'timesteps': int(input_shape[1]),
-        'channels': int(input_shape[2]),
-        'dropout_rate': 0.0,
-        'activ_func': 'relu',
+        
+        
+        
+        
         'n_stacks': 8,
-        'dilations': [1, 2],
+        
         'use_skip_connections': str(True).lower(),
         'return_sequences': str(True).lower(),
+        
+        # common
+        'channels': int(input_shape[2]),
+        'timesteps': int(input_shape[1]),
         'bias_initializer': 'zeros',
+        'dropout_rate': 0.0,
+        'conv_activ_func': 'relu',
+        # conv ae
         'strides': [2, 2],
-        'filters1': 128,
-        'filters2': 64,
-        'filters3': 16
+        'filters1': 256,
+        'filters2': 128,
+        'filters3': 64,
+        'filters4': 16,
+        # conv lstm/gru
+        'n_filters': 256,
+        'n_recurrent': 512,
+        'n_dense': int(input_shape[0]*input_shape[2]),
+        # conv tdc
+        'dilations': [1, 2],
     }
     print('[t] Model template arguments: {}'.format(model_template_args))
 
