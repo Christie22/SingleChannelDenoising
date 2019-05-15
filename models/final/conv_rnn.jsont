@@ -1,6 +1,6 @@
 {
     "_meta": {
-        "descr": "RNN model: 2 GRU layer",
+        "descr": "RNN model: baseline (as close to the paper as possible)",
         "source": "Convolutional-Recurrent Neural Networks for Speech Enhancement",
         "author": "Han Zhao et al.",
         "url": "https://arxiv.org/abs/1805.00579"
@@ -9,9 +9,9 @@
             "layer_type": "conv2d",
             "layer_args": {
                 "filters": {{n_filters}}, 
-                "kernel_size": [32, 11],
+                "kernel_size": {{kernel_size}},
                 "padding": "same",
-                "strides": [16, 1],
+                "strides": {{strides}},
                 "bias_initializer": {{bias_initializer}}
             }
         },{
@@ -20,7 +20,7 @@
         },{
             "layer_type": "activation",
             "layer_args": {
-                "activation": "relu"
+                "activation": {{conv_activ_func}}
             }
         },
         
@@ -43,7 +43,7 @@
                 "return_sequences": true
             }
         }, {
-            "layer_type": "gru",
+            "layer_type": "lstm",
             "layer_args": {
                 "units": {{n_recurrent}},
                 "return_sequences": true
@@ -54,6 +54,11 @@
             "layer_type": "dense",
             "layer_args": {
                 "units": {{n_dense}}
+            }
+        },{
+            "layer_type": "activation",
+            "layer_args": {
+                "activation": {{conv_activ_func}}
             }
         },{
             "layer_type": "dropout",

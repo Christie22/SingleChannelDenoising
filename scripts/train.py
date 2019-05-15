@@ -119,24 +119,22 @@ def train(model_source, dataset_path,
     
     input_shape = training_generator.data_shape
     model_template_args = {        
-        'ker_size': 3,
-        
-        
-        
-        
-        'n_stacks': 8,
-        
-        'use_skip_connections': str(True).lower(),
         'return_sequences': str(True).lower(),
         
         # common
-        'channels': int(input_shape[2]),
-        'timesteps': int(input_shape[1]),
+        ## convolutional
+#        'kernel_size': [3, 3],
+        'kernel_size': [32, 11],
+#        'strides': [2, 2],
+        'strides': [16, 1],
+#        'bias_initializer': 'zeros',
         'bias_initializer': 'zeros',
-        'dropout_rate': 0.0,
+        ## others
         'conv_activ_func': 'relu',
+        'timesteps': int(input_shape[1]),
+        'channels': int(input_shape[2]),
+        'dropout_rate': 0.0,
         # conv ae
-        'strides': [2, 2],
         'filters1': 256,
         'filters2': 128,
         'filters3': 64,
@@ -146,7 +144,9 @@ def train(model_source, dataset_path,
         'n_recurrent': 512,
         'n_dense': int(input_shape[0]*input_shape[2]),
         # conv tdc
+        'use_skip_connections': str(True).lower(),
         'dilations': [1, 2],
+        'n_stacks': 8,
     }
     print('[t] Model template arguments: {}'.format(model_template_args))
 

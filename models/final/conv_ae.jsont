@@ -1,7 +1,9 @@
 {
 	"_meta":{
 		"desc": " AE with 3 convolutional layers, used for sanity check" ,
-		"source": "models/conv3.jsont"
+        "source": "Single Channel Audio Source Separation using Convolutional Denoising Autoencoders",
+        "author": "Grais, Emad M. and Plumbley, Mark D.",
+        "url": "http://arxiv.org/abs/1703.08019"
 	},
 	
     "architecture": [
@@ -9,7 +11,7 @@
             "layer_type": "conv2d",
             "layer_args": {
                 "filters": {{filters1}}, 
-                "kernel_size": 3,
+                "kernel_size": {{kernel_size}},
                 "padding": "same",
                 "strides": {{strides}},
                 "bias_initializer": {{bias_initializers}}
@@ -22,7 +24,7 @@
         {
             "layer_type": "activation",
             "layer_args": {
-                "activation": "relu"
+                "activation": {{conv_activ_func}}
             }
         },
         
@@ -43,15 +45,15 @@
         {
             "layer_type": "activation",
             "layer_args": {
-                "activation": "relu"
+                "activation": {{conv_activ_func}}
             }
         },
         
         {
             "layer_type": "conv2d",
             "layer_args": {
-                "filters": {{filters4}}, , 
-                "kernel_size": 3,
+                "filters": {{filters4}}, 
+                "kernel_size": {{kernel_size}},
                 "padding": "same",
                 "strides": {{strides}},
                 "bias_initializer": {{bias_initializers}}
@@ -64,7 +66,7 @@
         {
             "layer_type": "activation",
             "layer_args": {
-                "activation": "relu"
+                "activation": {{conv_activ_func}}
             }
         },
         
@@ -72,7 +74,7 @@
             "layer_type": "conv2dt",
             "layer_args": {
                 "filters": {{filters3}}, , 
-                "kernel_size": 3,
+                "kernel_size": {{kernel_size}},
                 "padding": "same",
                 "strides": {{strides}},
                 "bias_initializer": {{bias_initializers}}
@@ -85,7 +87,7 @@
         {
             "layer_type": "activation",
             "layer_args": {
-                "activation": "relu"
+                "activation": {{conv_activ_func}}
             }
         },
         
@@ -93,7 +95,7 @@
             "layer_type": "conv2dt",
             "layer_args": {
                 "filters": {{filters2}}, , 
-                "kernel_size": 3,
+                "kernel_size": {{kernel_size}},
                 "padding": "same",
                 "strides": {{strides}},
                 "bias_initializer": {{bias_initializers}}
@@ -106,15 +108,15 @@
         {
             "layer_type": "activation",
             "layer_args": {
-                "activation": "relu"
+                "activation": {{conv_activ_func}}
             }
-        },        
+        },
         
         {
             "layer_type": "conv2dt",
             "layer_args": {
                 "filters": {{filters1}}, , 
-                "kernel_size": 3,
+                "kernel_size": {{kernel_size}},
                 "padding": "same",
                 "strides": {{strides}},
                 "bias_initializer": {{bias_initializers}}
@@ -127,7 +129,7 @@
         {
             "layer_type": "activation",
             "layer_args": {
-                "activation": "relu"
+                "activation": {{conv_activ_func}}
             }
         },
  

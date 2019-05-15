@@ -9,9 +9,9 @@
             "layer_type": "conv2d",
             "layer_args": {
                 "filters": {{n_conv}}, 
-                "kernel_size": [32, 11],
+                "kernel_size": {{kernel_size}},
                 "padding": "same",
-                "strides": [16, 1],
+                "strides": {{strides}},
                 "bias_initializer": {{bias_initializer}}
             }
         },{
@@ -42,18 +42,17 @@
                 "units": {{n_recurrent}},
                 "return_sequences": true
             }
-        }, {
-            "layer_type": "gru",
-            "layer_args": {
-                "units": {{n_recurrent}},
-                "return_sequences": true
-            }
         },
 
         {
             "layer_type": "dense",
             "layer_args": {
                 "units": {{n_dense}}
+            }
+        },{
+            "layer_type": "activation",
+            "layer_args": {
+                "activation": {{conv_activ_func}}
             }
         },{
             "layer_type": "dropout",
