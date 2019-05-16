@@ -22,7 +22,7 @@ from libs.processing import s_to_exp, s_to_reim, s_to_db
 
 def train(model_source, dataset_path, 
           sr, rir_path, noise_snrs, 
-          n_fft, hop_length, win_length, frag_hop_length, frag_win_length, time_slice,
+          n_fft, hop_length, win_length, frag_hop_length, frag_win_length,
           batch_size, epochs, model_destination, logs_path, force_cacheinit, cuda_device):
     print('[t] Training model on dataset {}'.format(dataset_path))
     print('[t] Training parameters: {}'.format({

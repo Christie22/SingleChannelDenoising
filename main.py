@@ -12,7 +12,6 @@ defaults = {
     'win_length': 512,
     'frag_hop_length': 16,
     'frag_win_length': 32,
-    'time_slice': None,
     'batch_size': 256,
     'epochs': 100,
     'model_destination': '/data/riccardo_models/denoising/model_e{epoch}.h5',
@@ -42,7 +41,6 @@ def cli(ctx, cuda_device):
 @click.option('--win_length', type=int, default=defaults['win_length'])
 @click.option('--frag_hop_length', type=int, default=defaults['frag_hop_length'])
 @click.option('--frag_win_length', type=int, default=defaults['frag_win_length'])
-@click.option('--time_slice', type=int, default=defaults['time_slice'])
 @click.option('--batch_size', type=int, default=defaults['batch_size'])
 @click.option('--epochs', type=int, default=defaults['epochs'])
 @click.option('--model_destination', type=click.Path(), default=defaults['model_destination'])
@@ -59,7 +57,6 @@ def train(ctx,
           win_length,
           frag_hop_length,
           frag_win_length,
-          time_slice,
           batch_size,
           epochs,
           model_destination,
@@ -76,7 +73,6 @@ def train(ctx,
                  win_length,
                  frag_hop_length,
                  frag_win_length,
-                 time_slice,
                  batch_size,
                  epochs,
                  model_destination,
@@ -130,6 +126,7 @@ def results(ctx,
                    force_cacheinit,
                    output_path,
                    ctx.obj['cuda_device'])
+
 
 # DENOISE
 @cli.command()
