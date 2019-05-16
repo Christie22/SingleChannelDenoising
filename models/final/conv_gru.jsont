@@ -8,7 +8,7 @@
     "architecture": [{
             "layer_type": "conv2d",
             "layer_args": {
-                "filters": {{n_conv}}, 
+                "filters": {{n_filters}}, 
                 "kernel_size": {{kernel_size}},
                 "padding": "same",
                 "strides": {{strides}},
