@@ -27,7 +27,7 @@ from libs.data_generator import DataGenerator
 from libs.processing import pink_noise, take_file_as_noise
 from libs.processing import s_to_exp, s_to_reim, s_to_db
 from libs.processing import exp_to_s, reim_to_s, db_to_s
-from libs.processing import unmake_fragments, unmake_fragments_slice
+from libs.processing import make_fragments, unmake_fragments, unmake_fragments_slice
 from libs.metrics import sample_metric
 
 
@@ -149,7 +149,7 @@ def results(model_source, dataset_path,
     for file_index, file_noisevariation in enumerate(pbar):
         # unpack data
         filepath, noise_variation = file_noisevariation
-        noise_func, snr, rirpath = noise_variation
+        noise_func, snr, _ = noise_variation
 
         # load speech 
         pbar.set_description('loading')
@@ -167,7 +167,6 @@ def results(model_source, dataset_path,
         s_frags_noisy = make_fragments(s_noisy, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
         # apply pre-processing (data representation)
         pbar.set_description('pre-proc')
-        s_frags_clean_proc = proc_func(s_frags_clean)
         s_frags_noisy_proc = proc_func(s_frags_noisy)
 
         # predict data
