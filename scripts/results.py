@@ -150,45 +150,64 @@ def results(model_source, dataset_path,
         # unpack data
         filepath, noise_variation = file_noisevariation
         noise_func, snr, rirpath = noise_variation
-        # create DataGenerator objects
-        # NOTE one file at a time!
-        # NOTE output suppressed for proper rendering of progress bar
-        pbar.set_description('{} @ {}'.format(osp.basename(filepath), noise_variation))
-        with open(os.devnull, 'w') as devnull:
-            with contextlib.redirect_stdout(devnull):
-                testing_generator = DataGenerator(
-                    filepaths=[filepath], 
-                    noise_funcs=[noise_func],
-                    noise_snrs=[snr],
-                    rir_path=rirpath,
-                    **generator_args)
-        n_batches = len(testing_generator)
 
-        # data temp variables
-        y_noisy = np.empty((n_batches, batch_size, *testing_generator.data_shape))
-        y_true = np.empty((n_batches, batch_size, *testing_generator.data_shape))
-        y_pred = np.empty((n_batches, batch_size, *testing_generator.data_shape))
-        # loop through batches
-        for batch_index in range(n_batches):
-            pbar.set_description('predicting {}/{} '.format(
-                batch_index, n_batches))
-            # predict data and sort out noisy and clean
-            y_noisy_batch, y_true_batch = testing_generator[batch_index]
-            y_noisy[batch_index] = y_noisy_batch
-            y_true[batch_index] = y_true_batch
-            y_pred[batch_index] = model.predict(y_noisy_batch)
+        # load speech 
+        pbar.set_description('loading')
+        x, _ = lr.load(filepath, sr=sr)
+        # apply noise
+        pbar.set_description('noising')
+        x_noisy = noise_func(x=x, sr=sr, snr=snr)
+        # convert both to TF-domain
+        pbar.set_description('stft')
+        s_clean = lr.stft(x, n_fft=n_fft, hop_length=hop_length, win_length=win_length)
+        s_noisy = lr.stft(x_noisy, n_fft=n_fft, hop_length=hop_length, win_length=win_length)
+        # split into fragments
+        pbar.set_description('split frags')
+        s_frags_clean = make_fragments(s_clean, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
+        s_frags_noisy = make_fragments(s_noisy, frag_hop_len=frag_hop_length, frag_win_len=frag_win_length)
+        # apply pre-processing (data representation)
+        pbar.set_description('pre-proc')
+        s_frags_clean_proc = proc_func(s_frags_clean)
+        s_frags_noisy_proc = proc_func(s_frags_noisy)
 
-        # flatten along batches
-        pbar.set_description('reshaping')
-        y_noisy = y_noisy.reshape(-1, *testing_generator.data_shape)
-        y_true = y_true.reshape(-1, *testing_generator.data_shape)
-        y_pred = y_pred.reshape(-1, *testing_generator.data_shape)
+        # predict data
+        pbar.set_description('predict')
+        s_frags_pred = model.predict(s_frags_noisy_proc)
+        
+        # unprocess (data representation)
+        pbar.set_description('un-proc')
+        s_frags_pred_unproc = unproc_func(s_frags_pred, s_noisy=s_frags_noisy)
+        
+        # handle variable names... TODO fix!
+        s_noisy = s_frags_noisy
+        s_true = s_frags_clean
+        s_pred = s_frags_pred_unproc
 
-        # convert to complex spectrogram
-        pbar.set_description('post-proc')
-        s_noisy = unproc_func(y_noisy)
-        s_true = unproc_func(y_true)
-        s_pred = unproc_func(y_pred)
+#        # data temp variables
+#        y_noisy = np.empty((n_batches, batch_size, *testing_generator.data_shape))
+#        y_true = np.empty((n_batches, batch_size, *testing_generator.data_shape))
+#        y_pred = np.empty((n_batches, batch_size, *testing_generator.data_shape))
+#        # loop through batches
+#        for batch_index in range(n_batches):
+#            pbar.set_description('predicting {}/{} '.format(
+#                batch_index, n_batches))
+#            # predict data and sort out noisy and clean
+#            y_noisy_batch, y_true_batch = testing_generator[batch_index]
+#            y_noisy[batch_index] = y_noisy_batch
+#            y_true[batch_index] = y_true_batch
+#            y_pred[batch_index] = model.predict(y_noisy_batch)
+#
+#        # flatten along batches
+#        pbar.set_description('reshaping')
+#        y_noisy = y_noisy.reshape(-1, *testing_generator.data_shape)
+#        y_true = y_true.reshape(-1, *testing_generator.data_shape)
+#        y_pred = y_pred.reshape(-1, *testing_generator.data_shape)
+
+#        # convert to complex spectrogram
+#        pbar.set_description('post-proc')
+#        s_noisy = unproc_func(y_noisy)
+#        s_true = unproc_func(y_true)
+#        s_pred = unproc_func(y_pred)
 
         # merge fragments
         pbar.set_description('merge frags')
@@ -225,6 +244,9 @@ def results(model_source, dataset_path,
                 wav_list_entry = '{:3}: {} {}'.format(
                     file_index, filepath, noise_variation)
                 wavs_list.append(wav_list_entry)
+            # store descriptor
+            with open(wavlist_filepath, 'w') as f:
+                print('\n'.join(wavs_list), file=f)
             
         # METRIC 1: mean squared error
         pbar.set_description('metrics (mse)')
@@ -256,10 +278,6 @@ def results(model_source, dataset_path,
     
     # store dataframe as pickle (NOTE load with pd.read_pickle)
     df.to_pickle(output_filepath)
-    if store_wavs:
-        # store descriptor
-        with open(wavlist_filepath, 'w') as f:
-            print('\n'.join(wavs_list), file=f)
 
     print('[r] Results stored in {}'.format(output_filepath))
     print(df)
