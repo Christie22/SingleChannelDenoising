@@ -114,7 +114,7 @@ def results(model_source, dataset_path,
     model, _ = load_autoencoder_model(
         model_source, time_slice=time_slice)
     # print model summary
-    model.summary()
+    #model.summary()
 
     # list of filepath-noise_variation combinations
     file_noisevariation_prod = list(itertools.product(filepath_list, noise_variations))
@@ -249,7 +249,7 @@ def results(model_source, dataset_path,
             
         # METRIC 1: mean squared error
         pbar.set_description('metrics (mse)')
-        mse = mean_squared_error(s_pred, s_true)
+        mse = mean_squared_error(np.abs(s_pred), np.abs(s_true))
 
         # METRIC 2: sdr, sir, sar
         pbar.set_description('metrics (bss)')
