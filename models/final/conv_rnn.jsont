@@ -37,12 +37,6 @@
         }, 
         
         {
-            "layer_type": "gru",
-            "layer_args": {
-                "units": {{n_recurrent}},
-                "return_sequences": true
-            }
-        }, {
             "layer_type": "lstm",
             "layer_args": {
                 "units": {{n_recurrent}},
@@ -53,12 +47,13 @@
         {
             "layer_type": "dense",
             "layer_args": {
-                "units": {{n_dense}}
+                "units": {{n_dense}},
+                "bias_initializer": "{{bias_initializer}}"
             }
         },{
             "layer_type": "activation",
             "layer_args": {
-                "activation": {{conv_activ_func}}
+                "activation": "{{dense_activ_func}}"
             }
         },{
             "layer_type": "dropout",

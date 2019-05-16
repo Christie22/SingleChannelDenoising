@@ -131,19 +131,22 @@ def train(model_source, dataset_path,
         'bias_initializer': 'zeros',
         ## others
         'conv_activ_func': 'relu',
-        'timesteps': int(input_shape[1]),
         'channels': int(input_shape[2]),
         'dropout_rate': 0.0,
+
         # conv ae
         'filters1': 256,
         'filters2': 128,
-        'filters3': 64,
-        'filters4': 16,
-        # conv lstm/gru
+        'filters3': 16,
+
+        # conv-recurrent 
         'n_filters': 256,
-        'n_recurrent': 512,
+        'timesteps': int(input_shape[1]),
         'n_dense': int(input_shape[0]*input_shape[2]),
-        # conv tdc
+        'dense_activ_func': 'linear',
+        ## conv lstm/gru
+        'n_recurrent': 512,
+        ## conv tcn
         'use_skip_connections': str(True).lower(),
         'dilations': [1, 2],
         'n_stacks': 8,

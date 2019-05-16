@@ -14,17 +14,15 @@
                 "kernel_size": {{kernel_size}},
                 "padding": "same",
                 "strides": {{strides}},
-                "bias_initializer": {{bias_initializers}}
+                "bias_initializer": "{{bias_initializers}}"
             }
-        },
-        {
+        },{
             "layer_type": "batchnorm",
             "layer_args": {}
-        },
-        {
+        },{
             "layer_type": "activation",
             "layer_args": {
-                "activation": {{conv_activ_func}}
+                "activation": "{{conv_activ_func}}"
             }
         },
         
@@ -35,38 +33,34 @@
                 "kernel_size": 3,
                 "padding": "same",
                 "strides": {{strides}},
-                "bias_initializer": {{bias_initializers}}
+                "bias_initializer": "{{bias_initializers}}"
             }
-        },
-        {
+        },{
             "layer_type": "batchnorm",
             "layer_args": {}
-        },
-        {
+        },{
             "layer_type": "activation",
             "layer_args": {
-                "activation": {{conv_activ_func}}
+                "activation": "{{conv_activ_func}}"
             }
         },
         
         {
             "layer_type": "conv2d",
             "layer_args": {
-                "filters": {{filters4}}, 
+                "filters": {{filters3}}, 
                 "kernel_size": {{kernel_size}},
                 "padding": "same",
                 "strides": {{strides}},
-                "bias_initializer": {{bias_initializers}}
+                "bias_initializer": "{{bias_initializers}}"
             }
-        },
-        {
+        },{
             "layer_type": "batchnorm",
             "layer_args": {}
-        },
-        {
+        },{
             "layer_type": "activation",
             "layer_args": {
-                "activation": {{conv_activ_func}}
+                "activation": "{{conv_activ_func}}"
             }
         },
         
@@ -77,17 +71,15 @@
                 "kernel_size": {{kernel_size}},
                 "padding": "same",
                 "strides": {{strides}},
-                "bias_initializer": {{bias_initializers}}
+                "bias_initializer": "{{bias_initializers}}"
             }
-        },
-        {
+        },{
             "layer_type": "batchnorm",
             "layer_args": {}
-        },
-        {
+        },{
             "layer_type": "activation",
             "layer_args": {
-                "activation": {{conv_activ_func}}
+                "activation": "{{conv_activ_func}}"
             }
         },
         
@@ -98,17 +90,15 @@
                 "kernel_size": {{kernel_size}},
                 "padding": "same",
                 "strides": {{strides}},
-                "bias_initializer": {{bias_initializers}}
+                "bias_initializer": "{{bias_initializers}}"
             }
-        },
-        {
+        },{
             "layer_type": "batchnorm",
             "layer_args": {}
-        },
-        {
+        },{
             "layer_type": "activation",
             "layer_args": {
-                "activation": {{conv_activ_func}}
+                "activation": "{{conv_activ_func}}"
             }
         },
         
@@ -119,17 +109,15 @@
                 "kernel_size": {{kernel_size}},
                 "padding": "same",
                 "strides": {{strides}},
-                "bias_initializer": {{bias_initializers}}
+                "bias_initializer": "{{bias_initializers}}"
             }
-        },
-        {
+        },{
             "layer_type": "batchnorm",
             "layer_args": {}
-        },
-        {
+        },{
             "layer_type": "activation",
             "layer_args": {
-                "activation": {{conv_activ_func}}
+                "activation": "{{conv_activ_func}}"
             }
         },
  
@@ -140,13 +128,7 @@
                 "kernel_size": 3,
                 "padding": "same",
                 "strides": 1,
-                "bias_initializer": {{bias_initializers}}
-            }
-        },
-        {
-            "layer_type": "activation",
-            "layer_args": {
-                "activation": "linear"
+                "bias_initializer": "{{bias_initializers}}"
             }
         }
     ]
