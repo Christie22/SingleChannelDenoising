@@ -5,6 +5,23 @@
 	    },
 	    
     "architecture": [{
+            "layer_type": "conv2d",
+            "layer_args": {
+                "filters": {{n_filters}}, 
+                "kernel_size": {{kernel_size}},
+                "padding": "same",
+                "strides": {{strides}},
+                "bias_initializer": {{bias_initializer}}
+            }
+        },{
+            "layer_type": "batchnorm",
+            "layer_args": {}
+        },{
+            "layer_type": "activation",
+            "layer_args": {
+                "activation": {{conv_activ_func}}
+            }
+        },{
             "layer_type": "permute",
             "layer_args": {
                 "dims": [2, 1, 3]
