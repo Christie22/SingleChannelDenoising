@@ -207,9 +207,10 @@ def white_noise(x, sr, snr):
 
 
 class take_file_as_noise(object):
-    def __init__(self, filepath):
+    def __init__(self, filepath, gain=0.0):
         self.filepath = filepath
-        self.__name__ = 'take_file_as_noise({})'.format(osp.basename(osp.dirname(filepath)))
+        self.gain = gain
+        self.__name__ = 'take_file_as_noise({}, {:2f})'.format(osp.basename(osp.dirname(filepath)), gain)
 
     def __call__(self, x, sr, snr):  
         xn, _ = lr.load(self.filepath, sr = sr)
@@ -260,7 +261,7 @@ class take_file_as_noise(object):
             portion_out = dur_speech-n_out_next
             out[n_out_next: ] += noise[n_noise_next : n_noise_next + portion_out]    
             
-        return sum_with_snr(x,out,snr)
+        return sum_with_snr(x, out, snr-gain)
 
 
 # add pink (1/f) noise using Voss-McCartney algorithm

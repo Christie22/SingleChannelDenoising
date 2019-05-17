@@ -44,15 +44,29 @@ def train(model_source, dataset_path,
     
     ## hyper-parameters (TODO un-hardcode some?)
     # noising functions
-    noise_paths = [
-    '/data/riccardo_datasets/demand/STRAFFIC/ch01.wav',
-    '/data/riccardo_datasets/demand/TMETRO/ch01.wav',
-    '/data/riccardo_datasets/demand/PCAFETER/ch01.wav',
-    '/data/riccardo_datasets/demand/PRESTO/ch01.wav',
+    noise_args = [
+        ('/data/riccardo_datasets/demand/OMEETING/ch01.wav', -0.648042),
+        ('/data/riccardo_datasets/demand/PCAFETER/ch01.wav',  0.236249),
+        ('/data/riccardo_datasets/demand/PRESTO/ch01.wav',   -1.627305),
+        ('/data/riccardo_datasets/demand/DKITCHEN/ch01.wav',  1.436523),
+        ('/data/riccardo_datasets/demand/STRAFFIC/ch01.wav',  2.546455),
+        ('/data/riccardo_datasets/demand/TCAR/ch01.wav',      12.084431),
+        ('/data/riccardo_datasets/demand/PSTATION/ch01.wav',  0.731069),
+        ('/data/riccardo_datasets/demand/OOFFICE/ch01.wav',   10.228452),
+        ('/data/riccardo_datasets/demand/DWASHING/ch01.wav',  11.424469),
+        ('/data/riccardo_datasets/demand/NFIELD/ch01.wav',    8.179240),
+        ('/data/riccardo_datasets/demand/SCAFE/ch01.wav',     1.772801),
+        ('/data/riccardo_datasets/demand/NPARK/ch01.wav',     1.655274),
+        ('/data/riccardo_datasets/demand/TBUS/ch01.wav',      9.830784),
+        ('/data/riccardo_datasets/demand/TMETRO/ch01.wav',    2.600279),
+        ('/data/riccardo_datasets/demand/SPSQUARE/ch01.wav',  4.210954),
+        ('/data/riccardo_datasets/demand/OHALLWAY/ch01.wav',  6.234382),
+        ('/data/riccardo_datasets/demand/DLIVING/ch01.wav',   1.762213),
+        ('/data/riccardo_datasets/demand/NRIVER/ch01.wav',    3.813165)
     ]
     noise_funcs = [
         pink_noise,
-        #*[take_file_as_noise(f) for f in noise_paths]
+        *[take_file_as_noise(f, g) for f, g in noise_args]
     ]
     # data processing function
     exponent = 1
@@ -69,7 +83,7 @@ def train(model_source, dataset_path,
     lr_drop_epochs = 150
     
     print('[t] Varius hyperparameters: {}'.format({
-        'noise_paths': noise_paths,
+        'noise_args': noise_args,
         'noise_funcs': noise_funcs,
         'exponent': exponent,
         'proc_func': proc_func,
