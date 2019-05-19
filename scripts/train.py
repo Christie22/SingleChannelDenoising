@@ -47,10 +47,9 @@ def train(model_source, dataset_path,
     # DS1: pink noise
     # DS2: get a mix of 3 narrow/wide band stationary noises
     # DS3: get a mix of ? narrow/wide band stationary and non statonary noises
-    rwnoises = []
     # NOTE USE DIFFERENT INDECES FOR TESTING 
-    rwnoises.append(get_rwnoises(stationary=True, narrowband=True)[0])
-    rwnoises.append(get_rwnoises(stationary=True, narrowband=False)[:2])
+    rwnoises = [get_rwnoises(stationary=True, narrowband=True)[0]]
+    rwnoises += get_rwnoises(stationary=True, narrowband=False)[:2]
     # noising functions
     noise_funcs = [
         #pink_noise,
