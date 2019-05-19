@@ -18,6 +18,7 @@ from libs.model_utils import ExtendedTensorBoard, lr_schedule_func
 from libs.data_generator import DataGenerator
 from libs.processing import pink_noise, take_file_as_noise
 from libs.processing import s_to_exp, s_to_reim, s_to_db
+from libs.rwnoises import get_rwnoises
 
 
 def train(model_source, dataset_path, 
@@ -43,30 +44,17 @@ def train(model_source, dataset_path,
         filepath_list, test_size=0.2, random_state=1337)
     
     ## hyper-parameters (TODO un-hardcode some?)
+    # DS1: pink noise
+    # DS2: get a mix of 3 narrow/wide band stationary noises
+    # DS3: get a mix of ? narrow/wide band stationary and non statonary noises
+    rwnoises = []
+    # NOTE USE DIFFERENT INDECES FOR TESTING 
+    rwnoises.append(get_rwnoises(stationary=True, narrowband=True)[0])
+    rwnoises.append(get_rwnoises(stationary=True, narrowband=False)[:2])
     # noising functions
-    noise_args = [
-        ('/data/riccardo_datasets/demand/OMEETING/ch01.wav', -0.648042),
-        ('/data/riccardo_datasets/demand/PCAFETER/ch01.wav',  0.236249),
-        ('/data/riccardo_datasets/demand/PRESTO/ch01.wav',   -1.627305),
-        ('/data/riccardo_datasets/demand/DKITCHEN/ch01.wav',  1.436523),
-        ('/data/riccardo_datasets/demand/STRAFFIC/ch01.wav',  2.546455),
-        ('/data/riccardo_datasets/demand/TCAR/ch01.wav',      12.084431),
-        ('/data/riccardo_datasets/demand/PSTATION/ch01.wav',  0.731069),
-        ('/data/riccardo_datasets/demand/OOFFICE/ch01.wav',   10.228452),
-        ('/data/riccardo_datasets/demand/DWASHING/ch01.wav',  11.424469),
-        ('/data/riccardo_datasets/demand/NFIELD/ch01.wav',    8.179240),
-        ('/data/riccardo_datasets/demand/SCAFE/ch01.wav',     1.772801),
-        ('/data/riccardo_datasets/demand/NPARK/ch01.wav',     1.655274),
-        ('/data/riccardo_datasets/demand/TBUS/ch01.wav',      9.830784),
-        ('/data/riccardo_datasets/demand/TMETRO/ch01.wav',    2.600279),
-        ('/data/riccardo_datasets/demand/SPSQUARE/ch01.wav',  4.210954),
-        ('/data/riccardo_datasets/demand/OHALLWAY/ch01.wav',  6.234382),
-        ('/data/riccardo_datasets/demand/DLIVING/ch01.wav',   1.762213),
-        ('/data/riccardo_datasets/demand/NRIVER/ch01.wav',    3.813165)
-    ]
     noise_funcs = [
-        pink_noise,
-        *[take_file_as_noise(f, g) for f, g in noise_args]
+        #pink_noise,
+        *[take_file_as_noise(**rwnoise_args) for rwnoise_args in rwnoises]
     ]
     # data processing function
     exponent = 1
@@ -83,7 +71,7 @@ def train(model_source, dataset_path,
     lr_drop_epochs = 150
     
     print('[t] Varius hyperparameters: {}'.format({
-        'noise_args': noise_args,
+        'rwnoises': rwnoises,
         'noise_funcs': noise_funcs,
         'exponent': exponent,
         'proc_func': proc_func,

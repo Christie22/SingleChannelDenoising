@@ -261,7 +261,7 @@ class take_file_as_noise(object):
             portion_out = dur_speech-n_out_next
             out[n_out_next: ] += noise[n_noise_next : n_noise_next + portion_out]    
             
-        return sum_with_snr(x, out, snr-gain)
+        return sum_with_snr(x, out, snr - self.gain)
 
 
 # add pink (1/f) noise using Voss-McCartney algorithm

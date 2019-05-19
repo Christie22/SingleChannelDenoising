@@ -28,6 +28,7 @@ from libs.processing import pink_noise, take_file_as_noise
 from libs.processing import s_to_exp, s_to_reim, s_to_db
 from libs.processing import exp_to_s, reim_to_s, db_to_s
 from libs.processing import make_fragments, unmake_fragments, unmake_fragments_slice
+from libs.rwnoises import get_rwnoises
 from libs.metrics import sample_metric
 
 
@@ -54,17 +55,18 @@ def results(model_source, dataset_path,
     rirpath_list = [None] # TODO do something with rir_path
 
     ## hyper-parameters (TODO un-hardcode some?)
+    # DS1: pink noise
+    # DS2: get a mix of ? narrow/wide band stationary noises
+    # DS3: get a mix of ? narrow/wide band stationary and non statonary noises
+    rwnoises = []
+    # NOTE USE DIFFERENT INDECES FOR TESTING
+    rwnoises.append(get_rwnoises(stationary=True, narrowband=True)[])
+    rwnoises.append(get_rwnoises(stationary=True, narrowband=False)[])
     # noising functions
-    noise_paths = [
-        '/data/riccardo_datasets/demand/STRAFFIC/ch01.wav',
-        '/data/riccardo_datasets/demand/TMETRO/ch01.wav',
-        '/data/riccardo_datasets/demand/PCAFETER/ch01.wav',
-        '/data/riccardo_datasets/demand/PRESTO/ch01.wav',
-    ]
     noise_funcs = [
         pink_noise,
-        #*[take_file_as_noise(f) for f in noise_paths]
-    ]  
+        #*[take_file_as_noise(**rwnoise_args) for rwnoise_args in rwnoises]
+    ]
     # data processing function
     exponent = 1
     slice_width = 3
@@ -74,7 +76,7 @@ def results(model_source, dataset_path,
     time_slice = slice((frag_win_length - slice_width) // 2,
                        (frag_win_length + slice_width) // 2)
     print('[t] Varius hyperparameters: {}'.format({
-        'noise_paths': noise_paths,
+        'rwnoises': rwnoises,
         'noise_funcs': noise_funcs,
         'exponent': exponent,
         'proc_func': proc_func,
