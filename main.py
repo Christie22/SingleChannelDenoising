@@ -12,7 +12,6 @@ defaults = {
     'win_length': 512,
     'frag_hop_length': 16,
     'frag_win_length': 32,
-    'time_slice': None,
     'batch_size': 256,
     'epochs': 100,
     'model_destination': '/data/riccardo_models/denoising/model_e{epoch}.h5',
@@ -42,7 +41,6 @@ def cli(ctx, cuda_device):
 @click.option('--win_length', type=int, default=defaults['win_length'])
 @click.option('--frag_hop_length', type=int, default=defaults['frag_hop_length'])
 @click.option('--frag_win_length', type=int, default=defaults['frag_win_length'])
-@click.option('--time_slice', type=int, default=defaults['time_slice'])
 @click.option('--batch_size', type=int, default=defaults['batch_size'])
 @click.option('--epochs', type=int, default=defaults['epochs'])
 @click.option('--model_destination', type=click.Path(), default=defaults['model_destination'])
@@ -59,7 +57,6 @@ def train(ctx,
           win_length,
           frag_hop_length,
           frag_win_length,
-          time_slice,
           batch_size,
           epochs,
           model_destination,
@@ -76,7 +73,6 @@ def train(ctx,
                  win_length,
                  frag_hop_length,
                  frag_win_length,
-                 time_slice,
                  batch_size,
                  epochs,
                  model_destination,
@@ -101,6 +97,7 @@ def train(ctx,
 @click.option('--batch_size', type=int, default=defaults['batch_size'])
 @click.option('--force_cacheinit', is_flag=True, default=False)
 @click.option('--output_path', type=click.Path(), default=defaults['results_output_path'])
+@click.option('--store_wavs', is_flag=True, default=False)
 def results(ctx,
             model_source,
             dataset_path,
@@ -114,7 +111,8 @@ def results(ctx,
             frag_win_length,
             batch_size,
             force_cacheinit,
-            output_path):
+            output_path,
+            store_wavs):
     noise_snrs_list = [int(n) for n in noise_snrs.split(',')]
     script_results(model_source,
                    dataset_path,
@@ -129,7 +127,9 @@ def results(ctx,
                    batch_size,
                    force_cacheinit,
                    output_path,
+                   store_wavs,
                    ctx.obj['cuda_device'])
+
 
 # DENOISE
 @cli.command()

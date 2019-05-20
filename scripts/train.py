@@ -18,11 +18,12 @@ from libs.model_utils import ExtendedTensorBoard, lr_schedule_func
 from libs.data_generator import DataGenerator
 from libs.processing import pink_noise, take_file_as_noise
 from libs.processing import s_to_exp, s_to_reim, s_to_db
+from libs.rwnoises import get_rwnoises
 
 
 def train(model_source, dataset_path, 
           sr, rir_path, noise_snrs, 
-          n_fft, hop_length, win_length, frag_hop_length, frag_win_length, time_slice,
+          n_fft, hop_length, win_length, frag_hop_length, frag_win_length,
           batch_size, epochs, model_destination, logs_path, force_cacheinit, cuda_device):
     print('[t] Training model on dataset {}'.format(dataset_path))
     print('[t] Training parameters: {}'.format({
@@ -43,22 +44,23 @@ def train(model_source, dataset_path,
         filepath_list, test_size=0.2, random_state=1337)
     
     ## hyper-parameters (TODO un-hardcode some?)
+    # DS1: pink noise
+    # DS2: get a mix of 3 narrow/wide band stationary noises
+    # DS3: get a mix of ? narrow/wide band stationary and non statonary noises
+    # NOTE USE DIFFERENT INDECES FOR TESTING 
+    rwnoises = [get_rwnoises(stationary=True, narrowband=True)[0]]
+    rwnoises += get_rwnoises(stationary=True, narrowband=False)[:2]
     # noising functions
-    noise_paths = [
-    '/data/riccardo_datasets/demand/STRAFFIC/ch01.wav',
-    '/data/riccardo_datasets/demand/TMETRO/ch01.wav',
-    '/data/riccardo_datasets/demand/PCAFETER/ch01.wav',
-    '/data/riccardo_datasets/demand/PRESTO/ch01.wav',
-    ]
     noise_funcs = [
-        pink_noise,
-        #*[take_file_as_noise(f) for f in noise_paths]
+        #pink_noise,
+        *[take_file_as_noise(**rwnoise_args) for rwnoise_args in rwnoises]
     ]
     # data processing function
     exponent = 1
     slice_width = 3
+    #proc_func = s_to_exp(exponent)
     proc_func = s_to_db
-    proc_func_label = s_to_db
+    proc_func_label = proc_func
     # loss function slice
     time_slice = slice((frag_win_length - slice_width) // 2, (frag_win_length + slice_width) // 2)
     # training stop patience in epochs
@@ -69,7 +71,7 @@ def train(model_source, dataset_path,
     lr_drop_epochs = 150
     
     print('[t] Varius hyperparameters: {}'.format({
-        'noise_paths': noise_paths,
+        'rwnoises': rwnoises,
         'noise_funcs': noise_funcs,
         'exponent': exponent,
         'proc_func': proc_func,
@@ -127,7 +129,7 @@ def train(model_source, dataset_path,
         'kernel_size': [32, 11],
 #        'strides': [2, 2],
         'strides': [16, 1],
-#        'bias_initializer': 'zeros',
+#        'bias_initializer': 'ones',
         'bias_initializer': 'zeros',
         ## others
         'conv_activ_func': 'relu',
@@ -213,7 +215,7 @@ def train(model_source, dataset_path,
         ExtendedTensorBoard(
             data_generator=validation_generator,
             log_dir=osp.join('logs', '{}'.format(model.name)),
-            histogram_freq=10,
+            #histogram_freq=10,
             batch_size=batch_size,
             write_graph=True,
             write_grads=True,
