@@ -58,8 +58,9 @@ def train(model_source, dataset_path,
     # data processing function
     exponent = 1
     slice_width = 3
+    #proc_func = s_to_exp(exponent)
     proc_func = s_to_db
-    proc_func_label = s_to_db
+    proc_func_label = proc_func
     # loss function slice
     time_slice = slice((frag_win_length - slice_width) // 2, (frag_win_length + slice_width) // 2)
     # training stop patience in epochs
@@ -128,7 +129,7 @@ def train(model_source, dataset_path,
         'kernel_size': [32, 11],
 #        'strides': [2, 2],
         'strides': [16, 1],
-#        'bias_initializer': 'zeros',
+#        'bias_initializer': 'ones',
         'bias_initializer': 'zeros',
         ## others
         'conv_activ_func': 'relu',
@@ -214,7 +215,7 @@ def train(model_source, dataset_path,
         ExtendedTensorBoard(
             data_generator=validation_generator,
             log_dir=osp.join('logs', '{}'.format(model.name)),
-            histogram_freq=10,
+            #histogram_freq=10,
             batch_size=batch_size,
             write_graph=True,
             write_grads=True,
