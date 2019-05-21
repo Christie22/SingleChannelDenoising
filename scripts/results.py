@@ -118,16 +118,20 @@ def results(model_source, dataset_path,
 
     # list of filepath-noise_variation combinations
     file_noisevariation_prod = list(itertools.product(filepath_list, noise_variations))
+    # NOTE create a separate list with string repr of noise variation for pandas multiindex
+    file_noisevariation_prod_i = list(itertools.product(filepath_list, [str(x) for x in noise_variations]))
     
     # metrics dataframe vars
     df_index = pd.MultiIndex.from_tuples(
-        file_noisevariation_prod, names=['filepath', 'noise_variation'])
+        file_noisevariation_prod_i, names=['filepath', 'noise_variation'])
     df_columns = ['mse', 'sdr', 'sir', 'sar', 'stoi', 'pesq']
     df = pd.DataFrame(np.empty((len(df_index), len(df_columns))),
                       index=df_index, columns=df_columns)
 
     # generate folder structure
-    subfolder = 'model_{}'.format(model.name)
+    # TODO re-enable!
+    #subfolder = 'model_{}'.format(model.name)
+    subfolder = 'model_{}'.format('x')
     output_dir = osp.join(output_path, subfolder)
     os.makedirs(output_dir, exist_ok=True)
     # generate complete path
@@ -278,12 +282,13 @@ def results(model_source, dataset_path,
         pesq = eval_pesq(ref=x_true, deg=x_pred, sr=sr)
 
         # store metrics
-        df.loc[file_noisevariation, 'mse'] = mse
-        df.loc[file_noisevariation, 'sdr'] = sdr[0]
-        df.loc[file_noisevariation, 'sir'] = sir[0]
-        df.loc[file_noisevariation, 'sar'] = sar[0]
-        df.loc[file_noisevariation, 'stoi'] = stoi
-        df.loc[file_noisevariation, 'pesq'] = pesq
+        file_noisevariation_i = str(file_noisevariation)
+        df.loc[file_noisevariation_i, 'mse'] = mse
+        df.loc[file_noisevariation_i, 'sdr'] = sdr[0]
+        df.loc[file_noisevariation_i, 'sir'] = sir[0]
+        df.loc[file_noisevariation_i, 'sar'] = sar[0]
+        df.loc[file_noisevariation_i, 'stoi'] = stoi
+        df.loc[file_noisevariation_i, 'pesq'] = pesq
     
     # store dataframe as pickle (NOTE load with pd.read_pickle)
     df.to_pickle(output_filepath)
