@@ -63,7 +63,7 @@ def results(model_source, dataset_path,
     rwnoises += get_rwnoises(stationary=True, narrowband=False)[-2:-1]
     # noising functions
     noise_funcs = [
-        pink_noise,
+        #pink_noise,
         *[take_file_as_noise(**rwnoise_args) for rwnoise_args in rwnoises]
     ]
     # data processing function
@@ -284,7 +284,7 @@ def results(model_source, dataset_path,
         # METRIC 4: pesq
         pbar.set_description('metrics (pesq)')
         try:
-            pesq = eval_pesq(ref=x_true, deg=x_pred, sr=sr)
+            pesq = eval_pesq(ref=x_true, deg=x_pred, fs=sr)
         except Exception as e:
             print('[!] Exception: {}'.format(e))
             pesq = np.nan
