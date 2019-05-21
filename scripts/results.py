@@ -23,7 +23,6 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 
 # custom modules
 from libs.utilities import load_dataset, load_autoencoder_model, get_func_name
-from libs.model_utils import LossLayer
 from libs.data_generator import DataGenerator
 from libs.processing import pink_noise, take_file_as_noise
 from libs.processing import s_to_exp, s_to_reim, s_to_db
@@ -147,7 +146,7 @@ def results(model_source, dataset_path,
 
     # loop for filepath-noise_variation combinations
     pbar = tqdm(file_noisevariation_prod)
-    for file_index, file_noisevariation in enumerate(pbar):
+    for file_noisevariation in pbar:
         # unpack data
         filepath, noise_variation = file_noisevariation
         noise_func, snr, _ = noise_variation
@@ -240,11 +239,15 @@ def results(model_source, dataset_path,
             pbar.set_description('storing')
             # store files
             for x, type in [(x_noisy, 'x_noisy'), (x_true, 'x_true'), (x_pred, 'x_pred')]:
-                filename_wav = '{}_{}.wav'.format(file_index, type)
-                filepath_wav = osp.join(output_dir_wav, filename_wav)
+                true_filename = osp.splitext(osp.basename(filepath))[0]
+                noise_name = get_func_name(noise_func.__name__)
+                filename_wav = '{}_{}_{}.wav'.format(true_filename, noise_name, type)
+                output_dir_wav_snr = osp.join(output_dir_wav, snr)
+                os.makedirs(output_dir_wav_snr, exist_ok=True)
+                filepath_wav = osp.join(output_dir_wav_snr, filename_wav)
                 lr.output.write_wav(filepath_wav, y=x, sr=sr)
-                wav_list_entry = '{:3}: {} {}'.format(
-                    file_index, filepath, noise_variation)
+                wav_list_entry = '{}: {} {}'.format(
+                    true_filename, filepath, noise_variation)
                 wavs_list.append(wav_list_entry)
             # store descriptor
             with open(wavlist_filepath, 'w') as f:
