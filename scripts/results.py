@@ -15,6 +15,7 @@ from keras.models import load_model
 from sklearn.metrics import mean_squared_error
 from mir_eval.separation import bss_eval_sources
 from pystoi.stoi import stoi as eval_stoi
+from pypesq import pesq as eval_pesq
 
 # suppress mir_eval warnings
 import warnings
@@ -60,7 +61,7 @@ def results(model_source, dataset_path,
     # DS3: get a mix of ? narrow/wide band stationary and non statonary noises
     # NOTE USE DIFFERENT INDECES THAN TRAINING
     rwnoises = [get_rwnoises(stationary=True, narrowband=True)[-1]]
-    rwnoises += get_rwnoises(stationary=True, narrowband=False)[-3:-1]
+    rwnoises += get_rwnoises(stationary=True, narrowband=False)[-2:-1]
     # noising functions
     noise_funcs = [
         pink_noise,
@@ -112,8 +113,7 @@ def results(model_source, dataset_path,
     print('[r] Data generator parameters: {}'.format(generator_args))
 
     # load model
-    model, _ = load_autoencoder_model(
-        model_source, time_slice=time_slice)
+    model, _ = load_autoencoder_model(model_source, time_slice=time_slice)
     # print model summary
     #model.summary()
 
@@ -123,7 +123,7 @@ def results(model_source, dataset_path,
     # metrics dataframe vars
     df_index = pd.MultiIndex.from_tuples(
         file_noisevariation_prod, names=['filepath', 'noise_variation'])
-    df_columns = ['mse', 'sdr', 'sir', 'sar', 'stoi']
+    df_columns = ['mse', 'sdr', 'sir', 'sar', 'stoi', 'pesq']
     df = pd.DataFrame(np.empty((len(df_index), len(df_columns))),
                       index=df_index, columns=df_columns)
 
@@ -172,7 +172,9 @@ def results(model_source, dataset_path,
 
         # predict data
         pbar.set_description('predict')
-        s_frags_pred = model.predict(s_frags_noisy_proc)
+        # TODO re-enable!
+        # s_frags_pred = model.predict(s_frags_noisy_proc)
+        s_frags_pred = s_frags_noisy_proc
         
         # unprocess (data representation)
         pbar.set_description('un-proc')
@@ -268,13 +270,17 @@ def results(model_source, dataset_path,
         pbar.set_description('metrics (stoi)')
         stoi = eval_stoi(x=x_true, y=x_pred, fs_sig=sr, extended=False)
 
+        # METRIC 4: pesq
+        pbar.set_description('metrics (pesq)')
+        pesq = eval_pesq(ref=x_true, ge=x_pred, sr=sr)
+
         # store metrics
         df.loc[file_noisevariation, 'mse'] = mse
         df.loc[file_noisevariation, 'sdr'] = sdr[0]
         df.loc[file_noisevariation, 'sir'] = sir[0]
         df.loc[file_noisevariation, 'sar'] = sar[0]
         df.loc[file_noisevariation, 'stoi'] = stoi
-    
+        df.loc[file_noisevariation, 'pesq'] = pesq
     
     # store dataframe as pickle (NOTE load with pd.read_pickle)
     df.to_pickle(output_filepath)
