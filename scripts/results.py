@@ -244,9 +244,9 @@ def results(model_source, dataset_path,
             # store files
             for x, type in [(x_noisy, 'x_noisy'), (x_true, 'x_true'), (x_pred, 'x_pred')]:
                 true_filename = osp.splitext(osp.basename(filepath))[0]
-                noise_name = get_func_name(noise_func.__name__)
+                noise_name = get_func_name(noise_func)
                 filename_wav = '{}_{}_{}.wav'.format(true_filename, noise_name, type)
-                output_dir_wav_snr = osp.join(output_dir_wav, str(snr))
+                output_dir_wav_snr = osp.join(output_dir_wav, 'snr_{}'.format(snr))
                 os.makedirs(output_dir_wav_snr, exist_ok=True)
                 filepath_wav = osp.join(output_dir_wav_snr, filename_wav)
                 lr.output.write_wav(filepath_wav, y=x, sr=sr)
@@ -275,11 +275,19 @@ def results(model_source, dataset_path,
 
         # METRIC 3: stoi
         pbar.set_description('metrics (stoi)')
-        stoi = eval_stoi(x=x_true, y=x_pred, fs_sig=sr, extended=False)
+        try:
+            stoi = eval_stoi(x=x_true, y=x_pred, fs_sig=sr, extended=False)
+        except Exception as e:
+            print('[!] Exception: {}'.format(e))
+            stoi = np.nan
 
         # METRIC 4: pesq
         pbar.set_description('metrics (pesq)')
-        pesq = eval_pesq(ref=x_true, deg=x_pred, sr=sr)
+        try:
+            pesq = eval_pesq(ref=x_true, deg=x_pred, sr=sr)
+        except Exception as e:
+            print('[!] Exception: {}'.format(e))
+            pesq = np.nan
 
         # store metrics
         file_noisevariation_i = str(file_noisevariation)
@@ -290,8 +298,8 @@ def results(model_source, dataset_path,
         df.loc[file_noisevariation_i, 'stoi'] = stoi
         df.loc[file_noisevariation_i, 'pesq'] = pesq
     
-    # store dataframe as pickle (NOTE load with pd.read_pickle)
-    df.to_pickle(output_filepath)
+        # store dataframe as pickle at each iteration :D (NOTE load with pd.read_pickle)
+        df.to_pickle(output_filepath)
 
     print('[r] Results stored in {}'.format(output_filepath))
     print(df)
