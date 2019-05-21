@@ -64,7 +64,7 @@ def results(model_source, dataset_path,
     # noising functions
     noise_funcs = [
         pink_noise,
-        #*[take_file_as_noise(**rwnoise_args) for rwnoise_args in rwnoises]
+        *[take_file_as_noise(**rwnoise_args) for rwnoise_args in rwnoises]
     ]
     # data processing function
     exponent = 1
@@ -74,7 +74,7 @@ def results(model_source, dataset_path,
     # loss function slice
     time_slice = slice((frag_win_length - slice_width) // 2,
                        (frag_win_length + slice_width) // 2)
-    print('[t] Varius hyperparameters: {}'.format({
+    print('[r] Varius hyperparameters: {}'.format({
         'rwnoises': rwnoises,
         'noise_funcs': noise_funcs,
         'exponent': exponent,
@@ -112,7 +112,7 @@ def results(model_source, dataset_path,
     print('[r] Data generator parameters: {}'.format(generator_args))
 
     # load model
-    model, _ = load_autoencoder_model(model_source, time_slice=time_slice)
+    #model, _ = load_autoencoder_model(model_source, time_slice=time_slice)
     # print model summary
     #model.summary()
 
@@ -242,7 +242,7 @@ def results(model_source, dataset_path,
                 true_filename = osp.splitext(osp.basename(filepath))[0]
                 noise_name = get_func_name(noise_func.__name__)
                 filename_wav = '{}_{}_{}.wav'.format(true_filename, noise_name, type)
-                output_dir_wav_snr = osp.join(output_dir_wav, snr)
+                output_dir_wav_snr = osp.join(output_dir_wav, str(snr))
                 os.makedirs(output_dir_wav_snr, exist_ok=True)
                 filepath_wav = osp.join(output_dir_wav_snr, filename_wav)
                 lr.output.write_wav(filepath_wav, y=x, sr=sr)
@@ -275,7 +275,7 @@ def results(model_source, dataset_path,
 
         # METRIC 4: pesq
         pbar.set_description('metrics (pesq)')
-        pesq = eval_pesq(ref=x_true, ge=x_pred, sr=sr)
+        pesq = eval_pesq(ref=x_true, deg=x_pred, sr=sr)
 
         # store metrics
         df.loc[file_noisevariation, 'mse'] = mse
