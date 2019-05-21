@@ -58,9 +58,13 @@ def results(model_source, dataset_path,
     # DS1: pink noise
     # DS2: get a mix of ? narrow/wide band stationary noises
     # DS3: get a mix of ? narrow/wide band stationary and non statonary noises
-    # NOTE USE DIFFERENT INDECES THAN TRAINING
-    rwnoises = [get_rwnoises(stationary=True, narrowband=True)[-1]]
-    rwnoises += get_rwnoises(stationary=True, narrowband=False)[-2:-1]
+    # NOTE currently loaded with DS2
+    rwnoises = [
+        get_rwnoises(stationary=True, narrowband=True)[0],
+        get_rwnoises(stationary=True, narrowband=True)[-1],
+        get_rwnoises(stationary=True, narrowband=False)[0],
+        get_rwnoises(stationary=True, narrowband=False)[-1]
+    ]
     # noising functions
     noise_funcs = [
         #pink_noise,
