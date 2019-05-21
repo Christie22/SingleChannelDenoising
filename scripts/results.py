@@ -159,7 +159,7 @@ def results(model_source, dataset_path,
 
         # load speech 
         pbar.set_description('loading')
-        x, _ = lr.load(filepath, sr=sr)
+        x, _ = lr.load(filepath, sr=sr, offset=100, duration=100)
         # apply noise
         pbar.set_description('noising')
         x_noisy = noise_func(x=x, sr=sr, snr=snr)
@@ -284,13 +284,19 @@ def results(model_source, dataset_path,
         # METRIC 4: pesq
         pbar.set_description('metrics (pesq)')
         try:
-            pesq = eval_pesq(ref=x_true, deg=x_pred, fs=sr)
+            # NOTE in order to avoid overflow errors, calculate in blocks
+            blocksize = sr*30
+            pesqs = np.empty((len(x_true) // blocksize))
+            for i in range(len(pesqs)):
+                sl = slice(i*blocksize, (i+1)*blocksize)
+                pesqs[i] = eval_pesq(ref=x_true[sl], deg=x_pred[sl], fs=sr)
+                pesq = pesqs.mean()
         except Exception as e:
             print('[!] Exception: {}'.format(e))
             pesq = np.nan
 
         # store metrics
-        file_noisevariation_i = str(file_noisevariation)
+        file_noisevariation_i = (filepath, str(noise_variation))
         df.loc[file_noisevariation_i, 'mse'] = mse
         df.loc[file_noisevariation_i, 'sdr'] = sdr[0]
         df.loc[file_noisevariation_i, 'sir'] = sir[0]
