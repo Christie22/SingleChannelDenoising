@@ -11,7 +11,7 @@
                 "kernel_size": {{kernel_size}},
                 "padding": "same",
                 "strides": {{strides}},
-                "bias_initializer": {{bias_initializer}}
+                "bias_initializer": "{{bias_initializer}}"
             }
         },{
             "layer_type": "batchnorm",
@@ -19,7 +19,7 @@
         },{
             "layer_type": "activation",
             "layer_args": {
-                "activation": {{conv_activ_func}}
+                "activation": "{{conv_activ_func}}"
             }
         },{
             "layer_type": "permute",
@@ -36,23 +36,12 @@
             "layer_args": {
                 "nb_filters": {{n_filters}},
                 "dropout_rate": {{dropout_rate}},
-                "kernel_size": {{kernel_size}},
+                "kernel_size": {{kernel_size_tcn}},
                 "dilations": {{dilations}},
                 "nb_stacks": {{n_stacks}},
                 "use_skip_connections": {{use_skip_connections}},
                 "return_sequences": {{return_sequences}}
                 	}
-         }, {
-              "layer_type": "tcn",
-              "layer_args": {
-                  "nb_filters": {{n_filters}},
-                  "dropout_rate": {{dropout_rate}},
-                  "kernel_size": {{kernel_size}},
-                  "dilations": {{dilations}},
-                  "nb_stacks": {{n_stacks}},
-                  "use_skip_connections": {{use_skip_connections}},
-                  "return_sequences": {{return_sequences}}
-                }
          },{
              "layer_type": "dense",
              "layer_args": {

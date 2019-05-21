@@ -129,8 +129,8 @@ def train(model_source, dataset_path,
         'kernel_size': [32, 11],
 #        'strides': [2, 2],
         'strides': [16, 1],
-#        'bias_initializer': 'ones',
-        'bias_initializer': 'zeros',
+        'bias_initializer': 'ones',
+#        'bias_initializer': 'zeros',
         ## others
         'conv_activ_func': 'relu',
         'channels': int(input_shape[2]),
@@ -138,8 +138,10 @@ def train(model_source, dataset_path,
 
         # conv ae
         'filters1': 256,
-        'filters2': 128,
+        'filters2': 64,
         'filters3': 16,
+        'strides_ae': [2, 2],
+        'kernel_size_ae': [3, 3], 
 
         # conv-recurrent 
         'n_filters': 256,
@@ -150,8 +152,9 @@ def train(model_source, dataset_path,
         'n_recurrent': 512,
         ## conv tcn
         'use_skip_connections': str(True).lower(),
-        'dilations': [1, 2],
-        'n_stacks': 8,
+        'dilations': [1, 2, 4, 8],
+        'n_stacks': 2,
+        'kernel_size_tcn': 3,
     }
     print('[t] Model template arguments: {}'.format(model_template_args))
 

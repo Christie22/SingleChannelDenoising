@@ -11,10 +11,10 @@
             "layer_type": "conv2d",
             "layer_args": {
                 "filters": {{filters1}}, 
-                "kernel_size": {{kernel_size}},
+                "kernel_size": {{kernel_size_ae}},
                 "padding": "same",
-                "strides": {{strides}},
-                "bias_initializer": "{{bias_initializers}}"
+                "strides": {{strides_ae}},
+                "bias_initializer": "{{bias_initializer}}"
             }
         },{
             "layer_type": "batchnorm",
@@ -30,10 +30,10 @@
             "layer_type": "conv2d",
             "layer_args": {
                 "filters": {{filters2}}, 
-                "kernel_size": 3,
+                "kernel_size": {{kernel_size_ae}},
                 "padding": "same",
-                "strides": {{strides}},
-                "bias_initializer": "{{bias_initializers}}"
+                "strides": {{strides_ae}},
+                "bias_initializer": "{{bias_initializer}}"
             }
         },{
             "layer_type": "batchnorm",
@@ -51,8 +51,8 @@
                 "filters": {{filters3}}, 
                 "kernel_size": {{kernel_size}},
                 "padding": "same",
-                "strides": {{strides}},
-                "bias_initializer": "{{bias_initializers}}"
+                "strides": {{strides_ae}},
+                "bias_initializer": "{{bias_initializer}}"
             }
         },{
             "layer_type": "batchnorm",
@@ -67,11 +67,11 @@
         {
             "layer_type": "conv2dt",
             "layer_args": {
-                "filters": {{filters3}}, , 
-                "kernel_size": {{kernel_size}},
+                "filters": {{filters3}}, 
+                "kernel_size": {{kernel_size_ae}},
                 "padding": "same",
-                "strides": {{strides}},
-                "bias_initializer": "{{bias_initializers}}"
+                "strides": {{strides_ae}},
+                "bias_initializer": "{{bias_initializer}}"
             }
         },{
             "layer_type": "batchnorm",
@@ -86,11 +86,11 @@
         {
             "layer_type": "conv2dt",
             "layer_args": {
-                "filters": {{filters2}}, , 
-                "kernel_size": {{kernel_size}},
+                "filters": {{filters2}}, 
+                "kernel_size": {{kernel_size_ae}},
                 "padding": "same",
-                "strides": {{strides}},
-                "bias_initializer": "{{bias_initializers}}"
+                "strides": {{strides_ae}},
+                "bias_initializer": "{{bias_initializer}}"
             }
         },{
             "layer_type": "batchnorm",
@@ -105,11 +105,11 @@
         {
             "layer_type": "conv2dt",
             "layer_args": {
-                "filters": {{filters1}}, , 
-                "kernel_size": {{kernel_size}},
+                "filters": {{filters1}}, 
+                "kernel_size": {{kernel_size_ae}},
                 "padding": "same",
-                "strides": {{strides}},
-                "bias_initializer": "{{bias_initializers}}"
+                "strides": {{strides_ae}},
+                "bias_initializer": "{{bias_initializer}}"
             }
         },{
             "layer_type": "batchnorm",
@@ -128,7 +128,7 @@
                 "kernel_size": 3,
                 "padding": "same",
                 "strides": 1,
-                "bias_initializer": "{{bias_initializers}}"
+                "bias_initializer": "{{bias_initializer}}"
             }
         }
     ]
