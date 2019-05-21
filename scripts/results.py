@@ -67,8 +67,8 @@ def results(model_source, dataset_path,
     ]
     # noising functions
     noise_funcs = [
-        #pink_noise,
-        *[take_file_as_noise(**rwnoise_args) for rwnoise_args in rwnoises]
+        pink_noise,
+        #*[take_file_as_noise(**rwnoise_args) for rwnoise_args in rwnoises]
     ]
     # data processing function
     exponent = 1
@@ -116,7 +116,7 @@ def results(model_source, dataset_path,
     print('[r] Data generator parameters: {}'.format(generator_args))
 
     # load model
-    #model, _ = load_autoencoder_model(model_source, time_slice=time_slice)
+    model, _ = load_autoencoder_model(model_source, time_slice=time_slice)
     # print model summary
     #model.summary()
 
@@ -133,9 +133,7 @@ def results(model_source, dataset_path,
                       index=df_index, columns=df_columns)
 
     # generate folder structure
-    # TODO re-enable!
-    #subfolder = 'model_{}'.format(model.name)
-    subfolder = 'model_{}'.format('x')
+    subfolder = 'model_{}'.format(model.name)
     output_dir = osp.join(output_path, subfolder)
     os.makedirs(output_dir, exist_ok=True)
     # generate complete path
@@ -179,9 +177,7 @@ def results(model_source, dataset_path,
 
         # predict data
         pbar.set_description('predict')
-        # TODO re-enable!
-        # s_frags_pred = model.predict(s_frags_noisy_proc)
-        s_frags_pred = s_frags_noisy_proc
+        s_frags_pred = model.predict(s_frags_noisy_proc)
         
         # unprocess (data representation)
         pbar.set_description('un-proc')
