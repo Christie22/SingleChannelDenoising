@@ -67,8 +67,8 @@ def results(model_source, dataset_path,
     ]
     # noising functions
     noise_funcs = [
-        pink_noise,
-        #*[take_file_as_noise(**rwnoise_args) for rwnoise_args in rwnoises]
+        #pink_noise,
+        *[take_file_as_noise(**rwnoise_args) for rwnoise_args in rwnoises]
     ]
     # data processing function
     exponent = 1
