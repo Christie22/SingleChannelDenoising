@@ -1,6 +1,6 @@
 {
 	"_meta": {
-			"descr": "temporal convoilutional network - 2 TCN layers",
+			"descr": "temporal convolutional network - 2 TCN layers (really this time)",
 	        "source": "https://github.com/philipperemy/keras-tcn#why-temporal-convolutional-network"
 	    },
 	    
@@ -32,6 +32,17 @@
                 "target_shape": [{{timesteps}}, -1]
             }
         }, {
+                    "layer_type": "tcn",
+                    "layer_args": {
+                        "nb_filters": {{n_filters}},
+                        "dropout_rate": {{dropout_rate}},
+                        "kernel_size": {{kernel_size_tcn}},
+                        "dilations": {{dilations}},
+                        "nb_stacks": {{n_stacks}},
+                        "use_skip_connections": {{use_skip_connections}},
+                        "return_sequences": {{return_sequences}}
+                        	}
+                 },{
             "layer_type": "tcn",
             "layer_args": {
                 "nb_filters": {{n_filters}},

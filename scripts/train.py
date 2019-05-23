@@ -152,8 +152,8 @@ def train(model_source, dataset_path,
         'n_recurrent': 512,
         ## conv tcn
         'use_skip_connections': str(True).lower(),
-        'dilations': [1, 2, 4, 8],
-        'n_stacks': 2,
+        'dilations': [1, 2],
+        'n_stacks': 8,
         'kernel_size_tcn': 3,
     }
     print('[t] Model template arguments: {}'.format(model_template_args))

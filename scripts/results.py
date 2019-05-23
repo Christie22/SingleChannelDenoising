@@ -73,8 +73,8 @@ def results(model_source, dataset_path,
     # data processing function
     exponent = 1
     slice_width = 3
-    proc_func = s_to_db #exp(exponent)
-    unproc_func = db_to_s #exp_to_s(exponent)
+    proc_func = s_to_exp(exponent)
+    unproc_func = exp_to_s(exponent)
     # loss function slice
     time_slice = slice((frag_win_length - slice_width) // 2,
                        (frag_win_length + slice_width) // 2)
