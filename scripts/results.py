@@ -73,8 +73,8 @@ def results(model_source, dataset_path,
     # data processing function
     exponent = 1
     slice_width = 3
-    proc_func = s_to_db
-    unproc_func = db_to_s
+    proc_func = s_to_db #exp(exponent)
+    unproc_func = db_to_s #exp_to_s(exponent)
     # loss function slice
     time_slice = slice((frag_win_length - slice_width) // 2,
                        (frag_win_length + slice_width) // 2)
@@ -177,11 +177,14 @@ def results(model_source, dataset_path,
 
         # predict data
         pbar.set_description('predict')
+        #print((s_frags_noisy_proc.min(), s_frags_noisy_proc.max()))
         s_frags_pred = model.predict(s_frags_noisy_proc)
+        #print((s_frags_pred.min(), s_frags_pred.max()))
         
         # unprocess (data representation)
         pbar.set_description('un-proc')
         s_frags_pred_unproc = unproc_func(s_frags_pred, s_noisy=s_frags_noisy)
+        #print((s_frags_pred_unproc.min(), s_frags_pred_unproc.max()))
         
         # handle variable names... TODO fix!
         s_noisy = s_frags_noisy
@@ -225,7 +228,8 @@ def results(model_source, dataset_path,
         s_pred = unmake_fragments_slice(
             s_pred, frag_hop_len=frag_hop_length, 
             frag_win_len=frag_win_length, time_slice=time_slice)
-
+        #print((s_pred.min(), s_pred.max()))
+        
         # trim spectrograms
         trim_slice = slice(2*frag_win_length, s_noisy.shape[1]-2*frag_win_length)
         s_noisy = s_noisy[:, trim_slice]
