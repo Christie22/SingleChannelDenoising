@@ -205,11 +205,11 @@ def train(model_source, dataset_path,
     # training callback functions
     Callbacks = [
         # conclude training if no improvement after N epochs
-        EarlyStopping(monitor='loss', patience=patience_earlystopping),
+        EarlyStopping(monitor='val_loss', patience=patience_earlystopping),
         # save model after each epoch if improved
         ModelCheckpoint(
             filepath=model_destination,
-            monitor='loss',
+            monitor='val_loss',
             save_best_only=True,
             save_weights_only=False,
             verbose=1),

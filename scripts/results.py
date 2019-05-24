@@ -58,23 +58,42 @@ def results(model_source, dataset_path,
     # DS1: pink noise
     # DS2: get a mix of ? narrow/wide band stationary noises
     # DS3: get a mix of ? narrow/wide band stationary and non statonary noises
-    # NOTE currently loaded with DS2
-    rwnoises = [
-        get_rwnoises(stationary=True, narrowband=True)[0],
-        get_rwnoises(stationary=True, narrowband=True)[-1],
-        get_rwnoises(stationary=True, narrowband=False)[0],
-        get_rwnoises(stationary=True, narrowband=False)[-1]
-    ]
-    # noising functions
-    noise_funcs = [
-        pink_noise,
-        #*[take_file_as_noise(**rwnoise_args) for rwnoise_args in rwnoises]
-    ]
+    if 'ds1' in dataset_path:
+        dsname = 'ds1'
+        rwnoises = []
+        noise_funcs = [
+            pink_noise
+        ]
+    elif 'ds2' in dataset_path:
+        dsname = 'ds2'
+        rwnoises = [
+            get_rwnoises(stationary=True, narrowband=True)[0],
+            get_rwnoises(stationary=True, narrowband=True)[-1],
+            get_rwnoises(stationary=True, narrowband=False)[0],
+            get_rwnoises(stationary=True, narrowband=False)[-1]
+        ]
+        # noising functions
+        noise_funcs = [
+            *[take_file_as_noise(**rwnoise_args) for rwnoise_args in rwnoises]
+        ]
+    elif 'ds3' in dataset_path:
+        dsname = 'ds3'
+        rwnoises = [
+            get_rwnoises(stationary=True, narrowband=True)[0],
+            get_rwnoises(stationary=True, narrowband=True)[-1],
+            get_rwnoises(stationary=True, narrowband=False)[0],
+            get_rwnoises(stationary=True, narrowband=False)[-1]
+        ]
+        # noising functions
+        noise_funcs = [
+            *[take_file_as_noise(**rwnoise_args) for rwnoise_args in rwnoises]
+        ]
+        
     # data processing function
     exponent = 1
     slice_width = 3
-    proc_func = s_to_db
-    unproc_func = db_to_s
+    proc_func = s_to_exp(exponent) if ('mag' in model_source) else s_to_db
+    unproc_func = exp_to_s(exponent) if ('mag' in model_source) else db_to_s
     # loss function slice
     time_slice = slice((frag_win_length - slice_width) // 2,
                        (frag_win_length + slice_width) // 2)
@@ -123,7 +142,8 @@ def results(model_source, dataset_path,
     # list of filepath-noise_variation combinations
     file_noisevariation_prod = list(itertools.product(filepath_list, noise_variations))
     # NOTE create a separate list with string repr of noise variation for pandas multiindex
-    file_noisevariation_prod_i = list(itertools.product(filepath_list, [str(x) for x in noise_variations]))
+    noisevariation_names = [(get_func_name(f), snr) for f,snr,_ in noise_variations]
+    file_noisevariation_prod_i = list(itertools.product(filepath_list, [str(x) for x in noisevariation_names]))
     
     # metrics dataframe vars
     df_index = pd.MultiIndex.from_tuples(
@@ -133,7 +153,7 @@ def results(model_source, dataset_path,
                       index=df_index, columns=df_columns)
 
     # generate folder structure
-    subfolder = 'model_{}'.format(model.name)
+    subfolder = '{}_model_{}_{}'.format(dsname, model.name, get_func_name(proc_func))
     output_dir = osp.join(output_path, subfolder)
     os.makedirs(output_dir, exist_ok=True)
     # generate complete path
@@ -296,7 +316,8 @@ def results(model_source, dataset_path,
             pesq = np.nan
 
         # store metrics
-        file_noisevariation_i = (filepath, str(noise_variation))
+        noise_variation_name = str((get_func_name(noise_variation[0]), noise_variation[1]))
+        file_noisevariation_i = (filepath, str(noise_variation_name))
         df.loc[file_noisevariation_i, 'mse'] = mse
         df.loc[file_noisevariation_i, 'sdr'] = sdr[0]
         df.loc[file_noisevariation_i, 'sir'] = sir[0]
