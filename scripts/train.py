@@ -46,10 +46,12 @@ def train(model_source, dataset_path,
     ## hyper-parameters (TODO un-hardcode some?)
     # DS1: pink noise
     # DS2: get a mix of 3 narrow/wide band stationary noises
-    # DS3: get a mix of ? narrow/wide band stationary and non statonary noises
+    # DS3: get a mix of 4 narrow/wide band stationary and non statonary noises
     # NOTE USE DIFFERENT INDECES FOR TESTING 
     rwnoises = [get_rwnoises(stationary=True, narrowband=True)[0]]
-    rwnoises += get_rwnoises(stationary=True, narrowband=False)[:2]
+    rwnoises += get_rwnoises(stationary=True, narrowband=False)[0]
+    rwnoises += get_rwnoises(stationary=False, narrowband=True)[0]
+    rwnoises += get_rwnoises(stationary=False, narrowband=False)[0]
     # noising functions
     noise_funcs = [
         #pink_noise,
@@ -205,11 +207,11 @@ def train(model_source, dataset_path,
     # training callback functions
     Callbacks = [
         # conclude training if no improvement after N epochs
-        EarlyStopping(monitor='loss', patience=patience_earlystopping),
+        EarlyStopping(monitor='val_loss', patience=patience_earlystopping),
         # save model after each epoch if improved
         ModelCheckpoint(
             filepath=model_destination,
-            monitor='loss',
+            monitor='val_loss',
             save_best_only=True,
             save_weights_only=False,
             verbose=1),
