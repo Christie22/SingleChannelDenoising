@@ -49,9 +49,9 @@ def train(model_source, dataset_path,
     # DS3: get a mix of 4 narrow/wide band stationary and non statonary noises
     # NOTE USE DIFFERENT INDECES FOR TESTING 
     rwnoises = [get_rwnoises(stationary=True, narrowband=True)[0]]
-    rwnoises += get_rwnoises(stationary=True, narrowband=False)[0]
-    rwnoises += get_rwnoises(stationary=False, narrowband=True)[0]
-    rwnoises += get_rwnoises(stationary=False, narrowband=False)[0]
+    rwnoises += [get_rwnoises(stationary=True, narrowband=False)[0]]
+    rwnoises += [get_rwnoises(stationary=False, narrowband=True)[0]]
+    rwnoises += [get_rwnoises(stationary=False, narrowband=False)[0]]
     # noising functions
     noise_funcs = [
         #pink_noise,
